@@ -1,0 +1,61 @@
+package de.CodingAir.v1_6.CodingAPI.CustomEntity;
+
+public enum EntityID {
+	ELDER_GUARDIAN(4),
+	WITHER_SKELETON(5),
+	STRAY(6),
+	HUSK(23),
+	ZOMBIE_VILLAGER(23),
+	EVOKER(34),
+	VEX(35),
+	VINDICATOR(36),
+	CREEPER(50),
+	SKELETON(51),
+	SPIDER(52),
+	GIANT(53),
+	ZOMBIE(54),
+	SLIME(55),
+	GHAST(56),
+	ZOMBIE_PIGMAN(57),
+	ENDERMAN(85),
+	CAVE_SPIDER(59),
+	SILVERFISH(60),
+	BLAZE(61),
+	MAGMA_CUBE(62),
+	ENDER_DRAGON(63),
+	WITHER(64),
+	WITCH(66),
+	ENDERMITE(67),
+	GUARIAN(68),
+	SHULKER(69),
+	SKELETON_HORSE(28),
+	ZOMBIE_HORSE(29),
+	DONKEY(31),
+	MULE(32),
+	BAT(65),
+	PIG(90),
+	SHEEP(91),
+	COW(92),
+	CHICKEN(93),
+	SQUID(94),
+	WOLF(95),
+	MOOSHROOM(96),
+	SNOW_GOLEM(97),
+	OCELOT(98),
+	IRON_GOLEM(99),
+	HORSE(100),
+	RABBIT(101),
+	POLAR_BEAR(102),
+	LLAMA(103),
+	VILLAGER(120);
+	
+	private int id;
+	
+	EntityID(int id) {
+		this.id = id;
+	}
+	
+	public int getID() {
+		return id;
+	}
+}
