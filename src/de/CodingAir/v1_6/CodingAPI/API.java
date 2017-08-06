@@ -33,7 +33,7 @@ public class API {
 	private static boolean editing = false;
 	
 	private static API instance;
-	public static final String VERSION = "1.6";
+	public static final String VERSION = "v1.6";
 	
 	private Plugin plugin;
 	private List<PlayerData> dataList = new ArrayList<>();
