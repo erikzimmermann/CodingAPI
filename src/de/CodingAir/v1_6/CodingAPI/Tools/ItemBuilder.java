@@ -5,6 +5,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.material.MaterialData;
@@ -29,13 +30,37 @@ public class ItemBuilder {
 	private DyeColor color = null;
 	
 	private List<String> lore = null;
-	private HashMap<Enchantment, Integer> enchantments = null;
+	private Map<Enchantment, Integer> enchantments = null;
 	private boolean hideStandardLore = false;
 	private boolean hideEnchantments = false;
 	private boolean hideName = false;
-	
+
+	public ItemBuilder() {
+	}
+
 	public ItemBuilder(Material type) {
 		this.type = type;
+	}
+
+	public ItemBuilder(ItemStack item) {
+		this.name = item.getItemMeta().getDisplayName();
+		this.type = item.getType();
+		this.data = item.getData().getData();
+		this.amount = item.getAmount();
+
+		this.enchantments = item.getEnchantments();
+
+		if(item.hasItemMeta()) {
+            try {
+                LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
+                this.color = DyeColor.getByColor(meta.getColor());
+            } catch (Exception ignored) {}
+
+            if(item.getItemMeta().hasLore()) lore = item.getItemMeta().getLore();
+            this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
+            this.hideStandardLore = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ATTRIBUTES);
+            if(item.getItemMeta().getDisplayName() != null) this.hideName = item.getItemMeta().getDisplayName().equals("§0");
+        }
 	}
 	
 	public org.bukkit.inventory.ItemStack getItem() {
@@ -67,7 +92,7 @@ public class ItemBuilder {
 		if(hideName) meta.setDisplayName("§0");
 		if(hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		if(hideStandardLore) meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-		
+
 		item.setItemMeta(meta);
 		return item;
 	}
@@ -113,7 +138,7 @@ public class ItemBuilder {
 		if(code == null) return null;
 		
 		try {
-			ItemBuilder item = new ItemBuilder(null);
+			ItemBuilder item = new ItemBuilder();
 			JSONParser parser = new JSONParser();
 			JSONObject jsonObject = (JSONObject) parser.parse(code);
 			
@@ -304,7 +329,7 @@ public class ItemBuilder {
 		return setLore(Arrays.asList(lore));
 	}
 	
-	public HashMap<Enchantment, Integer> getEnchantments() {
+	public Map<Enchantment, Integer> getEnchantments() {
 		return enchantments;
 	}
 	
