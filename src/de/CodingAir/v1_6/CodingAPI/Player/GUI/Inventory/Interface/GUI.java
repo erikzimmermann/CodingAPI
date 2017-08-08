@@ -18,7 +18,7 @@ import java.util.UUID;
  * @verions: 1.0.0
  **/
 
-public class GUI extends Interface implements Removable {
+public abstract class GUI extends Interface implements Removable {
 	private UUID uniqueId = UUID.randomUUID();
 	private Plugin plugin;
 	private Player player;
@@ -78,9 +78,7 @@ public class GUI extends Interface implements Removable {
 		close();
 	}
 	
-	public void initialize(Player p) {
-		p.sendMessage("Error - This GUI was not initialized!");
-	}
+	public abstract void initialize(Player p);
 	
 	public void onClose(Player p) { }
 	public void onOpen(Player p) { }

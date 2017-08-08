@@ -1,6 +1,6 @@
 package de.CodingAir.v1_6.CodingAPI.Game;
 
-import de.CodingAir.v1_6.CodingAPI.BungeeCord.BungeeCord;
+import de.CodingAir.v1_6.CodingAPI.BungeeCord.BungeeCordHelper;
 import de.CodingAir.v1_6.CodingAPI.Game.GUI.TeamVoting;
 import de.CodingAir.v1_6.CodingAPI.Game.Lobby.Lobby;
 import de.CodingAir.v1_6.CodingAPI.Game.Lobby.LobbyListener;
@@ -231,7 +231,7 @@ public abstract class Game {
 							p.showPlayer(other);
 						}
 						
-						BungeeCord.connect(p, fallbackServer, plugin);
+						BungeeCordHelper.connect(p, fallbackServer, plugin);
 					}
 				} else {
 					for(Player p : players) {
