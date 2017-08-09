@@ -2,9 +2,9 @@ package de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface;
 
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.GUIListener;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.ItemButton.ItemButton;
-import de.CodingAir.v1_6.CodingAPI.Tools.OldItemBuilder;
 import de.CodingAir.v1_6.CodingAPI.Server.Reflections.IReflection;
 import de.CodingAir.v1_6.CodingAPI.Server.Reflections.PacketUtils;
+import de.CodingAir.v1_6.CodingAPI.Tools.OldItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -36,6 +36,8 @@ import java.util.ListIterator;
  */
 
 public class Interface {
+	public static final List<Interface> interfaces = new ArrayList<>();
+
 	private Inventory inventory;
 	private List<InterfaceListener> listener = new ArrayList<>();
 	private HashMap<Integer, ItemButton> buttons = new HashMap<>();
@@ -44,7 +46,8 @@ public class Interface {
 	private String wrappersName = null;
 	private boolean editableItems = true;
 	private String title;
-	
+	public boolean oldUsage = true;
+
 	/**
 	 * @param owner  (InventoryHolder) (can be null)
 	 * @param title  (String)          (title)
@@ -57,7 +60,7 @@ public class Interface {
 	public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
 		this.inventory = Bukkit.createInventory(owner, size, title);
 		if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
-		
+
 		this.title = title;
 	}
 	
@@ -303,6 +306,8 @@ public class Interface {
 		this.currentPlayers.add(p);
 		p.openInventory(this.inventory);
 		setTitle(this.title);
+
+		if(oldUsage) interfaces.add(this);
 	}
 	
 	public void close(Player p) {
@@ -319,6 +324,7 @@ public class Interface {
 		
 		this.currentPlayers = current;
 		p.closeInventory();
+		if(oldUsage) interfaces.remove(this);
 	}
 	
 	public boolean isUsing(Player p) {

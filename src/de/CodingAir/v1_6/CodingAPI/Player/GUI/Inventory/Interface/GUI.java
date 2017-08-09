@@ -29,8 +29,11 @@ public abstract class GUI extends Interface implements Removable {
 	
 	public GUI(Player p, String title, int size, Plugin plugin, boolean preInitialize) {
 		super(p, title, size, plugin);
+		oldUsage = false;
+
 		super.setEditableItems(false);
-		
+
+		this.plugin = plugin;
 		this.player = p;
 		
 		super.addListener(new InterfaceListener() {
@@ -118,12 +121,24 @@ public abstract class GUI extends Interface implements Removable {
 	public Plugin getPlugin() {
 		return plugin;
 	}
-	
+
 	public static GUI getGUI(Player p) {
 		return API.getRemovable(p, GUI.class);
 	}
-	
+
+	public static Interface getOldGUI(Player p) {
+		for (Interface i : Interface.interfaces) {
+			if(i.isUsing(p)) return i;
+		}
+
+		return null;
+	}
+
 	public static boolean usesGUI(Player p) {
 		return getGUI(p) != null;
+	}
+
+	public static boolean usesOldGUI(Player p) {
+		return getOldGUI(p) != null;
 	}
 }

@@ -4,6 +4,7 @@ import de.CodingAir.v1_6.CodingAPI.API;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.HoveredItems.HoveredItem;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.HoveredItems.ItemGUI;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.GUI;
+import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.Interface;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.InterfaceListener;
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.ItemButton.ItemButton;
 import org.bukkit.Bukkit;
@@ -112,9 +113,10 @@ public class GUIListener implements Listener {
 	
 	@EventHandler
 	public void onInvClickEvent(InventoryClickEvent e) {
-		if(e.getInventory() == null || !GUI.usesGUI((Player) e.getWhoClicked())) return;
-		
-		GUI inv = GUI.getGUI((Player) e.getWhoClicked());
+		if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked()))) return;
+		Player p = (Player) e.getWhoClicked();
+
+		Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 		
 		if(e.getInventory().getName().equals(inv.getInventory().getName())) {
 			e.setCancelled(!inv.isEditableItems());
@@ -148,9 +150,10 @@ public class GUIListener implements Listener {
 	
 	@EventHandler
 	public void onInvCloseEvent(InventoryCloseEvent e) {
-		if(e.getInventory() == null || !GUI.usesGUI((Player) e.getPlayer())) return;
-		
-		GUI inv = GUI.getGUI((Player) e.getPlayer());
+		if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer()))) return;
+		Player p = (Player) e.getPlayer();
+
+		Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 		
 		if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getPlayer())) {
 			inv.close((Player) e.getPlayer());
@@ -162,9 +165,10 @@ public class GUIListener implements Listener {
 	
 	@EventHandler
 	public void onInvOpenEvent(InventoryOpenEvent e) {
-		if(e.getInventory() == null || !GUI.usesGUI((Player) e.getPlayer())) return;
-		
-		GUI inv = GUI.getGUI((Player) e.getPlayer());
+		if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer()))) return;
+		Player p = (Player) e.getPlayer();
+
+		Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 		
 		if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getPlayer())) {
 			for(InterfaceListener l : inv.getListener()) {
@@ -175,9 +179,10 @@ public class GUIListener implements Listener {
 	
 	@EventHandler
 	public void onInvDragEvent(InventoryDragEvent e) {
-		if(e.getInventory() == null || !GUI.usesGUI((Player) e.getWhoClicked())) return;
-		
-		GUI inv = GUI.getGUI((Player) e.getWhoClicked());
+		if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked()))) return;
+		Player p = (Player) e.getWhoClicked();
+
+		Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 		
 		if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getWhoClicked())) {
 			e.setCancelled(!inv.isEditableItems());
