@@ -34,9 +34,14 @@ public class AnvilGUI implements Removable {
 	private Player player;
 	private AnvilListener listener;
 	private HashMap<AnvilSlot, ItemStack> items = new HashMap<>();
+
+	private String submittedText = null;
+	private boolean submitted = false;
 	
 	private Listener bukkitListener;
 	private Inventory inv;
+
+	private boolean isClosing = false;
 	
 	public AnvilGUI(Plugin plugin, Player player, AnvilListener listener) {
 		this.plugin = plugin;
@@ -81,23 +86,29 @@ public class AnvilGUI implements Removable {
 						int slot = e.getRawSlot();
 						
 						AnvilClickEvent clickEvent = new AnvilClickEvent(p, AnvilSlot.bySlot(slot), item, AnvilGUI.this);
-						
+
 						if(listener != null) listener.onClick(clickEvent);
 						Bukkit.getPluginManager().callEvent(clickEvent);
+
+                        if(clickEvent.getSlot().equals(AnvilSlot.OUTPUT)) {
+                            submitted = true;
+                            submittedText = clickEvent.getInput();
+                        }
 						
 						e.setCancelled(clickEvent.isCancelled());
 						
 						if(clickEvent.getWillClose()) {
 							
-							AnvilCloseEvent anvilCloseEvent = new AnvilCloseEvent(player, AnvilGUI.this);
+							AnvilCloseEvent anvilCloseEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
 							
 							Bukkit.getPluginManager().callEvent(anvilCloseEvent);
 							if(listener != null) listener.onClose(anvilCloseEvent);
 							
 							if(!anvilCloseEvent.isCancelled()) {
-								p.closeInventory();
+							    isClosing = true;
 								inv.clear();
 								remove();
+								p.closeInventory();
 							}
 							
 							if(anvilCloseEvent.getPost() != null) anvilCloseEvent.getPost().run();
@@ -114,7 +125,7 @@ public class AnvilGUI implements Removable {
 			public void onInventoryClose(InventoryCloseEvent e) {
 				if(e.getPlayer() instanceof Player) {
 					
-					if(e.getInventory().equals(inv)) {
+					if(e.getInventory().equals(inv) && !isClosing) {
 						
 						AnvilCloseEvent anvilCloseEvent = new AnvilCloseEvent(player, AnvilGUI.this);
 						

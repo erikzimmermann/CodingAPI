@@ -16,9 +16,14 @@ public abstract class ItemButton {
 	public ItemButton(ItemStack item) {
 		this.item = item;
 	}
-	
+
 	public ItemButton(int slot, ItemStack item) {
 		this.slot = slot;
+		this.item = item;
+	}
+
+	public ItemButton(int x, int y, ItemStack item) {
+		this.slot = x + y * 9;
 		this.item = item;
 	}
 	

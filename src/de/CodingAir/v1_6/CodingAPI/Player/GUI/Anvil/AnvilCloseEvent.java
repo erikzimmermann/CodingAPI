@@ -16,12 +16,22 @@ public class AnvilCloseEvent extends Event {
 	public static HandlerList handlers = new HandlerList();
 	private boolean cancelled = false;
 	private Runnable post = null;
-	
+
+	private String submittedText;
+	private boolean submitted;
+
 	private AnvilGUI anvil;
-	
+
 	public AnvilCloseEvent(Player player, AnvilGUI anvil) {
 		this.player = player;
 		this.anvil = anvil;
+	}
+
+	public AnvilCloseEvent(Player player, AnvilGUI anvil, boolean submitted, String submittedText) {
+		this.player = player;
+		this.anvil = anvil;
+		this.submitted = submitted;
+		this.submittedText = submittedText;
 	}
 	
 	@Override
@@ -55,5 +65,13 @@ public class AnvilCloseEvent extends Event {
 	
 	public void setPost(Runnable post) {
 		this.post = post;
+	}
+
+	public boolean isSubmitted() {
+		return submitted;
+	}
+
+	public String getSubmittedText() {
+		return submittedText;
 	}
 }

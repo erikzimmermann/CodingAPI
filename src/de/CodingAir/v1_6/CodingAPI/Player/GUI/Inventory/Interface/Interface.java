@@ -46,7 +46,7 @@ public class Interface {
 	private String wrappersName = null;
 	private boolean editableItems = true;
 	private String title;
-	public boolean oldUsage = true;
+	boolean oldUsage = true;
 
 	/**
 	 * @param owner  (InventoryHolder) (can be null)
@@ -304,10 +304,10 @@ public class Interface {
 	
 	public void open(Player p) {
 		this.currentPlayers.add(p);
-		p.openInventory(this.inventory);
 		setTitle(this.title);
-
 		if(oldUsage) interfaces.add(this);
+
+		p.openInventory(this.inventory);
 	}
 	
 	public void close(Player p) {
@@ -323,8 +323,9 @@ public class Interface {
 		current.remove(o);
 		
 		this.currentPlayers = current;
-		p.closeInventory();
 		if(oldUsage) interfaces.remove(this);
+
+		p.closeInventory();
 	}
 	
 	public boolean isUsing(Player p) {
@@ -618,9 +619,15 @@ public class Interface {
 		this.inventory.setContents(arg0);
 		
 	}
-	
+
 	public void setItem(int arg0, ItemStack arg1) {
 		this.inventory.setItem(arg0, arg1);
+	}
+
+	public void setItem(int x, int y, ItemStack arg1) {
+		int slot = x + 9 * y;
+
+		this.inventory.setItem(slot, arg1);
 	}
 	
 	public void setMaxStackSize(int arg0) {

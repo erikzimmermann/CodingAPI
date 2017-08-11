@@ -1,5 +1,7 @@
 package de.CodingAir.v1_6.CodingAPI.Server;
 
+import org.bukkit.entity.Player;
+
 public enum Sound {
 	AMBIENCE_CAVE("AMBIENCE_CAVE", "AMBIENT_CAVE"),
 	AMBIENCE_RAIN("AMBIENCE_RAIN", "WEATHER_RAIN"),
@@ -213,5 +215,9 @@ public enum Sound {
 		} catch (IllegalArgumentException e) {
 			return resolvedSound = org.bukkit.Sound.valueOf(pre19sound);
 		}
+	}
+
+	public void playSound(Player p) {
+		p.playSound(p.getLocation(), bukkitSound(), 1, 1);
 	}
 }

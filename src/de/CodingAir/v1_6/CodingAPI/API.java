@@ -168,9 +168,9 @@ public class API {
 		return this.dataList.remove(playerData);
 	}
 	
-	public static synchronized void addRemovable(Removable removable) {
+	public static synchronized boolean addRemovable(Removable removable) {
 		if(isRegistered(removable)) removeRemovable(removable);
-		REMOVABLES.add(removable);
+		return REMOVABLES.add(removable);
 	}
 	
 	public static synchronized <T extends Removable> T getRemovable(Player player, Class<? extends T> clazz) {
@@ -217,18 +217,21 @@ public class API {
 		return l;
 	}
 	
-	public static synchronized void removeRemovable(Removable removable) {
-		removeRemovable(getID(removable));
+	public static synchronized boolean removeRemovable(Removable removable) {
+		return removeRemovable(getID(removable));
 	}
 	
-	public static synchronized void removeRemovable(int id) {
-		if(id == -999) return;
+	public static synchronized boolean removeRemovable(int id) {
+		if(id == -999) return false;
 		
 		Removable removable = getRemovable(id, Removable.class);
-		if(removable == null) return;
+		if(removable == null) return false;
 		
+		boolean removed = REMOVABLES.contains(id);
 		REMOVABLES.remove(id);
 		removable.destroy();
+
+		return removed;
 	}
 	
 	public static synchronized void removeRemovables(Player player) {
