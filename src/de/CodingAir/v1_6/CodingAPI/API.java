@@ -42,8 +42,8 @@ public class API {
 		this.plugin = plugin;
 		GUIListener.register(plugin);
 		
-		this.dataList = TempFile.loadTempFiles(this.plugin, "/PlayerData/", PlayerData.class, new PlayerDataTypeAdapter(), false);
-		
+		this.dataList = TempFile.loadTempFiles(this.plugin, "/PlayerData/", PlayerData.class, new PlayerDataTypeAdapter(), true);
+
 		Bukkit.getPluginManager().registerEvents(new Listener() {
 			
 			/** PlayerDataListener - Start */
