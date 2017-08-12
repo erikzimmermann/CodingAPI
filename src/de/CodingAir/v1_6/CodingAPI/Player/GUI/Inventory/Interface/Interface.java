@@ -509,6 +509,7 @@ public class Interface {
 	
 	public void clear() {
 		this.inventory.clear();
+		this.buttons.clear();
 	}
 	
 	public void clear(int arg0) {

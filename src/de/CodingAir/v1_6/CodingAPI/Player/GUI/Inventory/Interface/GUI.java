@@ -82,6 +82,12 @@ public abstract class GUI extends Interface implements Removable {
 	}
 	
 	public abstract void initialize(Player p);
+
+	public void reinitialize() {
+		clear();
+		initialize(this.player);
+		setTitle(getTitle());
+	}
 	
 	public void onClose(Player p) { }
 	public void onOpen(Player p) { }
