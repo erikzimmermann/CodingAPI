@@ -30,7 +30,6 @@ import java.util.List;
 
 public class API {
 	private static final List<Removable> REMOVABLES = new ArrayList<>();
-	private static boolean editing = false;
 	
 	private static API instance;
 	public static final String VERSION = "v1.6";
