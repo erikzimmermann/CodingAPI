@@ -94,11 +94,17 @@ public abstract class GUI extends Interface implements Removable {
 	
 	@Override
 	public void open(Player p) {
+		if(GUI.usesGUI(p)) GUI.getGUI(p).close();
+		if(GUI.usesOldGUI(p)) GUI.getOldGUI(p).close(p);
+
 		super.open(p);
 		API.addRemovable(this);
 	}
 	
 	public void open() {
+		if(GUI.usesGUI(this.player)) GUI.getGUI(this.player).close();
+		if(GUI.usesOldGUI(this.player)) GUI.getOldGUI(this.player).close(this.player);
+
 		super.open(this.player);
 		API.addRemovable(this);
 	}

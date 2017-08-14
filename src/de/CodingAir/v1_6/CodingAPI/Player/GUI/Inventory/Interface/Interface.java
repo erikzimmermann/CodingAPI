@@ -35,6 +35,7 @@ import java.util.ListIterator;
  * @version 1.9
  */
 
+@Deprecated
 public class Interface {
 	public static final List<Interface> interfaces = new ArrayList<>();
 
