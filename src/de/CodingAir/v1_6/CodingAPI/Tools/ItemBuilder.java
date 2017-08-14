@@ -9,7 +9,11 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.material.MaterialData;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -34,6 +38,7 @@ public class ItemBuilder {
 
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
+    private PotionData potionData = null;
     private boolean hideStandardLore = false;
     private boolean hideEnchantments = false;
     private boolean hideName = false;
@@ -50,6 +55,10 @@ public class ItemBuilder {
         this.data = item.getData().getData();
         this.durability = item.getDurability();
         this.amount = item.getAmount();
+
+        if(this.type.name().contains("POTION")) {
+            this.potionData = ((PotionMeta) item.getItemMeta()).getBasePotionData();
+        }
 
         if(item.getEnchantments().size() > 0) {
             enchantments = new HashMap<>();
@@ -70,7 +79,7 @@ public class ItemBuilder {
                 lore.addAll(item.getItemMeta().getLore());
             }
             this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
-            this.hideStandardLore = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ATTRIBUTES);
+            this.hideStandardLore = (item.getItemMeta().getItemFlags().size() == 1 && !item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS)) || item.getItemMeta().getItemFlags().size() > 1;
             if(item.getItemMeta().getDisplayName() != null)
                 this.hideName = item.getItemMeta().getDisplayName().equals("§0");
         }
@@ -93,6 +102,21 @@ public class ItemBuilder {
     public org.bukkit.inventory.ItemStack getItem() {
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
+        if(this.type.name().contains("POTION")) {
+            PotionMeta meta = (PotionMeta) item.getItemMeta();
+
+            if(potionData == null && this.type.equals(Material.POTION)) {
+                ItemStack temp = new ItemStack(this.type, 1, this.durability);
+                Potion potion = Potion.fromItemStack(temp);
+
+                meta.setBasePotionData(new PotionData(potion.getType(), potion.hasExtendedDuration(), potion.getLevel() == 2));
+            } else if(potionData != null) {
+                meta.setBasePotionData(potionData);
+            }
+
+            item.setItemMeta(meta);
+        }
+
         item.setAmount(this.amount);
 
         ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
@@ -110,14 +134,20 @@ public class ItemBuilder {
                 item.setDurability((short) this.data);
             }
         } else {
-            MaterialData data = new MaterialData(this.type, this.data);
+            MaterialData data = this.data == 0 ? null : new MaterialData(this.type, this.data);
             item.setData(data);
             item.setDurability(this.durability);
         }
 
         if(hideName) meta.setDisplayName("§0");
         if(hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        if(hideStandardLore) meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        if(hideStandardLore) {
+            for(ItemFlag itemFlag : ItemFlag.values()) {
+                if(itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
+
+                meta.addItemFlags(itemFlag);
+            }
+        }
 
         item.setItemMeta(meta);
 
@@ -131,6 +161,7 @@ public class ItemBuilder {
         JSONObject color = new JSONObject();
         JSONObject enchantments = new JSONObject();
         JSONArray lore = new JSONArray();
+        JSONObject potionData = new JSONObject();
 
         if(this.enchantments != null) {
             for(Enchantment ench : this.enchantments.keySet()) {
@@ -148,6 +179,12 @@ public class ItemBuilder {
             color.put("Blue", this.color.getColor().getBlue());
         }
 
+        if(this.potionData != null) {
+            potionData.put("Type", this.potionData.getType().name());
+            potionData.put("Extended", this.potionData.isExtended());
+            potionData.put("Upgraded", this.potionData.isUpgraded());
+        }
+
         if(this.name != null) jsonObject.put("Name", this.name.replace("§", "&"));
         if(this.type != null) jsonObject.put("Type", this.type.name());
         jsonObject.put("Data", this.data);
@@ -156,6 +193,8 @@ public class ItemBuilder {
         if(this.color != null) jsonObject.put("Color", color.isEmpty() ? null : color.toJSONString());
         if(this.enchantments != null)
             jsonObject.put("Enchantments", enchantments.isEmpty() ? null : enchantments.toJSONString());
+        if(this.potionData != null)
+            jsonObject.put("PotionData", potionData.isEmpty() ? null : potionData.toJSONString());
         jsonObject.put("HideStandardLore", this.hideStandardLore);
         jsonObject.put("HideEnchantments", this.hideEnchantments);
         jsonObject.put("HideName", this.hideName);
@@ -175,6 +214,21 @@ public class ItemBuilder {
                 String keyName = (String) key;
 
                 switch(keyName) {
+                    case "PotionData": {
+                        Object obj = jsonObject.get("PotionData");
+                        if(obj == null) break;
+
+                        String dataCode = (String) jsonObject.get("PotionData");
+                        JSONObject jsonData = (JSONObject) parser.parse(dataCode);
+
+                        PotionType type = PotionType.valueOf((String) jsonData.get("Type"));
+                        boolean extended = (boolean) jsonData.get("Extended");
+                        boolean upgraded = (boolean) jsonData.get("Upgraded");
+
+                        item.setPotionData(new PotionData(type, extended, upgraded));
+                        break;
+                    }
+
                     case "Lore": {
                         Object obj = jsonObject.get("Lore");
                         if(obj == null) break;
@@ -374,6 +428,15 @@ public class ItemBuilder {
         return this;
     }
 
+    public short getDurability() {
+        return durability;
+    }
+
+    public ItemBuilder setDurability(short durability) {
+        this.durability = durability;
+        return this;
+    }
+
     public List<String> getLore() {
         return lore;
     }
@@ -480,5 +543,17 @@ public class ItemBuilder {
     public ItemBuilder removeEnchantments() {
         this.enchantments = null;
         return this;
+    }
+
+    public PotionData getPotionData() {
+        return potionData;
+    }
+
+    public void setPotionData(PotionData potionData) {
+        this.potionData = potionData;
+    }
+
+    public ItemMeta getPreMeta() {
+        return preMeta;
     }
 }
