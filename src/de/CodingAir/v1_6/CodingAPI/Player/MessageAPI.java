@@ -15,6 +15,8 @@ public class MessageAPI {
     private static HashMap<String, Countdown> countdowns = new HashMap<>();
 
     public static void sendActionBar(Player p, String message) {
+        if(message == null) message = "";
+
         Object com = PacketUtils.getChatMessage(message);
 
         Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutChat");
