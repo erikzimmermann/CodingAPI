@@ -44,7 +44,7 @@ public class FancyMessage {
 	public void send(Player p) {
 		switch(this.type) {
 			case INFO_MESSAGE: {
-				sendInfoMessage(p == null);
+				sendInfoMessage((this.player = p) == null);
 				break;
 			}
 		}
