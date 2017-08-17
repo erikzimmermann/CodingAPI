@@ -20,10 +20,12 @@ public enum TextAlignment {
 	JUSTIFY;
 	
 	public List<String> apply(List<String> lines) {
-		if(this.equals(LEFT)) return lines;
 		if(this.equals(CENTER)) return center(lines);
 		if(this.equals(JUSTIFY)) return justify(lines);
-		return lines;
+
+		List<String> other = new ArrayList<>();
+		other.addAll(lines);
+		return other;
 	}
 	
 	public List<String> apply(String... lines) {
