@@ -1,7 +1,7 @@
 package de.CodingAir.v1_6.CodingAPI.Server;
 
 public enum DefaultFontInfo {
-	
+	CHAT('-', 250),
 	A('A', 5),
 	a('a', 5),
 	B('B', 5),
@@ -125,5 +125,15 @@ public enum DefaultFontInfo {
 			if(dFI.getCharacter() == c) return dFI;
 		}
 		return DefaultFontInfo.DEFAULT;
+	}
+
+	public static int getExactLength(String text) {
+		int length = 0;
+
+		for(char c : text.toCharArray()) {
+			length += DefaultFontInfo.getDefaultFontInfo(c).getLength();
+		}
+
+		return length;
 	}
 }
