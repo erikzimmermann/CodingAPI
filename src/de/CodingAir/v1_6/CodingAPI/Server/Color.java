@@ -42,5 +42,17 @@ public class Color {
 				return "§f";
 		}
 	}
-	
+
+	public static String removeColor(String text) {
+		StringBuilder builder = new StringBuilder();
+
+		boolean color = false;
+		for(char ch : text.toCharArray()) {
+			if(ch == '§') color = true;
+			else if(color) color = false;
+			else builder.append(ch);
+		}
+
+		return builder.toString();
+	}
 }
