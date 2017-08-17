@@ -31,10 +31,15 @@ import java.util.List;
 
 public class GUIListener implements Listener {
 	private static boolean registered = false;
-	
+	private Plugin plugin;
+
+	public GUIListener(Plugin plugin) {
+		this.plugin = plugin;
+	}
+
 	public static void register(Plugin plugin) {
 		if(registered) return;
-		Bukkit.getPluginManager().registerEvents(new GUIListener(), plugin);
+		Bukkit.getPluginManager().registerEvents(new GUIListener(plugin), plugin);
 		registered = true;
 	}
 	
@@ -142,7 +147,7 @@ public class GUIListener implements Listener {
 				if((button.isOnlyLeftClick() && e.isLeftClick()) || (button.isOnlyRightClick() && e.isRightClick()) || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())) {
 					if(button.isCloseOnClick()) e.getWhoClicked().closeInventory();
 					button.playSound((Player) e.getWhoClicked());
-					button.onClick(e);
+					Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);
 				}
 			}
 		}
