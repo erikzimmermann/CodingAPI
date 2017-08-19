@@ -1,7 +1,7 @@
 package de.CodingAir.v1_6.CodingAPI.Tools;
 
 import de.CodingAir.v1_6.CodingAPI.Player.GUI.Inventory.Interface.Skull;
-import de.CodingAir.v1_6.CodingAPI.Server.Reflections.IReflection;
+import de.CodingAir.v1_6.CodingAPI.Server.Reflections.PotionData;
 import de.CodingAir.v1_6.CodingAPI.Server.Version;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -14,8 +14,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -37,6 +35,7 @@ public class ItemBuilder {
     private int amount = 1;
     private DyeColor color = null;
     private ItemMeta preMeta = null;
+    private PotionData potionData = null;
 
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
@@ -80,6 +79,10 @@ public class ItemBuilder {
             if(item.getItemMeta().getDisplayName() != null)
                 this.hideName = item.getItemMeta().getDisplayName().equals("§0");
         }
+
+        if(item.getType().name().toUpperCase().contains("POTION")) {
+            this.potionData = new PotionData(item);
+        }
     }
 
     public ItemBuilder(Material type, ItemMeta itemMeta) {
@@ -102,25 +105,11 @@ public class ItemBuilder {
         if(this.type.name().contains("POTION")) {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
-            if(this.type.equals(Material.POTION)) {
-                ItemStack temp = new ItemStack(this.type, 1, this.durability);
-                Potion potion = Potion.fromItemStack(temp);
-
-                IReflection.MethodAccessor setData;
-                Object obj;
-
-                if(Version.getVersion().isBiggerThan(Version.v1_8)) {
-                    Class<?> potionData = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "PotionData");
-
-                    setData = IReflection.getMethod(PotionMeta.class, "setBasePotionData", new Class[] {potionData});
-                    IReflection.ConstructorAccessor con = IReflection.getConstructor(potionData, PotionType.class, boolean.class, boolean.class);
-                    obj = con.newInstance(potion.getType(), potion.hasExtendedDuration(), potion.getLevel() == 2);
-                } else {
-                    setData = IReflection.getMethod(PotionMeta.class, "setMainEffect", boolean.class, new Class[] {PotionEffectType.class});
-                    obj = potion.getType().getEffectType();
-                }
-
-                setData.invoke(meta, obj);
+            if(Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                meta = this.potionData.getMeta();
+            } else if(!Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                Potion potion = this.potionData.getPotion();
+                meta.setMainEffect(potion.getType().getEffectType());
             }
 
             item.setItemMeta(meta);
@@ -170,7 +159,6 @@ public class ItemBuilder {
         JSONObject color = new JSONObject();
         JSONObject enchantments = new JSONObject();
         JSONArray lore = new JSONArray();
-        JSONObject potionData = new JSONObject();
 
         if(this.enchantments != null) {
             for(Enchantment ench : this.enchantments.keySet()) {
@@ -200,6 +188,7 @@ public class ItemBuilder {
         jsonObject.put("HideStandardLore", this.hideStandardLore);
         jsonObject.put("HideEnchantments", this.hideEnchantments);
         jsonObject.put("HideName", this.hideName);
+        jsonObject.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
 
         return jsonObject.toJSONString();
     }
@@ -272,11 +261,31 @@ public class ItemBuilder {
                         break;
                     }
 
+                    case "PotionData": {
+                        Object obj = jsonObject.get("PotionData");
+                        if(obj == null) break;
+
+                        PotionData data = PotionData.fromJSONString((String) obj);
+                        item.setPotionData(data);
+                        break;
+                    }
+
                     case "Type": {
                         Object obj = jsonObject.get("Type");
                         if(obj == null) break;
 
-                        item.setType(Material.valueOf((String) jsonObject.get("Type")));
+                        String name = (String) jsonObject.get("Type");
+                        Material material = null;
+
+                        try {
+                            material = Material.valueOf(name);
+                        } catch(IllegalArgumentException ex) {
+                            if(name.toUpperCase().equals("SPLASH_POTION")) {
+                                material = Material.POTION;
+                            }
+                        }
+
+                        item.setType(material);
                         break;
                     }
 
@@ -542,5 +551,13 @@ public class ItemBuilder {
 
     public ItemMeta getPreMeta() {
         return preMeta;
+    }
+
+    public PotionData getPotionData() {
+        return potionData;
+    }
+
+    public void setPotionData(PotionData potionData) {
+        this.potionData = potionData;
     }
 }
