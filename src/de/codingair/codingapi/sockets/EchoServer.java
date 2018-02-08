@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -61,7 +61,7 @@ public abstract class EchoServer {
 				public void run() {
 					if(times == 100) {
 						times = 0;
-						//messengers.forEach(messenger -> messenger.send("KEEP_ALIVE"));
+						messengers.forEach(messenger -> messenger.send("KEEP_ALIVE"));
 					} else times++;
 					
 					messengers.forEach(messenger -> messenger.check());

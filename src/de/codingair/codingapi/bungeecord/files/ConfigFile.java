@@ -11,7 +11,7 @@ import java.io.*;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -50,8 +50,11 @@ public class ConfigFile {
 				file.createNewFile();
 				
 				InputStream is = plugin.getResourceAsStream(this.name + ".yml");
-				OutputStream os = new FileOutputStream(file);
-				ByteStreams.copy(is, os);
+
+				if(is != null) {
+					OutputStream os = new FileOutputStream(file);
+					ByteStreams.copy(is, os);
+				}
 			} catch(IOException e) {
 				e.printStackTrace();
 			}

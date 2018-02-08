@@ -30,4 +30,10 @@ public class FileManager {
             file.reloadConfig();
         }
     }
+
+    public void saveAll() {
+        for(ConfigFile configFile : this.configList) {
+            configFile.saveConfig();
+        }
+    }
 }

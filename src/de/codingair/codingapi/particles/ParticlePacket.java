@@ -2,6 +2,7 @@ package de.codingair.codingapi.particles;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,7 +13,7 @@ import java.lang.reflect.Constructor;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -21,6 +22,7 @@ public class ParticlePacket {
 	private Object packet;
 	private Color color = null;
 	private boolean longDistance = false;
+	private Location location;
 	
 	public ParticlePacket(Particle particle) {
 		this.particle = particle;
@@ -34,6 +36,7 @@ public class ParticlePacket {
 	
 	public ParticlePacket initialize(Location loc) {
 		if(!available()) return this;
+		this.location = loc;
 		
 		Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
 		Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
@@ -96,13 +99,19 @@ public class ParticlePacket {
 	}
 	
 	public void send(Player... p) {
-		if(packet == null) return;
-		PacketUtils.sendPacket(packet, p);
+		if(packet == null || location == null) return;
+
+		for(Player player : p) {
+			if(player.getWorld() == this.location.getWorld()) PacketUtils.sendPacket(packet, player);
+		}
 	}
 	
 	public void send() {
-		if(packet == null) return;
-		PacketUtils.sendPacketToAll(packet);
+		if(packet == null || location == null) return;
+
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			if(player.getWorld() == this.location.getWorld()) PacketUtils.sendPacket(packet, player);
+		}
 	}
 	
 	public Particle getParticle() {
@@ -117,8 +126,9 @@ public class ParticlePacket {
 		return color;
 	}
 	
-	public void setColor(Color color) {
+	public ParticlePacket setColor(Color color) {
 		this.color = color;
+		return this;
 	}
 	
 	@Override

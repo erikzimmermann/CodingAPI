@@ -5,7 +5,7 @@ import org.bukkit.Sound;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -15,6 +15,7 @@ public class ItemButtonOption {
 	private boolean closeOnClick = false;
 	private boolean onlyLeftClick = false;
 	private boolean onlyRightClick = false;
+	private boolean numberKey = false;
 	
 	public boolean isMovable() {
 		return movable;
@@ -63,6 +64,15 @@ public class ItemButtonOption {
 		option.setOnlyLeftClick(this.onlyLeftClick);
 		option.setCloseOnClick(this.closeOnClick);
 		option.setOnlyRightClick(this.onlyRightClick);
+		option.setNumberKey(this.numberKey);
 		return option;
+	}
+
+	public boolean isNumberKey() {
+		return numberKey;
+	}
+
+	public void setNumberKey(boolean numberKey) {
+		this.numberKey = numberKey;
 	}
 }

@@ -40,4 +40,8 @@ public class SoundData {
     public void play(Player player) {
         this.sound.playSound(player, this.volume, this.pitch);
     }
+
+    public SoundData clone() {
+        return new SoundData(this.sound, volume, pitch);
+    }
 }

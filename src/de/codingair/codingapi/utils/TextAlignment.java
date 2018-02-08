@@ -2,7 +2,10 @@ package de.codingair.codingapi.utils;
 
 import de.codingair.codingapi.server.DefaultFontInfo;
 import de.codingair.codingapi.tools.Converter;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +13,7 @@ import java.util.List;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -71,7 +74,11 @@ public enum TextAlignment {
 
         List<String> configured = new ArrayList<>();
 
+        int lineIndex = 0;
         for(String line : lines) {
+            if(lineIndex == lines.size() - 1) break;
+            lineIndex++;
+
             if(line == null) {
                 configured.add(null);
                 continue;
@@ -112,64 +119,29 @@ public enum TextAlignment {
 
     private List<String> center(List<String> lines) {
         int longestLine = 0;
+        String l = null;
 
-        boolean isBold = false;
-        boolean isColor = false;
         for(String line : lines) {
             if(line == null) continue;
 
-            int length = 0;
-            line = ChatColor.translateAlternateColorCodes('&', line);
-
-            for(char c : line.toCharArray()) {
-                if(c == ChatColor.COLOR_CHAR) {
-                    isColor = true;
-                } else if(isColor) {
-                    isColor = false;
-                    if(c == 'l' || c == 'L') {
-                        isBold = true;
-                    } else isBold = false;
-                } else {
-                    DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
-                    length += isBold ? dFI.getBoldLength() : dFI.getLength();
-                }
+            int length = DefaultFontInfo.getExactLength(line);
+            if(longestLine < length) {
+                longestLine = length;
+                l = line;
             }
-
-            if(longestLine < length) longestLine = length;
         }
 
         List<String> configured = new ArrayList<>();
 
         for(String line : lines) {
             if(line == null) continue;
+            int messagePxSize = DefaultFontInfo.getExactLength(line);
 
-            int messagePxSize = 0;
-            isColor = false;
-            isBold = false;
-
-            for(char c : line.toCharArray()) {
-                if(c == ChatColor.COLOR_CHAR) {
-                    isColor = true;
-                } else if(isColor) {
-                    isColor = false;
-                    if(c == 'l' || c == 'L') {
-                        isBold = true;
-                        continue;
-                    } else isBold = false;
-                } else {
-                    DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
-                    messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
-                }
-            }
-
-            int toCompensate = (longestLine - messagePxSize) / 2;
-            int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
-            int compensated = 0;
+            int toCompensate = (longestLine - messagePxSize) / 2 / DefaultFontInfo.SPACE.getLength();
 
             StringBuilder sb = new StringBuilder();
-            while(compensated < toCompensate) {
+            for(int i = 0; i < toCompensate; i++) {
                 sb.append(" ");
-                compensated += spaceLength;
             }
 
             configured.add(sb.toString() + line);
@@ -203,12 +175,10 @@ public enum TextAlignment {
                     isColor = true;
                 } else if(isColor) {
                     isColor = false;
-                    if(c == 'l' || c == 'L') {
-                        isBold = true;
-                    } else isBold = false;
+                    isBold = c == 'l' || c == 'L';
 
-                    if(wasColor) lastColor.append(ChatColor.COLOR_CHAR + c);
-                    else lastColor = new StringBuilder(ChatColor.COLOR_CHAR + c);
+                    if(!wasColor) lastColor = new StringBuilder();
+                    lastColor.append("" + ChatColor.COLOR_CHAR + c);
 
                     wasColor = true;
                 } else {
@@ -221,17 +191,100 @@ public enum TextAlignment {
             line.append(word);
 
             if(cells >= length) {
-                line = new StringBuilder(line.substring(0, line.length() - 1));
+                line = new StringBuilder(line.toString().substring(0, line.length() - 1));
 
                 lines.add(lastColor + line.toString());
                 line = new StringBuilder();
                 cells = 0;
             }
-
         }
 
         if(line.length() > 0) lines.add(lastColor + line.toString());
         return lines;
     }
 
+
+    private final static int CENTER_PX = 154;
+    private final static int MAX_PX = 250;
+
+    public static void sendCenteredMessage(Player player, String message) {
+        if(message == null || message.equals("")) player.sendMessage("");
+        message = ChatColor.translateAlternateColorCodes('&', message);
+
+        int messagePxSize = 0;
+        boolean previousCode = false;
+        boolean isBold = false;
+
+        for(char c : message.toCharArray()) {
+            if(c == '§') {
+                previousCode = true;
+            } else if(previousCode) {
+                previousCode = false;
+                isBold = c == 'l' || c == 'L';
+            } else {
+                DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
+                messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
+                messagePxSize++;
+            }
+        }
+
+        int halvedMessageSize = messagePxSize / 2;
+        int toCompensate = CENTER_PX - halvedMessageSize;
+        int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
+        int compensated = 0;
+
+        StringBuilder sb = new StringBuilder();
+        while(compensated < toCompensate) {
+            sb.append(" ");
+            compensated += spaceLength;
+        }
+
+        player.sendMessage(sb.toString() + message);
+    }
+
+    public static void sendCenteredMessage(Player player, BaseComponent base) {
+        String message = ChatColor.translateAlternateColorCodes('&', base.toLegacyText());
+
+        int messagePxSize = 0;
+        boolean previousCode = false;
+        boolean isBold = false;
+
+        for(char c : message.toCharArray()) {
+            if(c == '§') {
+                previousCode = true;
+                continue;
+            } else if(previousCode) {
+                previousCode = false;
+                if(c == 'l' || c == 'L') {
+                    isBold = true;
+                    continue;
+                } else isBold = false;
+            } else if(c != ' ') {
+                DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
+                messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
+                messagePxSize++;
+            }
+
+            if(messagePxSize >= MAX_PX) {
+//                throw new IllegalStateException("BaseComponent is to long!");
+                return;
+            }
+        }
+
+        int halvedMessageSize = messagePxSize / 2;
+        int toCompensate = CENTER_PX - halvedMessageSize;
+        int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
+        int compensated = 0;
+
+        StringBuilder sb = new StringBuilder();
+        while(compensated < toCompensate) {
+            sb.append(" ");
+            compensated += spaceLength;
+        }
+
+        TextComponent spaceBase = new TextComponent(sb.toString());
+        spaceBase.addExtra(base);
+
+        player.spigot().sendMessage(spaceBase);
+    }
 }

@@ -1,6 +1,7 @@
-package de.codingair.codingapi.particles.Animations;
+package de.codingair.codingapi.particles.animations.playeranimations;
 
 import de.codingair.codingapi.particles.Particle;
+import de.codingair.codingapi.particles.animations.PlayerAnimation;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -11,11 +12,11 @@ import static java.lang.Math.sin;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
-public class CircleAnimation extends Animation {
+public class CircleAnimation extends PlayerAnimation {
 	private double radius;
 	private double t;
 	private double height = 1;

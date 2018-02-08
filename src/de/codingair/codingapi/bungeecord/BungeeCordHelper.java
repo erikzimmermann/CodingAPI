@@ -3,20 +3,24 @@ package de.codingair.codingapi.bungeecord;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import de.codingair.codingapi.player.data.UUIDFetcher;
 import de.codingair.codingapi.tools.Callback;
+import de.codingair.codingapi.utils.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.EOFException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -24,32 +28,64 @@ public class BungeeCordHelper {
     private static BungeeMessenger bungeeMessenger;
 
     public static void connect(Player player, String server, Plugin plugin) {
-        send(player, "BungeeCordHelper", "Connect", server, plugin);
+        send(player, "BungeeCord", "Connect", server, plugin);
+    }
+
+    public static void getUUID(Player player, Plugin plugin, Callback<UUID> callback, int timeOut) {
+        if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
+
+        Value<Boolean> timeOuted = new Value<>(false);
+
+        BukkitRunnable runnable = new BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                if(ticks >= timeOut) {
+                    callback.accept(null);
+                    this.cancel();
+                    timeOuted.setValue(true);
+                    return;
+                }
+
+                ticks++;
+            }
+        };
+
+        runnable.runTaskTimer(plugin, 1, 1);
+
+        bungeeMessenger.addListener(new BungeeMessengerListener() {
+            @Override
+            void onReceive(List<String> args) {
+                if(args.size() == 3 && args.get(0).equals("UUIDOther") && args.get(1).equals(player.getName())) {
+                    if(!timeOuted.getValue()) {
+                        runnable.cancel();
+
+                        callback.accept(UUIDFetcher.getUUIDFromId(args.get(2)));
+                    }
+
+                    bungeeMessenger.removeListener(this);
+                }
+            }
+        });
+
+        send(player, "BungeeCord", "UUIDOther", player.getName(), plugin);
     }
 
     public static void send(Player player, String channel, String subChannel, String argument, Plugin plugin) {
-        if (bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
+        if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
 
         bungeeMessenger.sendMessage(channel, subChannel, argument, player);
     }
 
-    public static void runningOnBungeeCord(Plugin plugin, double timeOutTicks, Callback<Boolean> callback) {
-        if (bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
-        if(Bukkit.getOnlinePlayers().isEmpty()) throw new IllegalStateException("There is no player to transfer the BungeeCordHelper-Message!");
+    public static void runningOnBungeeCord(Plugin plugin, int timeOutTicks, Callback<Boolean> callback) {
+        if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
+        if(Bukkit.getOnlinePlayers().isEmpty())
+            throw new IllegalStateException("There is no player to transfer the BungeeCordHelper-Message!");
 
         Player p = Bukkit.getOnlinePlayers().iterator().next();
 
-        BungeeMessengerListener listener;
-        bungeeMessenger.addListener(listener = new BungeeMessengerListener() {
-            @Override
-            void onReceive(String subChannel, String message) {
-                bungeeMessenger.removeListener(this);
-                callback.accept(true);
-            }
-        });
-
-        bungeeMessenger.sendMessage("BungeeCordHelper", "GetServers", null, p);
-        new BukkitRunnable() {
+        BukkitRunnable runnable = new BukkitRunnable() {
             long currentTick = 0;
 
             @Override
@@ -58,11 +94,20 @@ public class BungeeCordHelper {
 
                 if(currentTick >= timeOutTicks) {
                     callback.accept(false);
-                    bungeeMessenger.removeListener(listener);
                     this.cancel();
                 }
             }
-        }.runTaskTimer(plugin, 1, 1);
+        };
+
+        runnable.runTaskTimer(plugin, 1, 1);
+
+        getUUID(p, plugin, new Callback<UUID>() {
+            @Override
+            public void accept(UUID object) {
+                runnable.cancel();
+                callback.accept(true);
+            }
+        }, timeOutTicks);
     }
 
     private static class BungeeMessenger implements PluginMessageListener {
@@ -71,19 +116,28 @@ public class BungeeCordHelper {
 
         public BungeeMessenger(Plugin plugin) {
             this.plugin = plugin;
-            plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "BungeeCordHelper");
-            plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, "BungeeCordHelper", this);
+            plugin.getServer().getMessenger().registerOutgoingPluginChannel(plugin, "BungeeCord");
+            plugin.getServer().getMessenger().registerIncomingPluginChannel(plugin, "BungeeCord", this);
         }
 
         @Override
         public void onPluginMessageReceived(String channel, Player player, byte[] bytes) {
-            if (!channel.equals("BungeeCordHelper")) return;
+            if(!channel.equals("BungeeCord")) return;
 
             ByteArrayDataInput in = ByteStreams.newDataInput(bytes);
-            String subChannel = in.readUTF();
-            String message = in.readUTF();
+            List<String> args = new ArrayList<>();
 
-            this.listeners.forEach(l -> l.onReceive(subChannel, message));
+            while(true) {
+                try {
+                    args.add(in.readUTF());
+                } catch(Exception ex) {
+                    break;
+                }
+            }
+
+            List<BungeeMessengerListener> listeners = new ArrayList<>(this.listeners);
+            listeners.forEach(l -> l.onReceive(args));
+            listeners.clear();
         }
 
         public void sendMessage(String channel, String subChannel, String message, Player player) {
@@ -91,9 +145,10 @@ public class BungeeCordHelper {
             out.writeUTF(subChannel);
             if(message != null) out.writeUTF(message);
 
-            if (Bukkit.getPlayer(player.getUniqueId()) == null) throw new IllegalArgumentException("The player '" + player.getName() + "' is not online!");
+            if(Bukkit.getPlayer(player.getUniqueId()) == null)
+                throw new IllegalArgumentException("The player '" + player.getName() + "' is not online!");
 
-            player.sendPluginMessage(this.plugin, channel, out.toByteArray());
+            Bukkit.getScheduler().runTask(plugin, () -> player.sendPluginMessage(plugin, channel, out.toByteArray()));
         }
 
         public void addListener(BungeeMessengerListener listener) {
@@ -106,6 +161,6 @@ public class BungeeCordHelper {
     }
 
     private static abstract class BungeeMessengerListener {
-        abstract void onReceive(String subChannel, String message);
+        abstract void onReceive(List<String> args);
     }
 }

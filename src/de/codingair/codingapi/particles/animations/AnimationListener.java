@@ -1,5 +1,6 @@
-package de.codingair.codingapi.particles.Animations;
+package de.codingair.codingapi.particles.animations;
 
+import de.codingair.codingapi.API;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,7 +15,7 @@ import java.util.List;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -36,7 +37,7 @@ public class AnimationListener implements Listener {
 		double result = x + y + z;
 		
 		if(result > 0.05){
-			Animation.getAnimations().forEach(anim -> {
+			API.getTickers(PlayerAnimation.class).forEach(anim -> {
 				if(anim.getPlayer().getName().equals(p.getName())) anim.setStandingTicks(0);
 			});
 		}
@@ -45,13 +46,14 @@ public class AnimationListener implements Listener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
-		
-		List<Animation> animations = new ArrayList<>();
-		animations.addAll(Animation.getAnimations());
+
+		List<PlayerAnimation> animations = new ArrayList<>(API.getTickers(PlayerAnimation.class));
 		
 		animations.forEach(anim -> {
 			if(anim.getPlayer().getName().equals(p.getName())) anim.setRunning(false);
 		});
+
+		animations.clear();
 	}
 	
 	public static void register(Plugin plugin) {

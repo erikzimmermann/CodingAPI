@@ -1,5 +1,7 @@
 package de.codingair.codingapi.server;
 
+import org.bukkit.ChatColor;
+
 public enum DefaultFontInfo {
 	A('A', 5),
 	a('a', 5),
@@ -95,7 +97,7 @@ public enum DefaultFontInfo {
 	TICK('`', 2),
 	PERIOD('.', 1),
 	COMMA(',', 1),
-	SPACE(' ', 3),
+	SPACE(' ', 2),
 	CHAT('a', 250),
 	DEFAULT('a', 4);
 	
@@ -129,9 +131,19 @@ public enum DefaultFontInfo {
 
 	public static int getExactLength(String text) {
 		int length = 0;
+		boolean isColor = false;
+		boolean isBold = false;
 
 		for(char c : text.toCharArray()) {
-			length += DefaultFontInfo.getDefaultFontInfo(c).getLength();
+			if(c == ChatColor.COLOR_CHAR) {
+				isColor = true;
+			} else if(isColor) {
+				isColor = false;
+				isBold = c == 'l' || c == 'L';
+			} else {
+				DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
+				length += isBold ? dFI.getBoldLength() : dFI.getLength();
+			}
 		}
 
 		return length;

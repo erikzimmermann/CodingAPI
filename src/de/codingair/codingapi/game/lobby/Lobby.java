@@ -13,6 +13,7 @@ import de.codingair.codingapi.time.TimeFetcher;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -22,7 +23,7 @@ import java.util.List;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -120,7 +121,10 @@ public class Lobby {
 
 				getLoadingBars().forEach(LoadingBar::cancel);
 				listener.onEndCountdown();
-				if(game.getGameState().equals(GameState.WAITING)) game.start();
+				if(game.getGameState().equals(GameState.WAITING)) {
+					game.start();
+					if(hasListener()) HandlerList.unregisterAll(listener);
+				}
 			}
 			
 			@Override
@@ -166,6 +170,13 @@ public class Lobby {
 	}
 
 	public boolean forceStart() {
+		if(!checkPlayers()) {
+			mapVoting = false;
+			if(game.getMapVoting() != null) game.getMapVoting().cancel();
+			if(this.countdown != null) countdown.cancel();
+			return false;
+		}
+
 		if(!getGame().getGameState().equals(GameState.WAITING) || this.countdown == null) return false;
 		this.countdown.end();
 		return true;
@@ -193,7 +204,13 @@ public class Lobby {
 		
 		if(!started) startScheduler();
 		
-		if(teleport) p.teleport(this.spawn);
+		if(teleport) {
+			p.teleport(this.spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+
+			Bukkit.getScheduler().runTaskLater(getGame().getPlugin(), () -> {
+				if(p.getLocation().distance(this.spawn) > 15) p.teleport(this.spawn, PlayerTeleportEvent.TeleportCause.PLUGIN);
+			}, 20L);
+		}
 		
 		p.getInventory().clear();
 		p.getInventory().setArmorContents(new ItemStack[4]);

@@ -1,5 +1,7 @@
 package de.codingair.codingapi.tools;
 
+import com.mojang.authlib.GameProfile;
+import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.server.Version;
@@ -25,7 +27,7 @@ import java.util.*;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -60,11 +62,16 @@ public class ItemBuilder {
 
         if(item.getEnchantments().size() > 0) {
             enchantments = new HashMap<>();
-            item.getEnchantments().forEach((ench, level) -> enchantments.put(ench, level));
+            enchantments.putAll(item.getEnchantments());
         }
 
         if(item.hasItemMeta()) {
+            this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
+
+            if(enchantments == null) enchantments = new HashMap<>();
+            enchantments.putAll(item.getItemMeta().getEnchants());
+            item.getItemMeta().getEnchants().forEach((ench, level) -> this.preMeta.removeEnchant(ench));
 
             try {
                 LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
@@ -97,15 +104,24 @@ public class ItemBuilder {
         this.preMeta = itemMeta;
     }
 
-    public ItemBuilder(Skull skull) {
-        this(skull.getItemStack(), skull.getItemMeta());
+    /**
+     * This constructor create a head
+     * @param profile GameProfile
+     */
+    public ItemBuilder(GameProfile profile) {
+        this(OldItemBuilder.getHead(profile));
     }
 
     /**
-     * @param player Creates an item with the skin of the players head.
+     * This constructor create a head
+     * @param player Player
      */
     public ItemBuilder(Player player) {
-        this(OldItemBuilder.getHead(player, ""), OldItemBuilder.getHead(player, "").getItemMeta());
+        this(GameProfileUtils.getGameProfile(player));
+    }
+
+    public ItemBuilder(Skull skull) {
+        this(skull.getItemStack(), skull.getItemMeta());
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
@@ -114,11 +130,13 @@ public class ItemBuilder {
         if(this.type.name().contains("POTION")) {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
-                meta = this.potionData.getMeta();
-            } else if(!Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
-                Potion potion = this.potionData.getPotion();
-                meta.setMainEffect(potion.getType().getEffectType());
+            if(potionData != null) {
+                if(Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                    meta = this.potionData.getMeta();
+                } else if(!Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                    Potion potion = this.potionData.getPotion();
+                    meta.setMainEffect(potion.getType().getEffectType());
+                }
             }
 
             item.setItemMeta(meta);
@@ -449,6 +467,7 @@ public class ItemBuilder {
 
     public ItemBuilder setData(byte data) {
         this.data = data;
+        if(getType().equals(Material.POTION)) setDurability(getData());
         return this;
     }
 
@@ -579,5 +598,9 @@ public class ItemBuilder {
 
     public void setPotionData(PotionData potionData) {
         this.potionData = potionData;
+    }
+
+    public ItemBuilder clone() {
+        return new ItemBuilder(getItem(), getItem().getItemMeta());
     }
 }

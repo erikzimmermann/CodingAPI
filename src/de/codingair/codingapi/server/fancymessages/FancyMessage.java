@@ -90,7 +90,7 @@ public class FancyMessage {
                 if(length > largest) largest = length;
             }
 
-            double spaces = (DefaultFontInfo.CHAT.getLength() / 2 - largest / 2) / DefaultFontInfo.SPACE.getLength();
+            double spaces = (DefaultFontInfo.CHAT.getLength() / 2 - largest / 2) / (DefaultFontInfo.SPACE.getLength() + 0.5);
 
             for(String s : this.messages) {
                 for(int i = 0; i < spaces; i++) {

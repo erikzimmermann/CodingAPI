@@ -12,7 +12,7 @@ import java.net.*;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -50,13 +50,7 @@ public abstract class EchoClient {
 			
 			this.messenger = messenger;
 			
-			Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> messenger.check(), 1, 1);
-		} catch(ConnectException e) {
-			onFail(e);
-			setFailed(true);
-		} catch(UnknownHostException e) {
-			onFail(e);
-			setFailed(true);
+			Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, messenger::check, 1, 1);
 		} catch(IOException e) {
 			onFail(e);
 			setFailed(true);

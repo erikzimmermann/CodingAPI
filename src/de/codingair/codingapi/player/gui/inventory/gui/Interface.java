@@ -31,7 +31,7 @@ import java.util.ListIterator;
  */
 
 /**
- * @author Erik Zimmermann (CodingAir) [05.10.2016]
+ * @author Erik Zimmermann (codingair) [05.10.2016]
  * @version 1.9
  */
 
@@ -54,7 +54,7 @@ public class Interface {
 	 * @param title  (String)          (title)
 	 * @param size   (Integer)          (size)
 	 * @param plugin (Plugin)         For separately de.acemc.codingair.hub.spigot.listeners and buttons)
-	 * @author Erik Zimmermann (CodingAir) [05.10.2016]
+	 * @author Erik Zimmermann (codingair) [05.10.2016]
 	 * @version 1.10.2
 	 */
 	@Deprecated
@@ -93,6 +93,12 @@ public class Interface {
 		button.setInterface(this);
 		
 		setItem(button.getSlot(), button.getItem());
+	}
+
+	public void setItem(ItemStack item, int startSlot, int endSlot) {
+		for(int i = startSlot; i <= endSlot; i++) {
+			setItem(i, item);
+		}
 	}
 	
 	public ItemButton removeButton(int slot) {
@@ -586,6 +592,10 @@ public class Interface {
 	
 	public ItemStack getItem(int arg0) {
 		return this.inventory.getItem(arg0);
+	}
+
+	public ItemStack getItem(int x, int y) {
+		return this.inventory.getItem(x + 9 * y);
 	}
 	
 	public int getMaxStackSize() {

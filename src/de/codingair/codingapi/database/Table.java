@@ -1,5 +1,6 @@
 package de.codingair.codingapi.database;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 public class Table {
@@ -20,7 +21,7 @@ public class Table {
 		this.entryID++;
 	}
 	
-	public void create(){
+	public void create() throws SQLException {
 		String query = "CREATE TABLE IF NOT EXISTS "+this.table+" (";
 		
 		for(int id = 0; id < entryID; id++){

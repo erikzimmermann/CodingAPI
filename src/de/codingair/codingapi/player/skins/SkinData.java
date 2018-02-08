@@ -7,7 +7,7 @@ import de.codingair.codingapi.player.data.Skin;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 

@@ -1,28 +1,27 @@
 package de.codingair.codingapi.game;
 
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.game.utils.GameState;
 import de.codingair.codingapi.game.utils.Team;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -37,7 +36,7 @@ public class GameListener implements Listener {
         return game;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void EventHandler_onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
 
@@ -47,7 +46,7 @@ public class GameListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EventHandler_onQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
 
@@ -57,7 +56,7 @@ public class GameListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EventHandler_onKill(PlayerDeathEvent e) {
         Player p = e.getEntity().getPlayer();
         Player killer = e.getEntity().getKiller();
@@ -69,7 +68,13 @@ public class GameListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void EventHandler_onTNT(EntityExplodeEvent e) {
+        if(!this.game.isExplodeProtection()) return;
+        e.blockList().clear();
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EventHandler_onRespawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
 
@@ -83,9 +88,12 @@ public class GameListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EventHandler_onHit(PotionSplashEvent e) {
-        if(this.game.getGameState().equals(GameState.WAITING)) e.setCancelled(true);
+        if(!this.game.getGameState().equals(GameState.RUNNING)) {
+            e.setCancelled(true);
+            return;
+        }
 
         if(!this.game.ready()) return;
 
@@ -95,22 +103,54 @@ public class GameListener implements Listener {
                 Player damager = (Player) e.getPotion().getShooter();
 
                 if(!p.getName().equals(damager.getName())) {
+                    if(this.game.isSpectator(p)) {
+                        Location location = p.getLocation().add(0, 5, 0);
+                        while(!location.getBlock().getType().equals(Material.AIR)) location.add(0, 1, 0);
+
+                        p.setFlying(true);
+                        p.teleport(location);
+                        p.setFlying(true);
+
+                        ThrownPotion nextProjectile = damager.launchProjectile(e.getPotion().getClass());
+                        nextProjectile.setShooter(damager);
+                        nextProjectile.teleport(e.getPotion().getLocation().add(0, 0.2, 0));
+                        nextProjectile.setVelocity(e.getPotion().getVelocity());
+                        nextProjectile.setBounce(false);
+                        nextProjectile.setItem(Potion.fromItemStack(e.getPotion().getItem()).toItemStack(1));
+
+                        e.setCancelled(true);
+                        e.getPotion().teleport(new Location(e.getPotion().getWorld(), 0, 0, 0));
+                        return;
+                    }
+
                     boolean friendly = true;
 
                     for(PotionEffect effect : e.getPotion().getEffects()) {
                         PotionEffectType type = effect.getType();
 
-                        if(type.equals(PotionEffectType.HUNGER) || type.equals(PotionEffectType.POISON) || type.equals(PotionEffectType.WITHER) || type.equals(PotionEffectType.WEAKNESS) ||
-                                type.equals(PotionEffectType.HARM) || type.equals(PotionEffectType.SLOW) || type.equals(PotionEffectType.SLOW_DIGGING) || type.equals(PotionEffectType.CONFUSION) ||
-                                type.equals(PotionEffectType.BLINDNESS) || type.equals(PotionEffectType.GLOWING) || type.equals(PotionEffectType.UNLUCK))
-                            friendly = false;
+                        switch(type.getId()) {
+                            case 4:
+                            case 2:
+                            case 7:
+                            case 9:
+                            case 15:
+                            case 17:
+                            case 18:
+                            case 19:
+                            case 20:
+                            case 24:
+                            case 27:
+                                friendly = false;
+                        }
                     }
 
                     if(!friendly) {
                         if(this.game.isPlaying(p) && this.game.isPlaying(damager)) {
-                            if(this.game.getCurrentMap().getTeam(p).isMember(damager) && !this.game.getCurrentMap().isFriendlyFire()) {
+                            if(this.game.isSpectator(p)) {
                                 e.getAffectedEntities().remove(p);
-                            } else if(!this.onHit(p, damager, true)) {
+                            } else if(this.game.getCurrentMap().getTeam(p).isMember(damager) && !this.game.getCurrentMap().isFriendlyFire()) {
+                                e.getAffectedEntities().remove(p);
+                            } else if(!this.onHit(p, damager, e.getPotion(), null)) {
                                 e.getAffectedEntities().remove(p);
                             }
                         }
@@ -120,23 +160,28 @@ public class GameListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void EventHandler_onHit(EntityDamageEvent e) {
+        if(!this.game.getGameState().equals(GameState.RUNNING)) {
+            e.setCancelled(true);
+            return;
+        }
+
         Entity en = e.getEntity();
 
         if(en instanceof Player) {
-            if(this.game.getGameState().equals(GameState.WAITING)) {
+            if(this.game.getGameState().equals(GameState.WAITING) || this.game.isSpectator((Player) en)) {
                 e.setCancelled(true);
                 return;
             }
 
-            e.setCancelled(!onHit((Player) en, null, false));
+            e.setCancelled(!this.onHit((Player) en, null, null, e.getCause()));
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void EventHandler_onHit(EntityDamageByEntityEvent e) {
-        if(this.game.getGameState().equals(GameState.WAITING)) {
+        if(!this.game.getGameState().equals(GameState.RUNNING)) {
             e.setCancelled(true);
             return;
         }
@@ -147,74 +192,64 @@ public class GameListener implements Listener {
         if(!this.game.ready()) return;
 
         if(en instanceof Player) {
+
             Player p = (Player) en;
             Player d = null;
 
             if(!this.game.isPlaying(p)) return;
+            if(this.game.isSpectator(p)) e.setCancelled(true);
 
             if(damager instanceof Player) d = (Player) damager;
 
-            Entity projectile = null;
-            if(damager.getName().equals("Arrow") && d == null) {
-                projectile = damager;
-
-                Class<?> craftArrow = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftArrow");
-                IReflection.MethodAccessor getShooter = IReflection.getMethod(craftArrow, "getShooter", ProjectileSource.class, new Class[] {});
-
-                Object arrow = craftArrow.cast(projectile);
-                Object shooter = getShooter.invoke(arrow);
-
-                if(shooter instanceof Player) d = (Player) shooter;
-            }
-
-            if(damager.getType().name().equals("SNOWBALL") && d == null) {
-                projectile = damager;
-
-                Class<?> craftProjectile = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftProjectile");
-                IReflection.MethodAccessor getShooter = IReflection.getMethod(craftProjectile, "getShooter", ProjectileSource.class, new Class[] {});
-
-                Object arrow = craftProjectile.cast(projectile);
-                Object shooter = getShooter.invoke(arrow);
-
-                if(shooter instanceof Player) d = (Player) shooter;
-            }
-
-            if(damager.getType().name().equals("FISHING_HOOK") && d == null) {
-                projectile = damager;
-
-                Class<?> fishingHook = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftFish");
-                IReflection.MethodAccessor getShooter = IReflection.getMethod(fishingHook, "getShooter", ProjectileSource.class, new Class[] {});
-
-                Object hook = fishingHook.cast(projectile);
-                Object shooter = getShooter.invoke(hook);
-
-                if(shooter instanceof Player) d = (Player) shooter;
-            }
-
-            if(damager.getType().name().equals("SPLASH_POTION") && d == null) {
-                return;
+            Projectile projectile = null;
+            if(damager instanceof Projectile) {
+                projectile = (Projectile) damager;
+                if(projectile.getShooter() instanceof Player) d = (Player) projectile.getShooter();
             }
 
             if(d != null) {
-                if(this.game.isPlaying(d) && this.game.getCurrentMap() != null && this.game.getCurrentMap().getTeam(p) != null) {
-                    if(this.game.getCurrentMap().getTeam(p).isMember(d) && !this.game.getCurrentMap().isFriendlyFire()) {
-                        e.setCancelled(true);
+                if(this.game.isPlaying(d) && this.game.getCurrentMap() != null) {
+                    if(this.game.getCurrentMap().getTeam(p) != null) {
+                        if((this.game.getTeam(p).isMember(d) && !this.game.getCurrentMap().isFriendlyFire()) || this.game.isSpectator(d)) {
+                            e.setCancelled(true);
+                            e.setDamage(0);
 
-                        if(projectile != null) {
-                            projectile.remove();
-                            if(p.getFireTicks() == 100) p.setFireTicks(0);
+                            if(projectile != null) {
+                                projectile.remove();
+                                if(p.getFireTicks() == 100) p.setFireTicks(0);
+                            }
+
+                            return;
                         }
 
-                        return;
-                    }
+                        if(!this.onHit(p, d, projectile, e.getCause())) {
+                            e.setCancelled(true);
 
-                    if(!this.onHit(p, d, projectile != null)) {
-                        e.setCancelled(true);
-
-                        if(projectile != null) {
-                            projectile.remove();
-                            if(p.getFireTicks() == 100) p.setFireTicks(0);
+                            if(projectile != null) {
+                                projectile.setBounce(false);
+                                projectile.setVelocity(new Vector(0, 0, 0));
+                                projectile.remove();
+                                if(p.getFireTicks() == 100) p.setFireTicks(0);
+                            }
                         }
+                    } else if(this.game.isSpectator(p)) {
+                        if(projectile instanceof ThrownPotion) return;
+
+                        Location location = p.getLocation().add(0, 5, 0);
+                        while(!location.getBlock().getType().equals(Material.AIR)) location.add(0, 1, 0);
+
+                        p.setFlying(true);
+                        p.teleport(location);
+                        p.setFlying(true);
+
+                        Projectile nextProjectile = d.launchProjectile(((Projectile) projectile).getClass());
+                        nextProjectile.setShooter(d);
+                        nextProjectile.teleport(projectile);
+                        nextProjectile.setVelocity(projectile.getVelocity());
+                        nextProjectile.setBounce(false);
+
+                        projectile.remove();
+                        e.setCancelled(true);
                     }
                 }
             }
@@ -252,10 +287,24 @@ public class GameListener implements Listener {
                 for(Player other : getGame().getPlayers()) {
                     if(getGame().isSpectator(other)) continue;
 
-                    if(other.getLocation().distance(p.getLocation()) < getGame().getDistanceToInfluence()) {
+                    if(other.getLocation().getWorld().getName().equals(p.getLocation().getWorld().getName()) && other.getLocation().distance(p.getLocation()) < getGame().getDistanceToInfluence()) {
                         Vector v = p.getLocation().toVector().subtract(other.getLocation().toVector());
                         v.normalize();
+
+                        if(v.length() == 0) v.setY(0.5);
+
                         p.setVelocity(v);
+                    }
+                }
+            } else {
+                for(Player other : getGame().getSpectator().getMembers()) {
+                    if(other.getLocation().getWorld().getName().equals(p.getLocation().getWorld().getName()) && other.getLocation().distance(p.getLocation()) < getGame().getDistanceToInfluence()) {
+                        Vector v = other.getLocation().toVector().subtract(p.getLocation().toVector());
+                        v.normalize();
+
+                        if(v.length() == 0) v.setY(0.5);
+
+                        other.setVelocity(v);
                     }
                 }
             }
@@ -294,6 +343,22 @@ public class GameListener implements Listener {
     }
 
     @EventHandler
+    public void EventHandler_onPickUp(PlayerPickupItemEvent e) {
+        Player p = e.getPlayer();
+
+        if(!this.game.isPlaying(p)) return;
+
+        if(getGame().isSpectator(p)) {
+            e.setCancelled(true);
+            return;
+        }
+
+        if(!onPickUp(e.getPlayer(), e.getItem())) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void EventHandler_onInteract(PlayerInteractAtEntityEvent e) {
         Player p = e.getPlayer();
 
@@ -320,7 +385,8 @@ public class GameListener implements Listener {
             return;
         }
 
-        if(!onInteract(p, e.getClickedBlock())) e.setCancelled(true);
+        if(!onInteract(p, e.getClickedBlock(), e.getAction().name().toLowerCase().contains("right")))
+            e.setCancelled(true);
     }
 
     @EventHandler
@@ -346,7 +412,10 @@ public class GameListener implements Listener {
 
         if(!this.game.isPlaying(p)) return;
 
-        e.setFoodLevel(onFoodLevelChange(p, e.getFoodLevel()));
+        if(getGame().isSpectator(p)) {
+            e.setFoodLevel(20);
+            e.setCancelled(true);
+        } else e.setFoodLevel(onFoodLevelChange(p, e.getFoodLevel()));
     }
 
     /**
@@ -371,7 +440,7 @@ public class GameListener implements Listener {
 
             case RUNNING:
             default:
-                return true;
+                return !getGame().isSpectator(p);
         }
     }
 
@@ -390,7 +459,22 @@ public class GameListener implements Listener {
 
             case RUNNING:
             default:
-                return true;
+                return !getGame().isSpectator(p);
+        }
+    }
+
+    public boolean onPickUp(Player p, Item item) {
+        switch(this.game.getGameState()) {
+            case STOPPED:
+            case STOPPING:
+            case NOT_PLAYABLE:
+            case WAITING:
+            case STARTING:
+                return false;
+
+            case RUNNING:
+            default:
+                return !getGame().isSpectator(p);
         }
     }
 
@@ -409,7 +493,7 @@ public class GameListener implements Listener {
 
             case RUNNING:
             default:
-                return true;
+                return !getGame().isSpectator(p);
         }
     }
 
@@ -417,7 +501,7 @@ public class GameListener implements Listener {
      * @param p Player
      * @return If 'true' the player can interact, if 'false' the interaction will interrupted.
      */
-    public boolean onInteract(Player p, Block b) {
+    public boolean onInteract(Player p, Block b, boolean rightClick) {
         switch(this.game.getGameState()) {
             case STOPPED:
             case STOPPING:
@@ -428,7 +512,7 @@ public class GameListener implements Listener {
 
             case RUNNING:
             default:
-                return true;
+                return !getGame().isSpectator(p);
         }
     }
 
@@ -455,12 +539,12 @@ public class GameListener implements Listener {
      * @param projectile boolean
      * @return If 'true' the player can be damaged, if 'false' the hit will be interrupted.
      */
-    public boolean onHit(Player player, Player damager, boolean projectile) {
-        return true;
+    public boolean onHit(Player player, Player damager, Projectile projectile, EntityDamageEvent.DamageCause cause) {
+        return getGame().getGameState().equals(GameState.RUNNING);
     }
 
     /**
-     * @param player PLayer
+     * @param player Player
      * @param from   Location
      * @param to     Location
      * @return If 'true' the player can walk, if 'false' he will teleported back.
@@ -474,7 +558,7 @@ public class GameListener implements Listener {
      * @param newFoodLevel Double
      * @return Returns the new food level.
      */
-    public int onFoodLevelChange(Player player, double newFoodLevel) {
+    public int onFoodLevelChange(Player player, int newFoodLevel) {
         return 20;
     }
 

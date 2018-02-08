@@ -37,14 +37,16 @@ public class TimeFetcher {
     }
 
     public static Date dateFromString(String code) {
+        if(code == null) return null;
+
         int day = Integer.parseInt(code.split("_")[0]);
-        int month = Integer.parseInt(code.split("_")[1]) - 1;
+        int month = Integer.parseInt(code.split("_")[1]);
         int year = Integer.parseInt(code.split("_")[2].split(" ")[0]);
         int hour = Integer.parseInt(code.split(" ")[1].split(":")[0]);
         int minute = Integer.parseInt(code.split(" ")[1].split(":")[1].split(":")[0]);
         int second = Integer.parseInt(code.split(" ")[1].split(":")[2]);
 
-        Date date = new Date(year, month, day, hour, minute, second);
+        Date date = new Date(year - 1900, month - 1, day, hour, minute, second);
         return date;
     }
 

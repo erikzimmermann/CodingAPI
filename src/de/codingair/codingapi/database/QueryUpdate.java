@@ -1,5 +1,6 @@
 package de.codingair.codingapi.database;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 
 public class QueryUpdate {
@@ -23,7 +24,7 @@ public class QueryUpdate {
 		this.value = value;
 	}
 	
-	public void send(){
+	public void send() throws SQLException {
 		if(where != null && value != null) this.MySQL.queryUpdate("DELETE FROM `"+this.table+"` WHERE "+this.where+" = '"+this.value+"'");
 		
 		String query = "INSERT INTO `"+this.table+"` (";

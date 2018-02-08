@@ -9,6 +9,7 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 import net.minecraft.server.v1_8_R3.Packet;
 import net.minecraft.server.v1_8_R3.PacketPlayOutEntity;
 import net.minecraft.server.v1_8_R3.PacketPlayOutSpawnEntityLiving;
@@ -48,13 +49,11 @@ public abstract class PacketReader implements Removable {
 	}
 	
 	public void inject() {
-		Object ep = PacketUtils.getEntityPlayer(player);
-		
 		IReflection.FieldAccessor getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
 		IReflection.FieldAccessor getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
 		IReflection.FieldAccessor getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
 		
-		channel = (Channel) getChannel.get(getNetworkManager.get(getPlayerConnection.get(ep)));
+		channel = (Channel) getChannel.get(getNetworkManager.get(getPlayerConnection.get(PacketUtils.getEntityPlayer(player))));
 		
 		if(channel.pipeline().get(name) != null) channel.pipeline().remove(name);
 

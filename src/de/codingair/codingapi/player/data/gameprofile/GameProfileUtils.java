@@ -103,11 +103,11 @@ public class GameProfileUtils {
 		String name = gameProfile.getName();
 		
 		Collection<Property> properties = gameProfile.getProperties().get("textures");
-		Property property = (Property) properties.toArray()[0];
+		Property property = properties.toArray().length == 0 ? null : (Property) properties.toArray()[0];
 		
-		String pName = property.getName();
-		String pValue = property.getValue();
-		String pSignature = property.getSignature();
+		String pName = property == null ? null : property.getName();
+		String pValue = property == null ? null : property.getValue();
+		String pSignature = property == null ? null : property.getSignature();
 		
 		JSONObject json = new JSONObject();
 		json.put("ID", uniqueId.toString());

@@ -3,7 +3,7 @@ package de.codingair.codingapi.customentity.fakeplayer.extras;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 

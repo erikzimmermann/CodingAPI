@@ -3,13 +3,14 @@ package de.codingair.codingapi.particles;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -103,7 +104,7 @@ public enum Particle {
 	public List<ParticleProperty> getProperties() {
 		return properties;
 	}
-	
+
 	public void send(Location loc) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {
@@ -111,12 +112,54 @@ public enum Particle {
 			packet.send();
 		}
 	}
-	
+
 	public void send(Location loc, Player... players) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {
 			packet.initialize(loc);
-			
+
+			for(Player player : players) {
+				packet.send(player);
+			}
+		}
+	}
+
+	public void send(Location loc, boolean longDistance) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
+	public void send(Location loc, boolean longDistance, Player... players) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
+			packet.initialize(loc);
+
+			for(Player player : players) {
+				packet.send(player);
+			}
+		}
+	}
+
+	public void send(Location loc, Color color) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setColor(color);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
+	public void send(Location loc, Color color, Player... players) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setColor(color);
+			packet.initialize(loc);
+
 			for(Player player : players) {
 				packet.send(player);
 			}

@@ -3,7 +3,7 @@ package de.codingair.codingapi;
 import de.codingair.codingapi.customentity.CustomEntityType;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import de.codingair.codingapi.customentity.networkentity.NetworkEntity;
-import de.codingair.codingapi.particles.Animations.Animation;
+import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.bossbar.BossBar;
@@ -18,6 +18,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -48,6 +49,11 @@ public class API {
 
 //        this.dataList = TempFile.loadTempFiles(this.plugin, "/PlayerData/", PlayerData.class, new PlayerDataTypeAdapter(), true);
 
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            getPlayerData(player).setLoadedSpawnChunk(true);
+        }
+
+        Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
@@ -63,11 +69,12 @@ public class API {
                         if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInSettings")) {
                             IReflection.FieldAccessor b = IReflection.getField(PacketUtils.PacketPlayInSettingsClass, "b");
                             data.setViewDistance((int) b.get(packet));
+                            if(data.loadedSpawnChunk()) this.unInject();
                         }
 
-                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInTeleportAccept")) {
+                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInCustomPayLoad")) {
                             data.setLoadedSpawnChunk(true);
-                            this.unInject();
+                            if(data.getViewDistance() != -999) this.unInject();
                         }
                         return false;
                     }
@@ -84,8 +91,8 @@ public class API {
                 removePlayerData(e.getPlayer().getName());
                 removeRemovables(e.getPlayer());
             }
-			
-			/* PlayerDataListener - End */
+
+            /* PlayerDataListener - End */
 
             /** FakePlayerListener - Start */
 
@@ -101,8 +108,8 @@ public class API {
                     }
                 }
             }
-			
-			/* FakePlayerListener - End */
+
+            /* FakePlayerListener - End */
 
         }, plugin);
 
@@ -114,7 +121,6 @@ public class API {
 
             @Override
             public void run() {
-                Animation.getAnimations().forEach(Animation::onTick);
                 API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
                 API.getRemovables(NetworkEntity.class).forEach(NetworkEntity::onTick);
                 GUIListener.onTick();
@@ -135,11 +141,22 @@ public class API {
         }.runTaskTimer(plugin, 0, 1);
     }
 
+    public synchronized void onDisable(Plugin plugin) {
+        CustomEntityType.unregisterEntities();
+
+        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
+        API.REMOVABLES.clear();
+        REMOVABLES.forEach(Removable::destroy);
+        REMOVABLES.clear();
+
+        HandlerList.unregisterAll(plugin);
+    }
+
+    @Deprecated
     public synchronized void onDisable() {
         CustomEntityType.unregisterEntities();
 
-        List<Removable> REMOVABLES = new ArrayList<>();
-        REMOVABLES.addAll(API.REMOVABLES);
+        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
 
         API.REMOVABLES.clear();
         REMOVABLES.forEach(Removable::destroy);
@@ -159,9 +176,6 @@ public class API {
             @Override
             public void run() {
                 List<Ticker> tickers = new ArrayList<>(TICKERS);
-                for(Ticker ticker : tickers) {
-                    ticker.onTick();
-                }
 
                 if(second == 20) {
                     second = 0;
@@ -170,6 +184,10 @@ public class API {
                         ticker.onSecond();
                     }
                 } else second++;
+
+                for(Ticker ticker : tickers) {
+                    ticker.onTick();
+                }
 
                 tickers.clear();
             }
@@ -215,6 +233,7 @@ public class API {
     public static synchronized <T extends Removable> T getRemovable(Player player, Class<? extends T> clazz) {
         for(Removable r : REMOVABLES) {
             if(clazz.isInstance(r)) {
+                if((r.getPlayer() == null) != (player == null)) continue;
                 if(r.getPlayer().equals(player)) return clazz.cast(r);
             }
         }
@@ -237,6 +256,7 @@ public class API {
 
         for(Removable r : REMOVABLES) {
             if(clazz.isInstance(r)) {
+                if((r.getPlayer() == null) != (player == null)) continue;
                 if(r.getPlayer().equals(player)) l.add(clazz.cast(r));
             }
         }
@@ -302,8 +322,7 @@ public class API {
     public static synchronized int getID(Removable removable) {
         int id = 0;
 
-        List<Removable> REMOVABLES = new ArrayList<>();
-        REMOVABLES.addAll(API.REMOVABLES);
+        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
 
         for(Removable r : REMOVABLES) {
             if(r.equals(removable)) {
@@ -350,6 +369,20 @@ public class API {
 
         tickers.clear();
         return ticker;
+    }
+
+    public static <V extends Ticker> List<V> getTickers(Class<V> clazz) {
+        List<Ticker> tickers = new ArrayList<>(TICKERS);
+        List<V> list = new ArrayList<>();
+
+        for(Ticker t : tickers) {
+            if(clazz.isInstance(t)) {
+                list.add((V) t);
+            }
+        }
+
+        tickers.clear();
+        return list;
     }
 
     public static int getTickerIndex(Ticker ticker) {

@@ -25,7 +25,7 @@ import java.util.UUID;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -168,6 +168,7 @@ public abstract class HoveredItem implements Removable {
 		List<String> corrected = new ArrayList<>();
 		
 		for(String line : text) {
+			if(line == null) continue;
 			if(line.contains(EMPTY)) corrected.add("");
 			else corrected.add(line);
 		}

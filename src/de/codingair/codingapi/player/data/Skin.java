@@ -142,6 +142,7 @@ public abstract class Skin {
 	}
 	
 	public String getDecodedValue() {
+		if(this.value == null) return null;
 		return new String(Base64.getDecoder().decode(this.value));
 	}
 	
@@ -157,11 +158,12 @@ public abstract class Skin {
 	
 	public abstract void onFail(Skin skin);
 	
-	public void modifyProfile(GameProfile profile) {
-		if(!this.isLoaded()) return;
+	public GameProfile modifyProfile(GameProfile profile) {
+		if(!this.isLoaded()) return profile;
 		
 		profile.getProperties().removeAll("textures");
 		profile.getProperties().put("textures", new Property("textures", this.value, this.signature));
+		return profile;
 	}
 	
 	public <T> T getElement(SkinElement element) {

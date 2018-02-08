@@ -1,11 +1,11 @@
 package de.codingair.codingapi.player;
 
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.time.Countdown;
 import de.codingair.codingapi.time.CountdownListener;
 import de.codingair.codingapi.time.TimeFetcher;
-import de.codingair.codingapi.time.Countdown;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -26,11 +26,11 @@ public class MessageAPI {
         if(Version.getVersion().isBiggerThan(Version.v1_11)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
-            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.ChatMessageClass, type);
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2));
         } else {
-            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.ChatMessageClass, Byte.class);
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, Byte.class);
             bar = constructor.newInstance(com, (byte) 2);
         }
 

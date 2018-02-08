@@ -4,20 +4,23 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.utils.Removable;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.util.Vector;
 
 import java.util.UUID;
 
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -28,6 +31,7 @@ public abstract class GUI extends Interface implements Removable {
 	private SoundData openSound = null;
 	private SoundData cancelSound = null;
 	private boolean closingByButton = false;
+	private boolean moveOwnItems = false;
 	
 	public GUI(Player p, String title, int size, Plugin plugin) {
 		this(p, title, size, plugin, true);
@@ -175,6 +179,19 @@ public abstract class GUI extends Interface implements Removable {
 		this.inventory = inv;
 	}
 
+	public void addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
+		double cX = (double) x0, cY = (double) y0;
+		Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
+
+		do {
+			if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+			cX += v.getX();
+			cY += v.getY();
+		} while((int) cX != x1 || (int) cY != y1);
+
+		if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+	}
+
 	public static GUI getGUI(Player p) {
 		return API.getRemovable(p, GUI.class);
 	}
@@ -202,5 +219,13 @@ public abstract class GUI extends Interface implements Removable {
 	public GUI setOpenSound(SoundData openSound) {
 		this.openSound = openSound;
 		return this;
+	}
+
+	public boolean isMoveOwnItems() {
+		return moveOwnItems;
+	}
+
+	public void setMoveOwnItems(boolean moveOwnItems) {
+		this.moveOwnItems = moveOwnItems;
 	}
 }

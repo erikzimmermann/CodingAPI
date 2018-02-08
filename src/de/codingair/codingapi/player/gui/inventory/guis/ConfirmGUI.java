@@ -87,7 +87,8 @@ public class ConfirmGUI extends GUI {
         }.setOption(option));
 
         List<String> lines = TextAlignment.lineBreak(message, 80);
-        lines = TextAlignment.JUSTIFY.apply(lines);
+
+//        lines = TextAlignment.JUSTIFY.apply(lines);
 
         setItem(4, new ItemBuilder(Material.NETHER_STAR).setName(lines.remove(0)).setLore(lines).getItem());
 

@@ -2,9 +2,13 @@ package de.codingair.codingapi.server;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import net.minecraft.server.v1_8_R3.BlockPosition;
+import net.minecraft.server.v1_8_R3.Blocks;
+import net.minecraft.server.v1_8_R3.PacketPlayOutBlockAction;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
@@ -336,5 +340,27 @@ public class Environment {
 	public static Location getInvisibleLocation(Player p, double multiply) {
 		Location loc = p.getLocation().clone();
 		return loc.getDirection().multiply(multiply).add(loc.toVector()).toLocation(p.getWorld());
+	}
+
+	public static void openChest(Location loc, Player... players) {
+		if(loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
+
+		Object pos = PacketUtils.getBlockPosition(loc);
+		IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutBlockActionClass, PacketUtils.BlockPositionClass, PacketUtils.BlockClass, int.class, int.class);
+		Object packet = con.newInstance(pos, PacketUtils.Blocks.findByName("CHEST"), 1, 1);
+
+		if(players.length == 0) PacketUtils.sendPacketToAll(packet);
+		else PacketUtils.sendPacket(packet, players);
+	}
+
+	public static void closeChest(Location loc, Player... players) {
+		if(loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
+
+		Object pos = PacketUtils.getBlockPosition(loc);
+		IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutBlockActionClass, PacketUtils.BlockPositionClass, PacketUtils.BlockClass, int.class, int.class);
+		Object packet = con.newInstance(pos, PacketUtils.Blocks.findByName("CHEST"), 1, 0);
+
+		if(players.length == 0) PacketUtils.sendPacketToAll(packet);
+		else PacketUtils.sendPacket(packet, players);
 	}
 }

@@ -34,7 +34,7 @@ import java.util.logging.Level;
 /**
  * Removing of this disclaimer is forbidden.
  *
- * @author CodingAir
+ * @author codingair
  * @verions: 1.0.0
  **/
 
@@ -70,6 +70,7 @@ public abstract class Game {
 	private boolean joinOnServerJoin = false;
 	private boolean kickOnEnd = false;
 	private boolean balancePlayers = false;
+	private boolean explodeProtection = false;
 
 	private int gameStartTimeValue;
 	private TimeFetcher.Time gameStartTime;
@@ -102,7 +103,7 @@ public abstract class Game {
 		this.mapVotingTime = mapVotingTime;
 		this.mapVotingTimeBeforeEnd = mapVotingTimeBeforeEnd;
 		
-		if(lobbySpawn != null) {
+		if(lobbySpawn != null && lobbySpawn.getWorld() != null) {
 			this.lobby = new Lobby(this, de.codingair.codingapi.tools.Location.getByLocation(lobbySpawn), lobbyTimeValue, lobbyTime);
 			this.lobby.setListener(new LobbyListener(lobby) {
 				@Override
@@ -110,9 +111,12 @@ public abstract class Game {
 					setGameState(GameState.STARTING);
 				}
 			});
+
+			this.setGameState(GameState.WAITING);
+		} else {
+			warnings.add("The Lobby-Spawn cannot be initialized! Maybe the plugin couldn't find the World. (Multiverse-Core?)");
+			this.setGameState(GameState.NOT_PLAYABLE);
 		}
-		
-		this.setGameState(GameState.WAITING);
 		
 		runnable = new BukkitRunnable() {
 			@Override
@@ -208,6 +212,10 @@ public abstract class Game {
 			other.showPlayer(p);
 		}
 
+		for(Player player : Bukkit.getOnlinePlayers()) {
+			if(!isPlaying(player)) p.hidePlayer(player);
+		}
+
 		if(!start) {
 			setSpectator(p, gameState.equals(GameState.STARTING) || gameState.equals(GameState.RUNNING) || gameState.equals(GameState.STOPPING));
 		} else {
@@ -227,9 +235,7 @@ public abstract class Game {
 		if(!scoreboard) return;
 
 		if(this.scoreboard != null) {
-			p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-			p.getScoreboard().clearSlot(DisplaySlot.BELOW_NAME);
-			p.getScoreboard().clearSlot(DisplaySlot.PLAYER_LIST);
+			new BufferedScoreboard(p, "clear", false).send(p);
 		}
 	}
 
@@ -239,17 +245,48 @@ public abstract class Game {
 	
 	private void balancePlayers() {
 		for(Player p : this.players) {
-			if(this.currentMap == null) {
-				if(!hasTeam(p)) {
-					Team team = this.getBalancedTeam();
-					if(team != null) team.addMember(p);
-				}
-			} else {
-				if(!hasTeam(p)) {
-					this.currentMap.assignToBalancedTeam(p);
-				}
+			if(!hasTeam(p)) {
+				getSmallestTeam().addMember(p);
 			}
 		}
+
+		Team s, b;
+		while(!(s = getSmallestTeam()).getName().equals((b = getBiggestTeam()).getName()) && Math.abs(b.getMembers().size() - s.getMembers().size()) > 1) {
+			Player player = b.getMembers().get((int) (Math.random() * (double) b.getMembers().size()));
+
+			b.removeMember(player);
+			s.addMember(player);
+
+			this.gameListener.onTeamChange(player, b, s);
+		}
+	}
+
+	private Team getSmallestTeam() {
+		Team team = null;
+
+		List<Team> teams = new ArrayList<>(this.teams);
+		for(Team t : teams) {
+			if(team == null) team = t;
+			else if(team.getMembers().size() > t.getMembers().size()) team = t;
+		}
+
+		teams.clear();
+
+		return team;
+	}
+
+	private Team getBiggestTeam() {
+		Team team = null;
+
+		List<Team> teams = new ArrayList<>(this.teams);
+		for(Team t : teams) {
+			if(team == null) team = t;
+			else if(team.getMembers().size() < t.getMembers().size()) team = t;
+		}
+
+		teams.clear();
+
+		return team;
 	}
 	
 	public void broadcast(boolean prefix, String message, Player... exceptions) {
@@ -260,6 +297,8 @@ public abstract class Game {
 				p.sendMessage((prefix ? this.prefix + "§r" : "") + message);
 			}
 		}
+
+		ex.clear();
 	}
 	
 	public void sendMessage(boolean prefix, String message, Player... player) {
@@ -268,6 +307,8 @@ public abstract class Game {
 		for(Player p : players) {
 			p.sendMessage((prefix ? this.prefix + "§r" : "") + message);
 		}
+
+		players.clear();
 	}
 
 	public void updateScoreboard() {
@@ -464,7 +505,7 @@ public abstract class Game {
 			}
 			
 			default: {
-				this.teamVoting.unregister();
+				if(this.teamVoting != null) this.teamVoting.unregister();
 			}
 		}
 	}
@@ -603,31 +644,28 @@ public abstract class Game {
 		return team;
 	}
 
-	public void changeTeam(Player player, Team team) {
+	public boolean changeTeam(Player player, Team team) {
 		Team old = getTeam(player);
 
-		if(old != null) {
-			old.removeMember(player);
+		if(old == null && team == null) return false;
+//		if(old != null && team == null || (team != null && old.getName().equals(team.getName()))) old.removeMember(player);
+		if(old != null && (team == null || old.getName().equals(team.getName()) || team.getMembers().size() < this.teamSize)) old.removeMember(player);
 
-			if(team == null || old.equals(team)) {
-				getGameListener().onTeamQuit(player, old);
-			} else {
-				if(team.getMembers().size() >= this.teamSize) {
-					getGameListener().onTeamChangeErrorIsFull(player, team);
-					return;
-				}
-
-				team.addMember(player);
-				getGameListener().onTeamChange(player, old, team);
+		if(team != null && old == null || !old.getName().equals(team.getName())) {
+			if(team.getMembers().size() >= this.teamSize) {
+				getGameListener().onTeamChangeErrorIsFull(player, team);
+				return false;
 			}
+
+			team.addMember(player);
 		}
 
-		if(old == null) {
-			team.addMember(player);
-			getGameListener().onTeamJoin(player, team);
-		}
+		if((old != null && team == null) || (old != null && team != null && old.getName().equals(team.getName()))) getGameListener().onTeamQuit(player, old);
+		if(old != null && team != null && !old.getName().equals(team.getName())) getGameListener().onTeamChange(player, old, team);
+		if(old == null && team != null) getGameListener().onTeamJoin(player, team);
 
 		updateScoreboard();
+		return true;
 	}
 	
 	public void setCurrentMap(Map currentMap) {
@@ -657,15 +695,18 @@ public abstract class Game {
 			}
 
 			clearPlayer(player);
-			if(this.spectatorLayout != null) this.spectatorLayout.initializeInventory(player);
 
+			player.setFlySpeed(0.8F);
 			player.setAllowFlight(true);
 			player.setFlying(true);
-			player.setFlySpeed(0.8F);
 
 			if(this.spectator.getSpawn() != null) player.teleport(this.spectator.getSpawn());
 
 			player.setFlying(true);
+
+			Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
+				if(this.spectatorLayout != null) this.spectatorLayout.initializeInventory(player);
+			}, 1L);
 		} else if(!spectator && this.spectator.isMember(player)) {
 			this.spectator.removeMember(player);
 
@@ -819,5 +860,18 @@ public abstract class Game {
 
 	public void setDistanceToInfluence(double distanceToInfluence) {
 		this.distanceToInfluence = distanceToInfluence;
+	}
+
+	public boolean isExplodeProtection() {
+		return explodeProtection;
+	}
+
+	public void setExplodeProtection(boolean explodeProtection) {
+		this.explodeProtection = explodeProtection;
+	}
+
+	public boolean isFull() {
+		if(this.teams.size() == 0 || this.teamSize == 0 || this.players.size() == 0) return false;
+		return this.players.size() >= this.teams.size() * this.teamSize;
 	}
 }

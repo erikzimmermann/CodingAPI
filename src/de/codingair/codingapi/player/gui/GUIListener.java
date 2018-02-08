@@ -14,14 +14,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredListener;
 
 import java.util.List;
 
@@ -33,21 +32,29 @@ import java.util.List;
  **/
 
 public class GUIListener implements Listener {
-    private static boolean registered = false;
+    private static GUIListener instance = null;
     private Plugin plugin;
 
     public GUIListener(Plugin plugin) {
+        if(instance != null) HandlerList.unregisterAll(instance);
+
         this.plugin = plugin;
+        instance = this;
     }
 
     public static void register(Plugin plugin) {
-        if(registered) return;
+        if(isRegistered()) return;
         Bukkit.getPluginManager().registerEvents(new GUIListener(plugin), plugin);
-        registered = true;
     }
 
     public static boolean isRegistered() {
-        return registered;
+        if(instance == null) return false;
+
+        for(RegisteredListener registeredListener : HandlerList.getRegisteredListeners(instance.plugin)) {
+            if(registeredListener.getListener() instanceof GUIListener) return true;
+        }
+
+        return false;
     }
 
     public static void onTick() {
@@ -64,8 +71,9 @@ public class GUIListener implements Listener {
         }
     }
 
+
 	/*
-	 * PlayerItem
+     * PlayerItem
 	 */
 
     @EventHandler
@@ -114,15 +122,16 @@ public class GUIListener implements Listener {
             pItem.remove();
         }
     }
-	
+
 	/*
 	 * Interface
 	 */
 
     @EventHandler
     public void onInvClickEvent(InventoryClickEvent e) {
-        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())))
+        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked()))) {
             return;
+        }
         Player p = (Player) e.getWhoClicked();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
@@ -148,13 +157,29 @@ public class GUIListener implements Listener {
 
                 e.setCancelled(!button.isMovable());
 
-                if((button.isOnlyLeftClick() && e.isLeftClick()) || (button.isOnlyRightClick() && e.isRightClick()) || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())) {
+                if((button.isOnlyLeftClick() && e.isLeftClick()) || (button.isOnlyRightClick() && e.isRightClick()) || (!button.isOnlyRightClick() && !button.isOnlyLeftClick()) || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
                     if(button.isCloseOnClick()) {
                         if(inv instanceof GUI) ((GUI) inv).setClosingByButton(true);
                         e.getWhoClicked().closeInventory();
                     }
                     button.playSound((Player) e.getWhoClicked());
                     Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);
+                }
+            } else {
+                if(inv instanceof GUI) {
+                    GUI gui = (GUI) inv;
+
+                    if(gui.isMoveOwnItems()) {
+                        if(e.getClickedInventory().equals(e.getView().getBottomInventory())) {
+                            switch(e.getAction()) {
+                                case MOVE_TO_OTHER_INVENTORY:
+                                    e.setCancelled(!inv.isEditableItems());
+                                    break;
+                                default:
+                                    e.setCancelled(false);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -204,11 +229,25 @@ public class GUIListener implements Listener {
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 
-        if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getWhoClicked())) {
+        if(e.getInventory().getName().equals(inv.getInventory().getName())) {
             e.setCancelled(!inv.isEditableItems());
 
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvDragEvent(e);
+            }
+
+            if(inv instanceof GUI) {
+                GUI gui = (GUI) inv;
+
+                if(gui.isMoveOwnItems()) {
+                    boolean topInv = false;
+
+                    for(Integer slot : e.getRawSlots()) {
+                        if(slot < gui.getSize()) topInv = true;
+                    }
+
+                    if(!topInv) e.setCancelled(false);
+                }
             }
         }
     }

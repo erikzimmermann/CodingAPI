@@ -14,6 +14,7 @@ public class Countdown {
 	private List<CountdownListener> listener = new ArrayList<>();
 	private int runnableID = -1;
 	private boolean firstDelay = true;
+	private boolean running = false;
 	
 	public Countdown(Plugin plugin, TimeFetcher.Time time, int time_value) {
 		this.plugin = plugin;
@@ -50,9 +51,13 @@ public class Countdown {
 				
 			}
 		}, firstDelay ? 20L : 0L, 20L);
+
+		running = true;
 	}
 	
 	public void end() throws IllegalPluginAccessException {
+		running = false;
+
 		for(CountdownListener l : listener) {
 			l.CountdownEndEvent();
 		}
@@ -65,6 +70,8 @@ public class Countdown {
 	}
 	
 	public void cancel() {
+		running = false;
+
 		for(CountdownListener l : listener) {
 			l.CountdownCancelEvent();
 		}
@@ -118,5 +125,9 @@ public class Countdown {
 	
 	public boolean isFirstDelay() {
 		return firstDelay;
+	}
+
+	public boolean isRunning() {
+		return running;
 	}
 }
