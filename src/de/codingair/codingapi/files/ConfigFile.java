@@ -20,8 +20,8 @@ public class ConfigFile {
         this.path = path;
 
         this.loadConfig();
-//        this.config.options().copyDefaults(true);
-//        this.config.options().copyHeader(true);
+        this.config.options().copyDefaults(true);
+        this.config.options().copyHeader(true);
         this.saveConfig();
     }
 
@@ -44,6 +44,7 @@ public class ConfigFile {
         }
 
         config = YamlConfiguration.loadConfiguration(configFile);
+        if(plugin.getResource(this.name + ".yml") != null) config.setDefaults(YamlConfiguration.loadConfiguration(plugin.getResource(this.name + ".yml")));
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {

@@ -1,21 +1,54 @@
 package de.codingair.codingapi.server.commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class CommandBuilder implements CommandExecutor, TabCompleter {
+    private static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
+    private static Listener listener;
+
+    private static void registerListener(JavaPlugin plugin) {
+        if(listener != null) return;
+
+        Bukkit.getPluginManager().registerEvents(listener = new Listener() {
+
+            @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+            public void onPreProcess(PlayerCommandPreprocessEvent e) {
+                String label = e.getMessage().split(" ")[0].replaceFirst("/", "");
+                Command command = Bukkit.getPluginCommand(label);
+
+                if(command == null || command.getName() == null) return;
+
+                CommandBuilder builder = REGISTERED.get(command.getName().toLowerCase());
+
+                if(builder == null) return;
+                if(!builder.isHighestPriority()) return;
+
+                e.setCancelled(true);
+                builder.onCommand(e.getPlayer(), command, label, e.getMessage().replaceFirst("/" + label + " ", "").split(" "));
+            }
+
+        }, plugin);
+    }
+
     private String name;
     private BaseComponent baseComponent;
     private boolean tabCompleter;
-    private boolean registered = false;
+    private boolean highestPriority = false;
 
     public CommandBuilder(String name, BaseComponent baseComponent, boolean tabCompleter) {
         this.name = name;
@@ -24,28 +57,31 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     }
 
     public void register(JavaPlugin plugin) {
-        if(registered) return;
+        if(isRegistered()) return;
 
         if(plugin.getCommand(this.name) == null) throw new IllegalStateException("You must first add the command to the plugin.yml!");
 
         plugin.getCommand(this.name).setExecutor(this);
         if(tabCompleter) plugin.getCommand(this.name).setTabCompleter(this);
 
-        registered = true;
+        REGISTERED.put(this.name.toLowerCase(), this);
+
+        registerListener(plugin);
     }
 
     public void unregister(JavaPlugin plugin) {
-        if(!registered) return;
+        if(!isRegistered()) return;
 
         plugin.getCommand(this.name).setExecutor(null);
         plugin.getCommand(this.name).setTabCompleter(null);
 
-        registered = false;
+        REGISTERED.remove(this.name.toLowerCase());
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        CommandComponent component = getComponent(args);
+        CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) ? getBaseComponent() : getComponent(args);
+
         if(component == null) {
             this.baseComponent.unknownSubCommand(sender, label, args);
             return false;
@@ -131,6 +167,15 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     }
 
     public boolean isRegistered() {
-        return registered;
+        return REGISTERED.containsKey(this.name.toLowerCase());
+    }
+
+    public boolean isHighestPriority() {
+        return highestPriority;
+    }
+
+    public CommandBuilder setHighestPriority(boolean highestPriority) {
+        this.highestPriority = highestPriority;
+        return this;
     }
 }
