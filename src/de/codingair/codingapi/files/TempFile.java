@@ -7,6 +7,7 @@ import de.codingair.codingapi.API;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,7 +64,7 @@ public class TempFile<T> {
         tempFiles.remove(this);
     }
 
-    public static void saveTempFiles(Plugin plugin, String path, Class<?> fileType) {
+    public static void saveTempFiles(Plugin plugin, String path, Class<?> fileType) throws Exception {
         List<String> data = new ArrayList<>();
 
         for(TempFile tempFile : tempFiles) {
@@ -77,7 +78,7 @@ public class TempFile<T> {
         configFile.saveConfig();
     }
 
-    public static <T> List<T> loadTempFiles(Plugin plugin, String path, Class<? extends T> fileType, TypeAdapter typeAdapter, boolean delete) {
+    public static <T> List<T> loadTempFiles(Plugin plugin, String path, Class<? extends T> fileType, TypeAdapter typeAdapter, boolean delete) throws Exception {
         ConfigFile configFile = new ConfigFile(plugin, "TempFiles-" + fileType.getSimpleName(), path);
         List<String> data = configFile.getConfig().getStringList("Data");
         List<T> files = new ArrayList<>();

@@ -154,9 +154,32 @@ public enum Particle {
 		}
 	}
 
+	public void send(Location loc, Color color, boolean longDistance) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
+			packet.setColor(color);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
 	public void send(Location loc, Color color, Player... players) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {
+			packet.setColor(color);
+			packet.initialize(loc);
+
+			for(Player player : players) {
+				packet.send(player);
+			}
+		}
+	}
+
+	public void send(Location loc, Color color, boolean longDistance, Player... players) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
 			packet.setColor(color);
 			packet.initialize(loc);
 

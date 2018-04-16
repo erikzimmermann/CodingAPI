@@ -12,16 +12,20 @@ import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,9 +76,9 @@ public class GUIListener implements Listener {
     }
 
 
-	/*
+    /*
      * PlayerItem
-	 */
+     */
 
     @EventHandler
     public void onInteractEvent(PlayerInteractEvent e) {
@@ -123,9 +127,18 @@ public class GUIListener implements Listener {
         }
     }
 
-	/*
-	 * Interface
-	 */
+    /*
+     * Interface
+     */
+
+    @EventHandler
+    public void onDropWhileInInventory(PlayerDropItemEvent e) {
+        Player p = e.getPlayer();
+        if(!GUI.usesGUI(p) && !GUI.usesOldGUI(p)) return;
+        Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
+
+        if(inv instanceof GUI) e.setCancelled(!((GUI) inv).isCanDropItems());
+    }
 
     @EventHandler
     public void onInvClickEvent(InventoryClickEvent e) {
@@ -139,11 +152,91 @@ public class GUIListener implements Listener {
         if(e.getInventory().getName().equals(inv.getInventory().getName())) {
             e.setCancelled(!inv.isEditableItems());
 
-            if(e.getClickedInventory() == null) return;
+            if(e.getClickedInventory() == null) {
+                if(inv instanceof GUI) e.setCancelled(!((GUI) inv).isCanDropItems());
+                return;
+            }
 
             if(e.getClickedInventory().getName().equals(inv.getInventory().getName())) {
                 for(InterfaceListener l : inv.getListener()) {
                     l.onInvClickEvent(e);
+                }
+
+                if(inv instanceof GUI) {
+                    GUI gui = (GUI) inv;
+                    if(gui.isMovable(e.getSlot())) {
+                        switch(e.getAction()) {
+                            case COLLECT_TO_CURSOR:
+                                ItemStack cursor = e.getCursor();
+                                int startSize = cursor.getAmount();
+
+                                if(inv.isEditableItems()) {
+                                    e.setCancelled(false);
+                                } else {
+                                    e.setCancelled(true);
+                                    e.setResult(Event.Result.DENY);
+
+                                    List<Integer> movedFrom = new ArrayList<>();
+                                    for(Integer slot : gui.getMovableSlots()) {
+                                        ItemStack other = gui.getItem(slot);
+
+                                        if(other != null && cursor.isSimilar(other)) {
+                                            int amount = cursor.getAmount();
+
+                                            if(amount < cursor.getMaxStackSize()) {
+                                                int a = cursor.getMaxStackSize() - amount;
+
+                                                if(other.getAmount() > a) {
+                                                    other.setAmount(other.getAmount() - a);
+                                                    cursor.setAmount(cursor.getMaxStackSize());
+                                                    movedFrom.add(slot);
+                                                } else {
+                                                    cursor.setAmount(cursor.getAmount() + other.getAmount());
+                                                    gui.setItem(slot, new ItemStack(Material.AIR));
+                                                    movedFrom.add(slot);
+                                                }
+                                            } else break;
+                                        }
+                                    }
+
+                                    if(gui.isMoveOwnItems() && e.getView().getBottomInventory() != null) {
+                                        Inventory bottom = e.getView().getBottomInventory();
+
+                                        for(int slot = 0; slot < bottom.getSize(); slot++) {
+                                            ItemStack other = bottom.getItem(slot);
+
+                                            if(other == null) {
+                                                continue;
+                                            } else if(cursor.isSimilar(other)) {
+                                                int amount = cursor.getAmount();
+
+                                                if(amount < cursor.getMaxStackSize()) {
+                                                    int a = cursor.getMaxStackSize() - amount;
+
+                                                    if(other.getAmount() > a) {
+                                                        other.setAmount(other.getAmount() - a);
+                                                        cursor.setAmount(cursor.getMaxStackSize());
+                                                        movedFrom.add(slot + gui.getSize());
+                                                    } else {
+                                                        cursor.setAmount(cursor.getAmount() + other.getAmount());
+                                                        bottom.setItem(slot, new ItemStack(Material.AIR));
+                                                        movedFrom.add(slot + gui.getSize());
+                                                    }
+                                                } else break;
+                                            }
+                                        }
+                                    }
+
+                                    if(cursor.getAmount() > startSize) {
+                                        gui.getGUIListeners().forEach(l -> l.onCollectToCursor(e.getCursor(), movedFrom, e.getRawSlot()));
+                                        break;
+                                    }
+                                }
+                                break;
+                            default:
+                                e.setCancelled(false);
+                        }
+                    }
                 }
 
                 ItemStack item = e.getCurrentItem();
@@ -169,15 +262,122 @@ public class GUIListener implements Listener {
                 if(inv instanceof GUI) {
                     GUI gui = (GUI) inv;
 
-                    if(gui.isMoveOwnItems()) {
-                        if(e.getClickedInventory().equals(e.getView().getBottomInventory())) {
-                            switch(e.getAction()) {
-                                case MOVE_TO_OTHER_INVENTORY:
-                                    e.setCancelled(!inv.isEditableItems());
-                                    break;
-                                default:
+                    if(gui.isMoveOwnItems() && e.getClickedInventory().equals(e.getView().getBottomInventory())) {
+                        ItemStack current = e.getCurrentItem();
+
+                        switch(e.getAction()) {
+                            case MOVE_TO_OTHER_INVENTORY:
+
+                                if(inv.isEditableItems()) {
                                     e.setCancelled(false);
-                            }
+                                } else {
+                                    e.setCancelled(true);
+
+                                    List<Integer> movedTo = new ArrayList<>();
+                                    for(Integer slot : gui.getMovableSlots()) {
+                                        ItemStack other = gui.getItem(slot);
+
+                                        if(other == null) {
+                                            gui.setItem(slot, current.clone());
+                                            current.setAmount(0);
+                                            movedTo.add(slot);
+                                        } else if(other.isSimilar(current)) {
+                                            int amount = other.getAmount();
+
+                                            if(amount < other.getMaxStackSize()) {
+                                                int a = other.getMaxStackSize() - amount;
+
+                                                if(current.getAmount() > a) {
+                                                    current.setAmount(current.getAmount() - a);
+                                                    other.setAmount(other.getMaxStackSize());
+                                                    movedTo.add(slot);
+                                                } else {
+                                                    other.setAmount(other.getAmount() + current.getAmount());
+                                                    current.setAmount(0);
+                                                    movedTo.add(slot);
+                                                }
+                                            }
+                                        }
+
+                                        if(current.getAmount() == 0) {
+                                            gui.getGUIListeners().forEach(l -> l.onMoveToTopInventory(current.clone(), e.getRawSlot(), movedTo));
+                                            e.getClickedInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                break;
+                            case COLLECT_TO_CURSOR:
+                                //Im top-inv werden auch aus nicht editable slots die items genommen !! kommt nicht aus diesem case (slot nicht in movedFrom drin!)
+                                ItemStack cursor = e.getCursor();
+                                int startSize = cursor.getAmount();
+
+                                if(inv.isEditableItems()) {
+                                    e.setCancelled(false);
+                                } else {
+                                    e.setCancelled(true);
+                                    e.setResult(Event.Result.DENY);
+
+                                    List<Integer> movedFrom = new ArrayList<>();
+                                    for(Integer slot : gui.getMovableSlots()) {
+                                        ItemStack other = gui.getItem(slot);
+
+                                        if(other != null && cursor.isSimilar(other)) {
+                                            int amount = cursor.getAmount();
+
+                                            if(amount < cursor.getMaxStackSize()) {
+                                                int a = cursor.getMaxStackSize() - amount;
+
+                                                if(other.getAmount() > a) {
+                                                    other.setAmount(other.getAmount() - a);
+                                                    cursor.setAmount(cursor.getMaxStackSize());
+                                                    movedFrom.add(slot);
+                                                } else {
+                                                    cursor.setAmount(cursor.getAmount() + other.getAmount());
+                                                    gui.setItem(slot, new ItemStack(Material.AIR));
+                                                    movedFrom.add(slot);
+                                                }
+                                            } else break;
+                                        }
+                                    }
+
+                                    if(gui.isMoveOwnItems() && e.getView().getBottomInventory() != null) {
+                                        Inventory bottom = e.getView().getBottomInventory();
+
+                                        for(int slot = 0; slot < bottom.getSize(); slot++) {
+                                            ItemStack other = bottom.getItem(slot);
+
+                                            if(other == null) {
+                                                continue;
+                                            } else if(cursor.isSimilar(other)) {
+                                                int amount = cursor.getAmount();
+
+                                                if(amount < cursor.getMaxStackSize()) {
+                                                    int a = cursor.getMaxStackSize() - amount;
+
+                                                    if(other.getAmount() > a) {
+                                                        other.setAmount(other.getAmount() - a);
+                                                        cursor.setAmount(cursor.getMaxStackSize());
+                                                        movedFrom.add(slot + gui.getSize());
+                                                    } else {
+                                                        cursor.setAmount(cursor.getAmount() + other.getAmount());
+                                                        bottom.setItem(slot, new ItemStack(Material.AIR));
+                                                        movedFrom.add(slot + gui.getSize());
+                                                    }
+                                                } else break;
+                                            }
+                                        }
+                                    }
+
+                                    if(cursor.getAmount() > startSize) {
+                                        gui.getGUIListeners().forEach(l -> l.onCollectToCursor(e.getCursor(), movedFrom, e.getRawSlot()));
+                                        break;
+                                    }
+                                }
+                                break;
+                            default:
+                                e.setCancelled(false);
                         }
                     }
                 }
@@ -232,6 +432,25 @@ public class GUIListener implements Listener {
         if(e.getInventory().getName().equals(inv.getInventory().getName())) {
             e.setCancelled(!inv.isEditableItems());
 
+            if(inv instanceof GUI) {
+                GUI gui = (GUI) inv;
+                boolean movableSlots = true;
+
+                for(Integer slot : e.getRawSlots()) {
+                    if(slot < gui.getSize()) {
+                        if(!gui.isMovable(slot)) {
+                            movableSlots = false;
+                        }
+                    } else {
+                        if(!gui.isMoveOwnItems()) movableSlots = false;
+                    }
+
+                    if(!movableSlots) break;
+                }
+
+                e.setCancelled(!movableSlots);
+            }
+
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvDragEvent(e);
             }
@@ -251,10 +470,10 @@ public class GUIListener implements Listener {
             }
         }
     }
-	
-	/*
-	 * ItemGUI
-	 */
+
+    /*
+     * ItemGUI
+     */
 
     @EventHandler
     public void onSneak(PlayerToggleSneakEvent e) {

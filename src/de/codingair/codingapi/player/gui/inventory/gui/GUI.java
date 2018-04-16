@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -32,6 +32,9 @@ public abstract class GUI extends Interface implements Removable {
 	private SoundData cancelSound = null;
 	private boolean closingByButton = false;
 	private boolean moveOwnItems = false;
+	private List<Integer> movableSlots = new ArrayList<>();
+	private List<GUIListener> listeners = new ArrayList<>();
+	private boolean canDropItems = false;
 	
 	public GUI(Player p, String title, int size, Plugin plugin) {
 		this(p, title, size, plugin, true);
@@ -49,10 +52,13 @@ public abstract class GUI extends Interface implements Removable {
 		super.addListener(new InterfaceListener() {
 			@Override
 			public void onInvClickEvent(InventoryClickEvent e) {
+			    listeners.forEach(l -> l.onInvClickEvent(e));
 			}
 			
 			@Override
 			public void onInvOpenEvent(InventoryOpenEvent e) {
+                listeners.forEach(l -> l.onInvOpenEvent(e));
+
 				if(e.getPlayer().equals(player)) {
 					onOpen(player);
 				}
@@ -60,6 +66,8 @@ public abstract class GUI extends Interface implements Removable {
 			
 			@Override
 			public void onInvCloseEvent(InventoryCloseEvent e) {
+                listeners.forEach(l -> l.onInvCloseEvent(e));
+
 				if(e.getPlayer().equals(player)) {
 					onClose(player);
 				}
@@ -67,7 +75,7 @@ public abstract class GUI extends Interface implements Removable {
 			
 			@Override
 			public void onInvDragEvent(InventoryDragEvent e) {
-			
+                listeners.forEach(l -> l.onInvDragEvent(e));
 			}
 		});
 		
@@ -75,8 +83,12 @@ public abstract class GUI extends Interface implements Removable {
 		
 		if(preInitialize) initialize(p);
 	}
-	
-	@Override
+
+    public List<GUIListener> getGUIListeners() {
+        return listeners;
+    }
+
+    @Override
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
@@ -93,6 +105,14 @@ public abstract class GUI extends Interface implements Removable {
 	
 	public abstract void initialize(Player p);
 
+    public void addListener(GUIListener listener) {
+        this.listeners.add(listener);
+    }
+
+    public void removeListener(GUIListener listener) {
+        this.listeners.remove(listener);
+    }
+
 	public void reinitialize() {
 		clear();
 		initialize(this.player);
@@ -104,8 +124,10 @@ public abstract class GUI extends Interface implements Removable {
 		initialize(this.player);
 		setTitle(title);
 	}
-	
+
+	@Deprecated
 	public void onClose(Player p) { }
+    @Deprecated
 	public void onOpen(Player p) { }
 	
 	@Override
@@ -132,6 +154,33 @@ public abstract class GUI extends Interface implements Removable {
 		super.close(this.player);
 		API.removeRemovable(this);
 	}
+
+    public void setEditableSlots(boolean movable, Integer... slots) {
+        setEditableSlots(movable, Arrays.asList(slots));
+    }
+
+    public void setEditableSlots(boolean movable, List<Integer> slots) {
+        if(movable) {
+            for(int slot : slots) {
+                if(this.movableSlots.contains(slot)) continue;
+                this.movableSlots.add(slot);
+            }
+        } else {
+            for(int slot : slots) {
+                this.movableSlots.remove(slot);
+            }
+        }
+
+        Collections.sort(this.movableSlots);
+    }
+
+    public List<Integer> getMovableSlots() {
+        return Collections.unmodifiableList(this.movableSlots);
+    }
+
+    public boolean isMovable(int slot) {
+	    return this.movableSlots.contains(slot);
+    }
 	
 	@Override
 	public Player getPlayer() {
@@ -228,4 +277,12 @@ public abstract class GUI extends Interface implements Removable {
 	public void setMoveOwnItems(boolean moveOwnItems) {
 		this.moveOwnItems = moveOwnItems;
 	}
+
+    public boolean isCanDropItems() {
+        return canDropItems;
+    }
+
+    public void setCanDropItems(boolean canDropItems) {
+        this.canDropItems = canDropItems;
+    }
 }

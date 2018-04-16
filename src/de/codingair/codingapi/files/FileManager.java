@@ -31,9 +31,15 @@ public class FileManager {
         }
     }
 
+    public void loadAll() {
+        for (ConfigFile file : this.configList) {
+            file.loadConfig();
+        }
+    }
+
     public void saveAll() {
-        for(ConfigFile configFile : this.configList) {
-            configFile.saveConfig();
+        for (ConfigFile file : this.configList) {
+            file.saveConfig();
         }
     }
 }

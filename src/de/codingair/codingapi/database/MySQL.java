@@ -1,6 +1,5 @@
 package de.codingair.codingapi.database;
 
-import com.mysql.jdbc.exceptions.jdbc4.CommunicationsException;
 import org.bukkit.plugin.Plugin;
 
 import java.sql.*;
@@ -13,6 +12,7 @@ public class MySQL {
     private String user;
     private String password;
 
+    private boolean autoReconnect = false;
     private Connection con;
 
     @Deprecated
@@ -36,7 +36,7 @@ public class MySQL {
     public Connection openConnection() throws SQLException {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            this.con = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database, this.user, this.password);
+            this.con = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?autoReconnect=" + this.autoReconnect, this.user, this.password);
             return con;
         } catch(ClassNotFoundException e) {
             e.printStackTrace();
@@ -100,5 +100,13 @@ public class MySQL {
         } catch(SQLException e) {
             return false;
         }
+    }
+
+    public boolean isAutoReconnect() {
+        return autoReconnect;
+    }
+
+    public void setAutoReconnect(boolean autoReconnect) {
+        this.autoReconnect = autoReconnect;
     }
 }

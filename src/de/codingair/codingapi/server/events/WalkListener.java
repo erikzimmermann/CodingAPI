@@ -22,6 +22,8 @@ public class WalkListener implements Listener {
             PlayerWalkEvent event = new PlayerWalkEvent(p, e.getFrom().clone(), e.getTo().clone());
             Bukkit.getPluginManager().callEvent(event);
             e.setCancelled(event.isCancelled());
+            e.setTo(event.getTo());
+            e.setFrom(event.getFrom());
         }
     }
 

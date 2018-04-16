@@ -25,13 +25,24 @@ public class ConfigFile {
         this.saveConfig();
     }
 
+    private void mkDir(File file) {
+        if(!file.canExecute()) mkDir(file.getParentFile());
+        if(!file.exists()) file.mkdir();
+    }
+
     public void loadConfig() {
-        File folder = plugin.getDataFolder();
-        if(!folder.exists()) folder.mkdir();
-
-        configFile = new File(this.plugin.getDataFolder(), this.path + this.name + ".yml");
-
         try {
+            File folder = plugin.getDataFolder();
+            if(!folder.exists()) folder.mkdir();
+
+            if(!this.path.startsWith("/")) this.path = "/" + this.path;
+            if(!this.path.endsWith("/")) this.path = this.path + "/";
+
+            folder = new File(this.plugin.getDataFolder() + this.path);
+            mkDir(folder);
+
+            configFile = new File(this.plugin.getDataFolder() + this.path, this.name + ".yml");
+
             if(!configFile.exists()) {
                 configFile.createNewFile();
                 try(InputStream in = plugin.getResource(this.name + ".yml");
@@ -39,12 +50,15 @@ public class ConfigFile {
                     copy(in, out);
                 }
             }
+
+            config = YamlConfiguration.loadConfiguration(configFile);
+            if(plugin.getResource(this.name + ".yml") != null) {
+                InputStreamReader reader = new InputStreamReader(plugin.getResource(this.name + ".yml"));
+                if(reader != null) config.setDefaults(YamlConfiguration.loadConfiguration(reader));
+            }
         } catch(Exception e) {
             e.printStackTrace();
         }
-
-        config = YamlConfiguration.loadConfiguration(configFile);
-        if(plugin.getResource(this.name + ".yml") != null) config.setDefaults(YamlConfiguration.loadConfiguration(plugin.getResource(this.name + ".yml")));
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {

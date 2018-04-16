@@ -24,6 +24,10 @@ public abstract class CommandComponent {
         this.permission = permission;
     }
 
+    public boolean useInTabCompleter(CommandSender sender, String label, String[] args) {
+        return true;
+    }
+
     public abstract boolean runCommand(CommandSender sender, String label, String[] args);
 
     private void setParent(CommandComponent parent) {

@@ -644,8 +644,8 @@ public class Interface {
 		
 	}
 
-	public void setItem(int arg0, ItemStack arg1) {
-		this.inventory.setItem(arg0, arg1);
+	public void setItem(int x, ItemStack arg1) {
+		this.inventory.setItem(x, arg1);
 	}
 
 	public void setItem(int x, int y, ItemStack arg1) {

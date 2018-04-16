@@ -37,6 +37,15 @@ public class MessageAPI {
         PacketUtils.sendPacket(p, bar);
     }
 
+    public static void stopSendingActionBar(Player p) {
+        Countdown countdown = countdowns.get(p.getName());
+        if(countdown != null) {
+            countdown.end();
+        }
+
+        sendActionBar(p, null);
+    }
+
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
         Countdown countdown = countdowns.get(p.getName());
         if(countdown != null) {

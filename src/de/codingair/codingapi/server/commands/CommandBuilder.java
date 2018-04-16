@@ -120,8 +120,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         for(CommandComponent child : component.getChildren()) {
             if(child.hasPermission(sender)) {
-                if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, sub);
-                else sub.add(child.getArgument());
+                if(child instanceof MultiCommandComponent && child.useInTabCompleter(sender, label, args)) ((MultiCommandComponent) child).addArguments(sender, sub);
+                else if(child.useInTabCompleter(sender, label, args)) sub.add(child.getArgument());
             }
         }
 
