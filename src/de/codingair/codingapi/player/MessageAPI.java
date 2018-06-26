@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -44,6 +45,10 @@ public class MessageAPI {
         }
 
         sendActionBar(p, null);
+    }
+
+    public static void sendActionBar(Player p, String message, int seconds) {
+        sendActionBar(p, message, API.getInstance().getPlugin(), seconds);
     }
 
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {

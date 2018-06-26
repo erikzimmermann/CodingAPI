@@ -76,6 +76,8 @@ public class PacketUtils {
     public static final Class<?> PacketPlayOutSpawnEntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutSpawnEntityLiving");
     public static final Class<?> PacketPlayOutSpawnEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutSpawnEntity");
     public static final Class<?> PacketPlayOutBlockActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutBlockAction");
+    public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
+    public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenSignEditor");
 
     public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumItemSlot");
     public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");

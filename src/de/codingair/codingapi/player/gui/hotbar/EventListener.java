@@ -10,9 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
@@ -29,6 +27,18 @@ public class EventListener implements Listener {
 
     public static EventListener getInstance() {
         return instance;
+    }
+
+    @EventHandler
+    public void onSwitch(PlayerItemHeldEvent e) {
+        HotbarGUI gui = API.getRemovable(e.getPlayer(), HotbarGUI.class);
+        if(gui == null) return;
+
+        ItemComponent oldSlot = gui.getItem(e.getPreviousSlot());
+        ItemComponent newSlot = gui.getItem(e.getNewSlot());
+
+        if(oldSlot != null && oldSlot.getAction() != null) oldSlot.getAction().onUnhover(gui, oldSlot, newSlot, e.getPlayer());
+        if(newSlot != null && newSlot.getAction() != null) newSlot.getAction().onHover(gui, oldSlot, newSlot, e.getPlayer());
     }
 
     @EventHandler

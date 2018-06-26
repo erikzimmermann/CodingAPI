@@ -2,9 +2,6 @@ package de.codingair.codingapi.player.gui.hotbar;
 
 import de.codingair.codingapi.server.SoundData;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
-import java.util.List;
 
 public class ItemComponent {
     private final ItemStack item;
@@ -12,13 +9,13 @@ public class ItemComponent {
     private SoundData clickSound;
     private boolean silent;
     private boolean closeOnClick;
-    private ClickEvent action;
+    private ItemListener action;
 
     public ItemComponent(ItemStack item) {
         this.item = item;
     }
 
-    public ItemComponent(ItemStack item, ClickEvent action) {
+    public ItemComponent(ItemStack item, ItemListener action) {
         this.item = item;
         this.action = action;
     }
@@ -63,11 +60,11 @@ public class ItemComponent {
         return this;
     }
 
-    public ClickEvent getAction() {
+    public ItemListener getAction() {
         return action;
     }
 
-    public ItemComponent setAction(ClickEvent action) {
+    public ItemComponent setAction(ItemListener action) {
         this.action = action;
         return this;
     }
