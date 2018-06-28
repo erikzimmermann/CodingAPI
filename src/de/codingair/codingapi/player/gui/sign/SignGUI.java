@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.sign;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -82,6 +83,20 @@ public abstract class SignGUI {
         Packet packet = new Packet(PacketUtils.PacketPlayOutOpenSignEditorClass, this.player);
         packet.initialize(this.sign == null ? PacketUtils.getBlockPosition(new Location(null, 0, 0, 0)) : PacketUtils.getBlockPosition(sign.getLocation()));
         packet.send();
+    }
+
+    public void close() {
+        PacketReader packetReader = null;
+
+        for(PacketReader reader : API.getRemovables(this.player, PacketReader.class)) {
+            if(reader.getName().equals("SignEditor")) {
+                packetReader = reader;
+                break;
+            }
+        }
+
+        packetReader.unInject();
+        this.player.closeInventory();
     }
 
 }

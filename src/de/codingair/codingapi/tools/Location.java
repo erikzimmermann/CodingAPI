@@ -41,11 +41,11 @@ public class Location extends org.bukkit.Location {
     }
 
     public String toJSONString(int decimalPlaces) {
-        String s = "0.";
+        StringBuilder s = new StringBuilder("0" + (decimalPlaces > 0 ? "." : ""));
         for(int i = 0; i < decimalPlaces; i++) {
-            s += "0";
+            s.append("0");
         }
-        DecimalFormat format = new DecimalFormat(s);
+        DecimalFormat format = new DecimalFormat(s.toString());
 
         JSONObject json = new JSONObject();
 

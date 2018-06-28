@@ -3,6 +3,7 @@ package de.codingair.codingapi.tools;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.utils.TextAlignment;
@@ -41,6 +42,7 @@ public class ItemBuilder {
     private ItemMeta preMeta = null;
     private PotionData potionData = null;
 
+    private GameProfile skullOwner = null;
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
     private boolean hideStandardLore = false;
@@ -92,6 +94,12 @@ public class ItemBuilder {
         if(item.getType().name().toUpperCase().contains("POTION")) {
             this.potionData = new PotionData(item);
         }
+
+        try {
+            ItemMeta meta = item.getItemMeta();
+            IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+            this.skullOwner = (GameProfile) profile.get(meta);
+        } catch(Exception ignored) { }
     }
 
     public ItemBuilder(Material type, ItemMeta itemMeta) {
@@ -174,6 +182,11 @@ public class ItemBuilder {
             }
         }
 
+        if(this.skullOwner != null) {
+            IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+            profile.set(meta, this.skullOwner);
+        }
+
         item.setItemMeta(meta);
 
         if(this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
@@ -216,6 +229,8 @@ public class ItemBuilder {
         jsonObject.put("HideEnchantments", this.hideEnchantments);
         jsonObject.put("HideName", this.hideName);
         jsonObject.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
+
+        jsonObject.put("SkullOwner", this.skullOwner == null ? null : GameProfileUtils.gameProfileToString(this.skullOwner));
 
         return jsonObject.toJSONString();
     }
@@ -361,6 +376,15 @@ public class ItemBuilder {
                         if(obj == null) break;
 
                         item.setHideName((boolean) jsonObject.get("HideName"));
+                        break;
+                    }
+
+                    case "SkullOwner": {
+                        Object obj = jsonObject.get("SkullOwner");
+                        if(obj == null) break;
+
+                        GameProfile pf = GameProfileUtils.gameProfileFromJSON((String) obj);
+                        item.setSkullOwner(pf);
                         break;
                     }
                 }
@@ -602,5 +626,13 @@ public class ItemBuilder {
 
     public ItemBuilder clone() {
         return new ItemBuilder(getItem(), getItem().getItemMeta());
+    }
+
+    public GameProfile getSkullOwner() {
+        return skullOwner;
+    }
+
+    public void setSkullOwner(GameProfile skullOwner) {
+        this.skullOwner = skullOwner;
     }
 }
