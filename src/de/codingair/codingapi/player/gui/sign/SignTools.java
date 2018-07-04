@@ -11,6 +11,7 @@ public class SignTools {
     public static void updateSign(Sign sign, String[] text) {
         switch(Version.getVersion()) {
             case v1_12:
+            case v1_9:
             case v1_8: {
                 for(int i = 0; i < 4; i++) {
                     sign.setLine(i, text[i]);
@@ -19,7 +20,6 @@ public class SignTools {
                 break;
             }
 
-            case v1_9:
             case v1_10:
             case v1_11: {
                 Object tileEntitySign = PacketUtils.getTileEntity(sign.getLocation());
