@@ -6,7 +6,6 @@ import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -47,7 +46,13 @@ public abstract class SignGUI {
                     IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
 
                     for(int i = 0; i < 4; i++) {
-                        Object icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
+                        Object icbc;
+
+                        try {
+                            icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
+                        } catch(Exception ex) {
+                            icbc = PacketUtils.getChatMessage((String) data[i]);
+                        }
 
                         int siblings = ((List) getSiblings.invoke(icbc)).size();
                         String line = (String) getText.invoke(icbc);
@@ -70,8 +75,15 @@ public abstract class SignGUI {
         }.inject();
 
         if(this.sign != null) {
-            IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "sign");
-            Object tileEntity = field.get(this.sign);
+            Object tileEntity;
+
+            try {
+                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "sign");
+                tileEntity = field.get(this.sign);
+            } catch(Exception ex) {
+                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "tileEntity");
+                tileEntity = field.get(this.sign);
+            }
 
             IReflection.FieldAccessor editable = IReflection.getField(tileEntity.getClass(), "isEditable");
             editable.set(tileEntity, true);

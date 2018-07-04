@@ -32,6 +32,8 @@ public class PacketUtils {
     public static final Class<?> BlockClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Block");
     public static final Class<?> BlocksClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Blocks");
     public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IBlockData");
+    public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntity");
+    public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntitySign");
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Entity");
     public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
@@ -89,6 +91,7 @@ public class PacketUtils {
     public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent$ChatSerializer");
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent");
     public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
+    public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatComponentText");
 
     public static final IReflection.MethodAccessor getHandle = IReflection.getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[] {});
     public static final IReflection.MethodAccessor getHandleEntity = IReflection.getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[] {});
@@ -97,6 +100,7 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor sendPacket = IReflection.getMethod(PlayerConnectionClass, "sendPacket");
     public static final IReflection.MethodAccessor getEntityId = IReflection.getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
     public static final IReflection.MethodAccessor getServer = IReflection.getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
+    public static final IReflection.MethodAccessor getTileEntity = IReflection.getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
 
     public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, "playerConnection");
 
@@ -135,7 +139,12 @@ public class PacketUtils {
     }
 
     public static Object getEntityPlayer(Player p) {
+        if(p == null) return null;
         return getHandle.invoke(CraftPlayerClass.cast(p));
+    }
+
+    public static Object getTileEntity(Location loc) {
+        return getTileEntity.invoke(getWorldServer(loc.getWorld()), getBlockPosition(loc));
     }
 
     public static Object getCraftPlayer(Player p) {
@@ -168,6 +177,11 @@ public class PacketUtils {
     public static Object getChatMessage(String text) {
         IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(ChatMessageClass, String.class, Object[].class);
         return chatMessageCon.newInstance(text, new Object[] {});
+    }
+
+    public static Object getChatComponentText(String text) {
+        IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(ChatComponentTextClass, String.class);
+        return chatMessageCon.newInstance(text);
     }
 
     public static Object getMinecraftServer() {
