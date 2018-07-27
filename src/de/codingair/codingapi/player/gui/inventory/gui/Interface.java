@@ -328,8 +328,12 @@ public class Interface {
 
 		p.openInventory(this.inventory);
 	}
-	
+
 	public void close(Player p) {
+		close(p, false);
+	}
+
+	public void close(Player p, boolean isClosing) {
 		Player o = null;
 		
 		for(Player current : this.currentPlayers) {
@@ -337,14 +341,13 @@ public class Interface {
 		}
 		
 		if(o == null) return;
-		List<Player> current = new ArrayList<>();
-		current.addAll(this.currentPlayers);
+		List<Player> current = new ArrayList<>(this.currentPlayers);
 		current.remove(o);
 		
 		this.currentPlayers = current;
 		if(oldUsage) interfaces.remove(this);
 
-		p.closeInventory();
+		if(!isClosing) p.closeInventory();
 	}
 	
 	public boolean isUsing(Player p) {

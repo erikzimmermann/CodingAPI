@@ -399,7 +399,7 @@ public class GUIListener implements Listener {
                 if(sound != null) sound.play(p);
             }
 
-            inv.close((Player) e.getPlayer());
+            inv.close((Player) e.getPlayer(), true);
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvCloseEvent(e);
             }
@@ -413,7 +413,6 @@ public class GUIListener implements Listener {
         Player p = (Player) e.getPlayer();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
-
         if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getPlayer())) {
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvOpenEvent(e);
@@ -448,7 +447,7 @@ public class GUIListener implements Listener {
                     if(!movableSlots) break;
                 }
 
-                e.setCancelled(!movableSlots);
+                e.setCancelled(!movableSlots && !inv.isEditableItems());
             }
 
             for(InterfaceListener l : inv.getListener()) {

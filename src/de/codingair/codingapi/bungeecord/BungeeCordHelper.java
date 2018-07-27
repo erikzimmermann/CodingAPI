@@ -85,27 +85,10 @@ public class BungeeCordHelper {
 
         Player p = Bukkit.getOnlinePlayers().iterator().next();
 
-        BukkitRunnable runnable = new BukkitRunnable() {
-            long currentTick = 0;
-
-            @Override
-            public void run() {
-                currentTick++;
-
-                if(currentTick >= timeOutTicks) {
-                    callback.accept(false);
-                    this.cancel();
-                }
-            }
-        };
-
-        runnable.runTaskTimer(plugin, 1, 1);
-
         getUUID(p, plugin, new Callback<UUID>() {
             @Override
             public void accept(UUID object) {
-                runnable.cancel();
-                callback.accept(true);
+                callback.accept(object != null);
             }
         }, timeOutTicks);
     }

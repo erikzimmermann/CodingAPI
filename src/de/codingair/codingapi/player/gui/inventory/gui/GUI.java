@@ -136,8 +136,8 @@ public abstract class GUI extends Interface implements Removable {
 		if(GUI.usesOldGUI(p)) GUI.getOldGUI(p).close(p);
 
 		if(this.openSound != null) this.openSound.play(p);
+        API.addRemovable(this);
 		super.open(p);
-		API.addRemovable(this);
 	}
 	
 	public void open() {
