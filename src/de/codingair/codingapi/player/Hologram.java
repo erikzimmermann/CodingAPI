@@ -8,9 +8,10 @@ import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Converter;
 import de.codingair.codingapi.utils.Removable;
-import net.minecraft.server.v1_9_R1.EntityArmorStand;
+import net.minecraft.server.v1_13_R1.WorldServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_13_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,11 +41,13 @@ public class Hologram implements Removable {
 
     public Hologram(Location location, String... text) {
         this.text = Converter.fromArrayToList(text);
+        if(location.getWorld() == null) return;
         this.location = location.clone();
     }
 
     public Hologram(Location location, Player p, String... text) {
         this.text = Converter.fromArrayToList(text);
+        if(location.getWorld() == null) return;
         this.location = location.clone();
         addPlayer(p);
     }
@@ -241,11 +244,17 @@ public class Hologram implements Removable {
         if(initialized) remove();
 
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
-        IReflection.MethodAccessor setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
+        IReflection.MethodAccessor setCustomName;
         IReflection.MethodAccessor setCustomNameVisible = IReflection.getMethod(entity, "setCustomNameVisible", new Class[] {boolean.class});
         IReflection.MethodAccessor setInvisible = IReflection.getMethod(entity, "setInvisible", new Class[] {boolean.class});
         IReflection.MethodAccessor setInvulnerable = null;
         IReflection.MethodAccessor setGravity;
+
+        if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+            setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[]{PacketUtils.IChatBaseComponentClass});
+        } else {
+            setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
+        }
 
         if(Version.getVersion().isBiggerThan(Version.v1_8)) {
             setInvulnerable = IReflection.getMethod(entity, "setInvulnerable", new Class[] {boolean.class});
@@ -260,7 +269,13 @@ public class Hologram implements Removable {
         for(String line : this.text) {
             Object armorStand = create();
 
-            setCustomName.invoke(armorStand, line);
+
+            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                setCustomName.invoke(armorStand, PacketUtils.getIChatBaseComponent(line));
+            } else {
+                setCustomName.invoke(armorStand, line);
+            }
+
             setCustomNameVisible.invoke(armorStand, !line.isEmpty());
             setInvisible.invoke(armorStand, true);
             if(setInvulnerable != null) setInvulnerable.invoke(armorStand, true);

@@ -25,7 +25,7 @@ import java.util.UUID;
  **/
 
 public class BungeeCordHelper {
-    private static BungeeMessenger bungeeMessenger;
+    public static BungeeMessenger bungeeMessenger;
 
     public static void connect(Player player, String server, Plugin plugin) {
         send(player, "BungeeCord", "Connect", server, plugin);
@@ -76,6 +76,57 @@ public class BungeeCordHelper {
         if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
 
         bungeeMessenger.sendMessage(channel, subChannel, argument, player);
+    }
+
+    public static void getCurrentServer(Plugin plugin, int timeOutTicks, Callback<String> callback) {
+        if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
+        if(Bukkit.getOnlinePlayers().isEmpty())
+            throw new IllegalStateException("There is no player to transfer the BungeeCordHelper-Message!");
+
+        Player p = Bukkit.getOnlinePlayers().iterator().next();
+
+        getCurrentServer(p, plugin, timeOutTicks, callback);
+    }
+
+    public static void getCurrentServer(Player player, Plugin plugin, int timeOut, Callback<String> callback) {
+        if(bungeeMessenger == null) bungeeMessenger = new BungeeMessenger(plugin);
+
+        Value<Boolean> timeOuted = new Value<>(false);
+
+        BukkitRunnable runnable = new BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                if(ticks >= timeOut) {
+                    callback.accept(null);
+                    this.cancel();
+                    timeOuted.setValue(true);
+                    return;
+                }
+
+                ticks++;
+            }
+        };
+
+        runnable.runTaskTimer(plugin, 1, 1);
+
+        bungeeMessenger.addListener(new BungeeMessengerListener() {
+            @Override
+            void onReceive(List<String> args) {
+                if(args.size() == 2 && args.get(0).equals("GetServer")) {
+                    if(!timeOuted.getValue()) {
+                        runnable.cancel();
+
+                        callback.accept(args.get(1));
+                    }
+
+                    bungeeMessenger.removeListener(this);
+                }
+            }
+        });
+
+        send(player, "BungeeCord", "GetServer", null, plugin);
     }
 
     public static void runningOnBungeeCord(Plugin plugin, int timeOutTicks, Callback<Boolean> callback) {

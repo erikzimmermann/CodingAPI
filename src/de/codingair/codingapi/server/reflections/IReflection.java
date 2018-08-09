@@ -320,7 +320,10 @@ public class IReflection {
 	
 	public enum ServerPacket {
 		
-		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)), MOJANG_AUTHLIB("com.mojang.authlib"), CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName());
+		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
+		MOJANG_AUTHLIB("com.mojang.authlib"),
+		CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),
+		BUKKIT_PACKET("org.bukkit");
 		
 		ServerPacket(String source) {
 			this.name = source;

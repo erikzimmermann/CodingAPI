@@ -6,7 +6,7 @@ import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOption;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.server.Sound;
-import de.codingair.codingapi.tools.ItemBuilder;
+import de.codingair.codingapi.tools.items.ItemBuilder;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;

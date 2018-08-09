@@ -10,6 +10,7 @@ public class SignTools {
 
     public static void updateSign(Sign sign, String[] text) {
         switch(Version.getVersion()) {
+            case v1_13:
             case v1_12:
             case v1_9:
             case v1_8: {

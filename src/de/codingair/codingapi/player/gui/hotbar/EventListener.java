@@ -8,6 +8,9 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
@@ -43,37 +46,30 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
-        ItemStack item = e.getItem();
-
-        if(item == null || item.getType().equals(Material.AIR)) return;
-
         HotbarGUI gui;
         if((gui = API.getRemovable(e.getPlayer(), HotbarGUI.class)) != null) {
             ItemComponent ic = gui.getMenu()[e.getPlayer().getInventory().getHeldItemSlot()];
 
             if(ic == null || ic.getItem() == null) return;
+            e.setCancelled(true);
 
-            if(ic.getItem().isSimilar(item)) {
-                e.setCancelled(true);
+            //PLAY SOUND
+            if(ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());
+            else if(gui.getClickSound() != null && !ic.isSilent()) gui.getClickSound().play(e.getPlayer());
 
-                //PLAY SOUND
-                if(ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());
-                else if(gui.getClickSound() != null && !ic.isSilent()) gui.getClickSound().play(e.getPlayer());
+            //DO ACTION
+            if(ic.getAction() != null) ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
 
-                //DO ACTION
-                if(ic.getAction() != null) ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
+            //CLOSE
+            if(ic.isCloseOnClick() && ic.getLink() == null) {
+                gui.close(true);
+                return;
+            }
 
-                //CLOSE
-                if(ic.isCloseOnClick() && ic.getLink() == null) {
-                    gui.close(true);
-                    return;
-                }
-
-                //LINK
-                if(ic.getLink() != null) {
-                    gui.close(false);
-                    ic.getLink().open(false);
-                }
+            //LINK
+            if(ic.getLink() != null) {
+                gui.close(false);
+                ic.getLink().open(false);
             }
         }
     }

@@ -88,7 +88,12 @@ public abstract class SignGUI {
             IReflection.FieldAccessor editable = IReflection.getField(tileEntity.getClass(), "isEditable");
             editable.set(tileEntity, true);
 
-            IReflection.FieldAccessor owner = IReflection.getField(tileEntity.getClass(), "h");
+            IReflection.FieldAccessor owner;
+            try {
+                owner = IReflection.getField(tileEntity.getClass(), "h");
+            } catch(Exception ignored) {
+                owner = IReflection.getField(tileEntity.getClass(), "g");
+            }
             owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
         }
 

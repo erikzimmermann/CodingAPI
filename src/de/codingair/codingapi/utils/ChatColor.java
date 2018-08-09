@@ -2,8 +2,7 @@ package de.codingair.codingapi.utils;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public enum ChatColor {
@@ -41,7 +40,7 @@ public enum ChatColor {
     private ChatColor(char code, String name) {
         this.code = code;
         this.name = name;
-        this.toString = new String(new char[]{getColorChar(), code});
+        this.toString = new String(new char[] {getColorChar(), code});
     }
 
     private static char getColorChar() {
@@ -69,7 +68,7 @@ public enum ChatColor {
         char[] b = textToTranslate.toCharArray();
 
         for(int i = 0; i < b.length - 1; ++i) {
-            if (b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
+            if(b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
                 b[i] = 167;
                 b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
@@ -124,5 +123,35 @@ public enum ChatColor {
     public Object toOriginal(boolean bukkit) {
         if(bukkit) return toSpigotCode();
         else return toBungeeCode();
+    }
+
+    public static String getLastColor(String text, char colorChar) {
+        if(!text.contains("" + colorChar)) return null;
+        String[] data = text.split("" + colorChar);
+        return colorChar + data[data.length - 1].substring(0, 1);
+    }
+
+    public static String highlight(String text, String toHighlight, String highlighter) {
+        return highlight(text, toHighlight, highlighter, RESET.toString);
+    }
+
+
+    public static String highlight(String text, String toHighlight, String highlighter, String resetColor) {
+        if(toHighlight == null || toHighlight.isEmpty() || highlighter == null || highlighter.isEmpty()) return text;
+
+        List<String> data = new ArrayList<>(Arrays.asList(text.split(toHighlight, -1)));
+        StringBuilder builder = new StringBuilder();
+        String lastColor = "";
+
+        for(int i = 0; i < data.size(); i++) {
+            String current = data.get(i);
+            String color = getLastColor(current, '§');
+            if(color != null) lastColor = color;
+
+            builder.append(current);
+            if(i < data.size() - 1) builder.append(highlighter).append(toHighlight).append(resetColor).append(lastColor);
+        }
+
+        return builder.toString();
     }
 }

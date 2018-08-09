@@ -230,7 +230,7 @@ public class PacketUtils {
     public static Object getIBlockData(MaterialData data) {
         IReflection.MethodAccessor getByCombinedId = IReflection.getMethod(BlockClass, "getByCombinedId", IBlockDataClass, new Class[] {int.class});
 
-        return getByCombinedId.invoke(null, getCombinedId(data.getItemTypeId(), data.getData()));
+        return getByCombinedId.invoke(null, getCombinedId(data.getItemType().getId(), data.getData()));
     }
 
     public static int getCombinedId(int id, byte data) {

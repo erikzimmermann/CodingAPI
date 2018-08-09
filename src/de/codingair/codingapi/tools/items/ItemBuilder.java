@@ -1,11 +1,12 @@
-package de.codingair.codingapi.tools;
+package de.codingair.codingapi.tools.items;
 
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PotionData;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -42,6 +43,8 @@ public class ItemBuilder {
     private ItemMeta preMeta = null;
     private PotionData potionData = null;
 
+    private MultiItemType multiItemType = null;
+
     private GameProfile skullOwner = null;
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
@@ -50,6 +53,10 @@ public class ItemBuilder {
     private boolean hideName = false;
 
     public ItemBuilder() {
+    }
+
+    public ItemBuilder(MultiItemType multiItemType) {
+        this.multiItemType = multiItemType;
     }
 
     public ItemBuilder(Material type) {
@@ -99,7 +106,8 @@ public class ItemBuilder {
             ItemMeta meta = item.getItemMeta();
             IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
             this.skullOwner = (GameProfile) profile.get(meta);
-        } catch(Exception ignored) { }
+        } catch(Exception ignored) {
+        }
     }
 
     public ItemBuilder(Material type, ItemMeta itemMeta) {
@@ -114,6 +122,7 @@ public class ItemBuilder {
 
     /**
      * This constructor create a head
+     *
      * @param profile GameProfile
      */
     public ItemBuilder(GameProfile profile) {
@@ -122,6 +131,7 @@ public class ItemBuilder {
 
     /**
      * This constructor create a head
+     *
      * @param player Player
      */
     public ItemBuilder(Player player) {
@@ -133,6 +143,10 @@ public class ItemBuilder {
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
+        if(this.multiItemType != null) {
+            this.type = this.multiItemType.isColorable() ? this.multiItemType.getMaterial(this.color) : this.multiItemType.getMaterial();
+        }
+
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
         if(this.type.name().contains("POTION")) {
@@ -322,8 +336,20 @@ public class ItemBuilder {
                         try {
                             material = Material.valueOf(name);
                         } catch(IllegalArgumentException ex) {
-                            if(name.toUpperCase().equals("SPLASH_POTION")) {
-                                material = Material.POTION;
+                            for(DyeColor color : DyeColor.values()) {
+                                if(name.startsWith(color.name().toUpperCase() + "_")) {
+                                    name = name.replaceFirst(color.name().toUpperCase() + "_", "");
+                                    item.setColor(color);
+                                    break;
+                                }
+                            }
+
+                            try {
+                                material = Material.valueOf(name);
+                            } catch(IllegalArgumentException ex2) {
+                                if(name.toUpperCase().equals("SPLASH_POTION")) {
+                                    material = Material.POTION;
+                                }
                             }
                         }
 
@@ -430,17 +456,17 @@ public class ItemBuilder {
     }
 
     public boolean isColorable() {
-        switch(this.type) {
-            case INK_SACK:
-            case CARPET:
-            case WOOL:
-            case STAINED_GLASS:
-            case STAINED_CLAY:
-            case STAINED_GLASS_PANE:
-            case LEATHER_HELMET:
-            case LEATHER_CHESTPLATE:
-            case LEATHER_LEGGINGS:
-            case LEATHER_BOOTS:
+        switch(this.type.name()) {
+            case "INK_SACK":
+            case "CARPET":
+            case "WOOL":
+            case "STAINED_GLASS":
+            case "STAINED_CLAY":
+            case "STAINED_GLASS_PANE":
+            case "LEATHER_HELMET":
+            case "LEATHER_CHESTPLATE":
+            case "LEATHER_LEGGINGS":
+            case "LEATHER_BOOTS":
                 return true;
             default:
                 return false;
@@ -634,5 +660,19 @@ public class ItemBuilder {
 
     public void setSkullOwner(GameProfile skullOwner) {
         this.skullOwner = skullOwner;
+    }
+
+    public static ItemStack getHead(GameProfile gameProfile) {
+        ItemStack item = new ItemStack(MultiItemType.SKULL_ITEM.getMaterial(), 1, (short) 3);
+        if(gameProfile == null) return item;
+
+        ItemMeta meta = item.getItemMeta();
+
+        IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+        profile.set(meta, gameProfile);
+
+        item.setItemMeta(meta);
+
+        return item;
     }
 }
