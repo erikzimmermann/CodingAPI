@@ -7,6 +7,7 @@ import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOpti
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.tools.items.ItemBuilder;
+import de.codingair.codingapi.tools.items.XMaterial;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
@@ -79,7 +80,7 @@ public class ConfirmGUI extends GUI {
         option.setOnlyLeftClick(true);
         option.setCloseOnClick(true);
 
-        addButton(new ItemButton(2, new ItemBuilder(Material.WOOL).setColor(DyeColor.LIME).setName(accept).getItem()) {
+        addButton(new ItemButton(2, new ItemBuilder(XMaterial.LIME_WOOL).setName(accept).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(true);
@@ -92,7 +93,7 @@ public class ConfirmGUI extends GUI {
 
         setItem(4, new ItemBuilder(Material.NETHER_STAR).setName(lines.remove(0)).setLore(lines).getItem());
 
-        addButton(new ItemButton(6, new ItemBuilder(Material.WOOL).setColor(DyeColor.RED).setName(decline).getItem()) {
+        addButton(new ItemButton(6, new ItemBuilder(XMaterial.RED_WOOL).setName(decline).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(false);
