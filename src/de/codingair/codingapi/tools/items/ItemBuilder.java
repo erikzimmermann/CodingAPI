@@ -43,8 +43,6 @@ public class ItemBuilder {
     private ItemMeta preMeta = null;
     private PotionData potionData = null;
 
-    private MultiItemType multiItemType = null;
-
     private GameProfile skullOwner = null;
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
@@ -55,8 +53,8 @@ public class ItemBuilder {
     public ItemBuilder() {
     }
 
-    public ItemBuilder(MultiItemType multiItemType) {
-        this.multiItemType = multiItemType;
+    public ItemBuilder(XMaterial xMaterial) {
+        this(xMaterial.parseItem());
     }
 
     public ItemBuilder(Material type) {
@@ -143,10 +141,6 @@ public class ItemBuilder {
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
-        if(this.multiItemType != null) {
-            this.type = this.multiItemType.isColorable() ? this.multiItemType.getMaterial(this.color) : this.multiItemType.getMaterial();
-        }
-
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
         if(this.type.name().contains("POTION")) {
@@ -167,41 +161,43 @@ public class ItemBuilder {
         item.setAmount(this.amount);
 
         ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
-        if(this.name != null) meta.setDisplayName(this.name);
-        if(this.lore != null) meta.setLore(this.lore);
+        if(meta != null) {
+            meta.setDisplayName(this.name);
+            meta.setLore(this.lore);
 
-        if(isColorable() && this.color != null) {
-            if(LeatherArmorMeta.class.isInstance(meta)) {
-                LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) meta;
-                leatherArmorMeta.setColor(this.color.getColor());
+            if(isColorable() && this.color != null) {
+                if(LeatherArmorMeta.class.isInstance(meta)) {
+                    LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) meta;
+                    leatherArmorMeta.setColor(this.color.getColor());
+                } else {
+                    if(this.type.equals(Material.INK_SACK)) this.data = this.color.getDyeData();
+                    else this.data = this.color.getWoolData();
+
+                    item.setDurability((short) this.data);
+                }
             } else {
-                if(this.type.equals(Material.INK_SACK)) this.data = this.color.getDyeData();
-                else this.data = this.color.getWoolData();
-
-                item.setDurability((short) this.data);
+                MaterialData data = this.data == 0 ? null : new MaterialData(this.type, this.data);
+                item.setData(data);
+                item.setDurability(this.durability);
             }
-        } else {
-            MaterialData data = this.data == 0 ? null : new MaterialData(this.type, this.data);
-            item.setData(data);
-            item.setDurability(this.durability);
-        }
 
-        if(hideName) meta.setDisplayName("§0");
-        if(hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        if(hideStandardLore) {
-            for(ItemFlag itemFlag : ItemFlag.values()) {
-                if(itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
+            if(hideName || this.name == null) meta.setDisplayName("§0");
+            if(hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if(hideStandardLore) {
+                for(ItemFlag itemFlag : ItemFlag.values()) {
+                    if(itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
 
-                meta.addItemFlags(itemFlag);
+                    meta.addItemFlags(itemFlag);
+                }
             }
-        }
 
-        if(this.skullOwner != null) {
-            IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
-            profile.set(meta, this.skullOwner);
-        }
+            if(this.skullOwner != null) {
+                IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+                profile.set(meta, this.skullOwner);
+            }
 
-        item.setItemMeta(meta);
+            item.setItemMeta(meta);
+        }
 
         if(this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
 
@@ -250,7 +246,7 @@ public class ItemBuilder {
     }
 
     public static ItemBuilder getFromJSON(String code) {
-        if(code == null) return null;
+        if(code == null) return new ItemBuilder(Material.AIR);
 
         try {
             ItemBuilder item = new ItemBuilder();
@@ -331,17 +327,20 @@ public class ItemBuilder {
                         if(obj == null) break;
 
                         String name = (String) jsonObject.get("Type");
-                        Material material = null;
+                        Material material;
 
                         try {
                             material = Material.valueOf(name);
                         } catch(IllegalArgumentException ex) {
-                            for(DyeColor color : DyeColor.values()) {
-                                if(name.startsWith(color.name().toUpperCase() + "_")) {
-                                    name = name.replaceFirst(color.name().toUpperCase() + "_", "");
-                                    item.setColor(color);
-                                    break;
-                                }
+                            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                                obj = jsonObject.get("Data");
+                                byte data = 0;
+                                if(obj != null) data = Byte.parseByte(jsonObject.get("Data") + "");
+                                material = XMaterial.requestXMaterial(name, data).parseMaterial();
+                            } else {
+                                XMaterial xType = XMaterial.valueOf(name);
+                                material = xType.parseMaterial();
+                                item.setData((byte) xType.data);
                             }
 
                             try {
@@ -359,7 +358,7 @@ public class ItemBuilder {
 
                     case "Data": {
                         Object obj = jsonObject.get("Data");
-                        if(obj == null) break;
+                        if(obj == null || item.getData() == 0) break;
 
                         item.setData(Byte.parseByte(jsonObject.get("Data") + ""));
                         break;
@@ -419,7 +418,7 @@ public class ItemBuilder {
             return item;
         } catch(Exception ex) {
             ex.printStackTrace();
-            return null;
+            return new ItemBuilder(Material.AIR);
         }
     }
 
@@ -502,6 +501,32 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder setText(String... text) {
+        return this.setText(Arrays.asList(text));
+    }
+
+    public ItemBuilder setText(List<String> text) {
+        setName(null);
+        removeLore();
+
+        if(text.isEmpty()) return this;
+        setName(text.remove(0));
+        if(!text.isEmpty()) setLore(text);
+        return this;
+    }
+
+    public ItemBuilder addText(String... text) {
+        return this.addText(Arrays.asList(text));
+    }
+
+    public ItemBuilder addText(List<String> text) {
+        if(text.isEmpty()) return this;
+        text = new ArrayList<>(text);
+        if(this.name == null) this.name = text.remove(0);
+        addLore(text);
+        return this;
+    }
+
     public Material getType() {
         return type;
     }
@@ -517,7 +542,7 @@ public class ItemBuilder {
 
     public ItemBuilder setData(byte data) {
         this.data = data;
-        if(getType().equals(Material.POTION)) setDurability(getData());
+        if(getType() != null && getType().equals(Material.POTION)) setDurability(getData());
         return this;
     }
 
@@ -663,7 +688,7 @@ public class ItemBuilder {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(MultiItemType.SKULL_ITEM.getMaterial(), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1, (short) 3);
         if(gameProfile == null) return item;
 
         ItemMeta meta = item.getItemMeta();
