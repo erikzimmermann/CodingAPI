@@ -143,7 +143,13 @@ public abstract class GUI extends Interface implements Removable {
 	public void open() {
 		this.open(this.player);
 	}
-	
+
+	@Override
+	public void close(Player p, boolean isClosing) {
+		super.close(p, isClosing);
+		API.removeRemovable(this);
+	}
+
 	@Override
 	public void close(Player p) {
 		super.close(p);
