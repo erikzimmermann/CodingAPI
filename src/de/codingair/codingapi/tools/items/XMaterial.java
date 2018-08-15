@@ -292,7 +292,7 @@ public enum XMaterial {
     FISHING_ROD("FISHING_ROD", 0),
     FLINT("FLINT", 0),
     FLINT_AND_STEEL("FLINT_AND_STEEL", 0),
-    FLOWER_POT("FLOWER_POT", 0),
+    FLOWER_POT("FLOWER_POT_ITEM", 0),
     FROSTED_ICE("FROSTED_ICE", 0),
     FURNACE("FURNACE", 0),
     FURNACE_MINECART("POWERED_MINECART", 0),
@@ -868,9 +868,7 @@ public enum XMaterial {
 
     public ItemStack parseItem() {
         Material mat = parseMaterial();
-        if(isNewVersion()) {
-            return new ItemStack(mat);
-        }
+        if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
     }
 
@@ -994,10 +992,11 @@ public enum XMaterial {
     }
 
     public Material parseMaterial() {
-        Material mat = Material.matchMaterial(this.toString());
-        if(mat != null) {
-            return mat;
+        if(isNewVersion()) {
+            Material mat = Material.matchMaterial(this.toString());
+            if(mat != null) return mat;
         }
+
         return Material.matchMaterial(m);
     }
 
