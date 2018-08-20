@@ -92,8 +92,10 @@ public class ItemBuilder {
             }
             this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
             this.hideStandardLore = (item.getItemMeta().getItemFlags().size() == 1 && !item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS)) || item.getItemMeta().getItemFlags().size() > 1;
-            if(item.getItemMeta().getDisplayName() != null)
-                this.hideName = item.getItemMeta().getDisplayName().equals("§0");
+            if(item.getItemMeta().getDisplayName() != null && item.getItemMeta().getDisplayName().equals("§0")) {
+                this.hideName = true;
+                this.name = null;
+            }
         }
 
         if(item.getType().name().toUpperCase().contains("POTION")) {
@@ -522,8 +524,22 @@ public class ItemBuilder {
     public ItemBuilder addText(List<String> text) {
         if(text.isEmpty()) return this;
         text = new ArrayList<>(text);
-        if(this.name == null) this.name = text.remove(0);
+        if(this.name == null || this.name.isEmpty()) {
+            this.name = text.remove(0);
+            if(this.name != null && !this.name.isEmpty()) setHideName(false);
+        }
         addLore(text);
+        return this;
+    }
+
+    public ItemBuilder removeText(List<String> text) {
+        if(text.isEmpty()) return this;
+
+        for(String s : text) {
+            if(this.name != null && this.name.equals(s)) this.name = null;
+            this.lore.removeAll(text);
+        }
+
         return this;
     }
 
@@ -590,6 +606,12 @@ public class ItemBuilder {
 
     public ItemBuilder addLore(int index, String... lore) {
         return addLore(index, Arrays.asList(lore));
+    }
+
+    public ItemBuilder removeLore(List<String> lore) {
+        if(this.lore == null) return this;
+        this.lore.removeAll(lore);
+        return this;
     }
 
     public HashMap<Enchantment, Integer> getEnchantments() {
