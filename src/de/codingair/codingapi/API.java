@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -39,11 +40,11 @@ public class API {
 
     private static API instance;
 
-    private Plugin plugin;
+    private JavaPlugin plugin;
     private List<PlayerData> dataList = new ArrayList<>();
     private Timer tickerTimer = null;
 
-    public void onEnable(Plugin plugin) {
+    public void onEnable(JavaPlugin plugin) {
         this.plugin = plugin;
         GUIListener.register(plugin);
 
@@ -199,7 +200,7 @@ public class API {
         return instance;
     }
 
-    public Plugin getPlugin() {
+    public JavaPlugin getPlugin() {
         return plugin;
     }
 

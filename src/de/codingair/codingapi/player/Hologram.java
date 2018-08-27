@@ -8,10 +8,8 @@ import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Converter;
 import de.codingair.codingapi.utils.Removable;
-import net.minecraft.server.v1_13_R1.WorldServer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_13_R1.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -40,12 +38,16 @@ public class Hologram implements Removable {
     private boolean visible = false;
 
     public Hologram(Location location, String... text) {
+        if(API.getInstance().getPlugin() == null) throw new IllegalStateException("API have to be initialized!");
+
         this.text = Converter.fromArrayToList(text);
         if(location.getWorld() == null) return;
         this.location = location.clone();
     }
 
     public Hologram(Location location, Player p, String... text) {
+        if(API.getInstance().getPlugin() == null) throw new IllegalStateException("API have to be initialized!");
+
         this.text = Converter.fromArrayToList(text);
         if(location.getWorld() == null) return;
         this.location = location.clone();
@@ -56,38 +58,29 @@ public class Hologram implements Removable {
         return new Listener() {
             @EventHandler
             public void onSwitchWorld(PlayerChangedWorldEvent e) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        for(Hologram hologram : API.getRemovables(Hologram.class)) {
-                            hologram.update(e.getPlayer());
-                        }
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                    for(Hologram hologram : API.getRemovables(Hologram.class)) {
+                        hologram.update(e.getPlayer());
                     }
                 }, 500);
             }
 
             @EventHandler
             public void onTeleport(PlayerTeleportEvent e) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        for(Hologram hologram : API.getRemovables(Hologram.class)) {
-                            if(hologram.getLocation().getWorld() == e.getTo().getWorld() && hologram.getLocation().distance(e.getTo()) < 50) hologram.update(e.getPlayer());
-                        }
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                    for(Hologram hologram : API.getRemovables(Hologram.class)) {
+                        if(hologram.getLocation().getWorld() == e.getTo().getWorld() && hologram.getLocation().distance(e.getTo()) < 50) hologram.update(e.getPlayer());
                     }
                 }, 500);
             }
 
             @EventHandler
             public void onWalk(PlayerWalkEvent e) {
-                new Timer().schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        for(Hologram hologram : API.getRemovables(Hologram.class)) {
-                            if(hologram.getLocation().getWorld() == e.getFrom().getWorld() && hologram.getLocation().getWorld() == e.getTo().getWorld() &&
-                                    hologram.getLocation().distance(e.getFrom()) >= 50.0 && hologram.getLocation().distance(e.getTo()) < 50.0) {
-                                hologram.update(e.getPlayer());
-                            }
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                    for(Hologram hologram : API.getRemovables(Hologram.class)) {
+                        if(hologram.getLocation().getWorld() == e.getFrom().getWorld() && hologram.getLocation().getWorld() == e.getTo().getWorld() &&
+                                hologram.getLocation().distance(e.getFrom()) >= 50.0 && hologram.getLocation().distance(e.getTo()) < 50.0) {
+                            hologram.update(e.getPlayer());
                         }
                     }
                 }, 500);
