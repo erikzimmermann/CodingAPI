@@ -16,7 +16,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -195,13 +197,10 @@ public class Hologram implements Removable {
         }
 
         if(visible) {
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    for(Object armorStand : entities) {
-                        Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
-                        PacketUtils.sendPacket(packet, player);
-                    }
+            Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                for(Object armorStand : entities) {
+                    Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
+                    PacketUtils.sendPacket(packet, player);
                 }
             }, 100);
         }
