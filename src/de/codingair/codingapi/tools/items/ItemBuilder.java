@@ -504,7 +504,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setText(String... text) {
-        return this.setText(Arrays.asList(text));
+        return this.setText(new ArrayList<>(Arrays.asList(text)));
     }
 
     public ItemBuilder setText(List<String> text) {

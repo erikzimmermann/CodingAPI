@@ -2,12 +2,11 @@ package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.hovereditems.HoveredItem;
+import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.Interface;
-import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
-import de.codingair.codingapi.server.Sound;
+import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import org.bukkit.Bukkit;
@@ -389,6 +388,7 @@ public class GUIListener implements Listener {
     public void onInvCloseEvent(InventoryCloseEvent e) {
         if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())))
             return;
+
         Player p = (Player) e.getPlayer();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);

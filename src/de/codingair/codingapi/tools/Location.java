@@ -41,6 +41,7 @@ public class Location extends org.bukkit.Location {
     }
 
     public String toJSONString(int decimalPlaces) {
+        if(getWorld() == null) return null;
         StringBuilder s = new StringBuilder("0" + (decimalPlaces > 0 ? "." : ""));
         for(int i = 0; i < decimalPlaces; i++) {
             s.append("0");
@@ -72,6 +73,29 @@ public class Location extends org.bukkit.Location {
         }
 
         return json.toJSONString();
+    }
+
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        } else if (!(obj instanceof org.bukkit.Location)) {
+            return false;
+        } else {
+            org.bukkit.Location other = (org.bukkit.Location)obj;
+            if (this.getWorld() != other.getWorld() && (this.getWorld() == null || !this.getWorld().equals(other.getWorld()))) {
+                return false;
+            } else if (Double.doubleToLongBits(this.getX()) != Double.doubleToLongBits(other.getX())) {
+                return false;
+            } else if (Double.doubleToLongBits(this.getY()) != Double.doubleToLongBits(other.getY())) {
+                return false;
+            } else if (Double.doubleToLongBits(this.getZ()) != Double.doubleToLongBits(other.getZ())) {
+                return false;
+            } else if (Float.floatToIntBits(this.getPitch()) != Float.floatToIntBits(other.getPitch())) {
+                return false;
+            } else {
+                return Float.floatToIntBits(this.getYaw()) == Float.floatToIntBits(other.getYaw());
+            }
+        }
     }
 
     @Override
