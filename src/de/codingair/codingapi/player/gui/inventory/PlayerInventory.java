@@ -17,8 +17,13 @@ public class PlayerInventory {
 	
 	public PlayerInventory(Player player) {
 		this.player = player;
-		
-		content = player.getInventory().getContents().clone();
+
+		content = new ItemStack[36];
+
+		for(int i = 0; i < 36; i++) {
+			content[i] = player.getInventory().getContents()[i] == null ? null : player.getInventory().getContents()[i].clone();
+		}
+
 		armor = player.getInventory().getArmorContents().clone();
 	}
 	

@@ -111,7 +111,6 @@ public class Hologram implements Removable {
     }
 
     private void updateText() {
-        if(!checkVersion()) return;
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
         IReflection.MethodAccessor setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
         IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, "getDataWatcher", PacketUtils.DataWatcherClass, new Class[] {});
@@ -133,7 +132,6 @@ public class Hologram implements Removable {
     }
 
     public void updateText(Player player) {
-        if(!checkVersion()) return;
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
         IReflection.MethodAccessor setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
         IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, "getDataWatcher", PacketUtils.DataWatcherClass, new Class[] {});
@@ -155,7 +153,6 @@ public class Hologram implements Removable {
     }
 
     public void update() {
-        if(!checkVersion()) return;
         if(initialized) {
             this.location.add(0, 2, 0);
 
@@ -168,7 +165,6 @@ public class Hologram implements Removable {
     }
 
     public void show() {
-        if(!checkVersion()) return;
         if(!initialized) initialize();
 
         for(Object armorStand : this.entities) {
@@ -180,7 +176,6 @@ public class Hologram implements Removable {
     }
 
     public void update(Player player) {
-        if(!checkVersion()) return;
         if(!initialized) return;
 
         if(player.getWorld() != this.location.getWorld() || (!this.players.isEmpty() && !this.players.contains(player))) return;
@@ -207,7 +202,6 @@ public class Hologram implements Removable {
     }
 
     public void hide() {
-        if(!checkVersion()) return;
         if(!initialized) return;
 
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
@@ -223,16 +217,7 @@ public class Hologram implements Removable {
         visible = false;
     }
 
-    private boolean checkVersion() {
-        return !Version.getVersion().equals(Version.v1_9);
-    }
-
     private void initialize() {
-        if(!checkVersion()) {
-            System.out.println("[CodingAPI] Holograms are not supported in 1.9!");
-            return;
-        }
-
         if(initialized) remove();
 
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
@@ -248,7 +233,7 @@ public class Hologram implements Removable {
             setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
         }
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.getVersion().isBiggerThan(Version.v1_9)) {
             setInvulnerable = IReflection.getMethod(entity, "setInvulnerable", new Class[] {boolean.class});
             setGravity = IReflection.getMethod(entity, "setNoGravity", new Class[] {boolean.class});
         } else {
@@ -285,7 +270,6 @@ public class Hologram implements Removable {
     }
 
     private Player[] getPreparedPlayers() {
-        if(!checkVersion()) return null;
         if(this.players.isEmpty()) {
             List<Player> players = new ArrayList<>();
 
@@ -306,13 +290,11 @@ public class Hologram implements Removable {
     }
 
     private Object create() {
-        if(!checkVersion()) return null;
         Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
         return IReflection.getConstructor(entity, PacketUtils.WorldServerClass, double.class, double.class, double.class).newInstance(PacketUtils.getWorldServer(this.location.getWorld()), this.location.getX(), this.location.getY(), this.location.getZ());
     }
 
     public void remove() {
-        if(!checkVersion()) return;
         hide();
         this.entities = new ArrayList<>();
 
@@ -354,7 +336,6 @@ public class Hologram implements Removable {
     }
 
     public void teleport(Location location) {
-        if(!checkVersion()) return;
         if(!this.initialized) return;
         this.location = location.clone();
         this.location.subtract(0, 2, 0);

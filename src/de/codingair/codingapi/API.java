@@ -45,6 +45,7 @@ public class API {
     private Timer tickerTimer = null;
 
     public void onEnable(JavaPlugin plugin) {
+        if(this.plugin != null) return;
         this.plugin = plugin;
         GUIListener.register(plugin);
 
@@ -143,6 +144,7 @@ public class API {
     }
 
     public synchronized void onDisable(Plugin plugin) {
+        if(this.plugin == null) return;
         CustomEntityType.unregisterEntities();
 
         List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
@@ -151,6 +153,7 @@ public class API {
         REMOVABLES.clear();
 
         HandlerList.unregisterAll(plugin);
+        this.plugin = null;
     }
 
     @Deprecated

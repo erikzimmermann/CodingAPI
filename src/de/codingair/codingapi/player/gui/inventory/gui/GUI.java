@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.utils.Removable;
@@ -183,7 +184,7 @@ public abstract class GUI extends Interface implements Removable {
             }
         } else {
             for(int slot : slots) {
-                this.movableSlots.remove(slot);
+                this.movableSlots.remove((Object) slot);
             }
         }
 
@@ -235,9 +236,14 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void changeGUI(GUI newGui) {
-        setSize(newGui.getSize());
-        newGui.setInventory(getInventory());
-        newGui.reinitialize();
+        if(getSize() == newGui.getSize()) {
+            newGui.setInventory(getInventory());
+            newGui.reinitialize(newGui.getTitle());
+            close(player, true);
+        } else {
+            close();
+            newGui.open();
+        }
     }
 
     protected void setInventory(Inventory inv) {
@@ -255,6 +261,10 @@ public abstract class GUI extends Interface implements Removable {
         } while((int) cX != x1 || (int) cY != y1);
 
         if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+    }
+
+    public ItemButton getButtonAt(int x, int y) {
+        return getButtonAt(x + y * 9);
     }
 
     public static GUI getGUI(Player p) {

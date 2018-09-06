@@ -492,6 +492,11 @@ public class ItemBuilder {
         return this;
     }
 
+
+    public ItemBuilder setText(String text, int wordWrap) {
+        return setText(text, TextAlignment.LEFT, wordWrap);
+    }
+
     public ItemBuilder setText(String text, TextAlignment alignment, int wordWrap) {
         List<String> list = TextAlignment.lineBreak(text, wordWrap);
         if(list.isEmpty()) return this;
@@ -521,13 +526,28 @@ public class ItemBuilder {
         return this.addText(Arrays.asList(text));
     }
 
+    public ItemBuilder addText(String text, int wordWrap) {
+        List<String> list = TextAlignment.lineBreak(text, wordWrap);
+        if(list.isEmpty()) return this;
+
+        if(this.name == null || this.name.isEmpty()) {
+            setName(list.remove(0));
+            if(this.name != null && !this.name.isEmpty()) setHideName(false);
+        }
+
+        addLore(list);
+        return this;
+    }
+
     public ItemBuilder addText(List<String> text) {
         if(text.isEmpty()) return this;
         text = new ArrayList<>(text);
+
         if(this.name == null || this.name.isEmpty()) {
             this.name = text.remove(0);
             if(this.name != null && !this.name.isEmpty()) setHideName(false);
         }
+
         addLore(text);
         return this;
     }
