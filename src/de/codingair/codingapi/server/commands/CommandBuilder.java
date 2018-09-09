@@ -1,10 +1,7 @@
 package de.codingair.codingapi.server.commands;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -60,6 +57,19 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         if(isRegistered()) return;
 
         if(plugin.getCommand(this.name) == null) throw new IllegalStateException("You must first add the command to the plugin.yml!");
+
+        PluginCommand command = Bukkit.getPluginCommand(this.name);
+        Command main = plugin.getCommand(this.name);
+
+        if(highestPriority && command != null) {
+            command.setExecutor(this);
+            command.setTabCompleter(this);
+            command.setName(main.getName());
+            command.setDescription(main.getDescription());
+            command.setAliases(main.getAliases());
+            command.setPermission(main.getPermission());
+            command.setUsage(main.getUsage());
+        }
 
         plugin.getCommand(this.name).setExecutor(this);
         if(tabCompleter) plugin.getCommand(this.name).setTabCompleter(this);
