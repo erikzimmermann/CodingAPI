@@ -157,7 +157,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         CommandComponent current = this.baseComponent;
 
         for(String value : s) {
-            if(current == null || value.isEmpty() || current.getChild(value) == null) break;
+            if(current == null || (value != null && value.isEmpty())) break;
             current = current.getChild(value);
         }
 

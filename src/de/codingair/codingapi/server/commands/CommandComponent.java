@@ -59,7 +59,7 @@ public abstract class CommandComponent {
                 continue;
             }
 
-            if(arg == null) continue;
+            if(arg == null || arg.isEmpty()) continue;
 
             if(c.getArgument().equalsIgnoreCase(arg)) {
                 child = c;
