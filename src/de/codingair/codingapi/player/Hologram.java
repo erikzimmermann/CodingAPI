@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,20 +40,24 @@ public class Hologram implements Removable {
     private boolean initialized = false;
     private boolean visible = false;
 
-    public Hologram(Location location, String... text) {
-        if(API.getInstance().getPlugin() == null) throw new IllegalStateException("API have to be initialized!");
+    private JavaPlugin plugin;
+
+    public Hologram(Location location, JavaPlugin plugin, String... text) {
+        if(API.getInstance().isInitialized()) throw new IllegalStateException("API have to be initialized!");
 
         this.text = Converter.fromArrayToList(text);
         if(location.getWorld() == null) return;
         this.location = location.clone();
+        this.plugin = plugin;
     }
 
-    public Hologram(Location location, Player p, String... text) {
-        if(API.getInstance().getPlugin() == null) throw new IllegalStateException("API have to be initialized!");
+    public Hologram(Location location, Player p, JavaPlugin plugin, String... text) {
+        if(API.getInstance().isInitialized()) throw new IllegalStateException("API have to be initialized!");
 
         this.text = Converter.fromArrayToList(text);
         if(location.getWorld() == null) return;
         this.location = location.clone();
+        this.plugin = plugin;
         addPlayer(p);
     }
 
@@ -60,7 +65,7 @@ public class Hologram implements Removable {
         return new Listener() {
             @EventHandler
             public void onSwitchWorld(PlayerChangedWorldEvent e) {
-                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                     for(Hologram hologram : API.getRemovables(Hologram.class)) {
                         hologram.update(e.getPlayer());
                     }
@@ -69,7 +74,7 @@ public class Hologram implements Removable {
 
             @EventHandler
             public void onTeleport(PlayerTeleportEvent e) {
-                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                     for(Hologram hologram : API.getRemovables(Hologram.class)) {
                         if(hologram.getLocation().getWorld() == e.getTo().getWorld() && hologram.getLocation().distance(e.getTo()) < 50) hologram.update(e.getPlayer());
                     }
@@ -78,7 +83,7 @@ public class Hologram implements Removable {
 
             @EventHandler
             public void onWalk(PlayerWalkEvent e) {
-                Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                     for(Hologram hologram : API.getRemovables(Hologram.class)) {
                         if(hologram.getLocation().getWorld() == e.getFrom().getWorld() && hologram.getLocation().getWorld() == e.getTo().getWorld() &&
                                 hologram.getLocation().distance(e.getFrom()) >= 50.0 && hologram.getLocation().distance(e.getTo()) < 50.0) {
@@ -192,7 +197,7 @@ public class Hologram implements Removable {
         }
 
         if(visible) {
-            Bukkit.getScheduler().runTaskLater(API.getInstance().getPlugin(), () -> {
+            Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                 for(Object armorStand : entities) {
                     Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
                     PacketUtils.sendPacket(packet, player);
@@ -354,5 +359,10 @@ public class Hologram implements Removable {
 
     public boolean isVisible() {
         return visible;
+    }
+
+    @Override
+    public JavaPlugin getPlugin() {
+        return plugin;
     }
 }

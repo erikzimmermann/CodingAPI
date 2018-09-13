@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.UUID;
 public class ItemGUI implements Removable {
 	private UUID uniqueId = UUID.randomUUID();
 	
-	private Plugin plugin;
+	private JavaPlugin plugin;
 	
 	private List<HoveredItem> hoveredItems = new ArrayList<>();
 	private List<Item> data = new ArrayList<>();
@@ -50,14 +51,14 @@ public class ItemGUI implements Removable {
 	private SoundData closeSound = new SoundData(Sound.ITEM_BREAK, 1F, 1F);
 	private SoundData openSound = new SoundData(Sound.LEVEL_UP, 1F, 1F);
 
-	public ItemGUI(Plugin plugin, Player player) {
+	public ItemGUI(JavaPlugin plugin, Player player) {
 		this.plugin = plugin;
 		this.player = player;
 
 		API.addRemovable(this);
 	}
 	
-	public ItemGUI(Plugin plugin, Player player, ItemGUIListener listener) {
+	public ItemGUI(JavaPlugin plugin, Player player, ItemGUIListener listener) {
 		this(plugin, player);
 		this.listener = listener;
 	}
@@ -273,7 +274,7 @@ public class ItemGUI implements Removable {
 		this.listener = listener;
 	}
 	
-	public Plugin getPlugin() {
+	public JavaPlugin getPlugin() {
 		return plugin;
 	}
 	

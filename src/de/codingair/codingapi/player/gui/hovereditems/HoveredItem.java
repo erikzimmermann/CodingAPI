@@ -16,6 +16,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public abstract class HoveredItem implements Removable {
 	private int ID = ID_COUNTER++;
 	private String name = null;
 	
-	private Plugin plugin;
+	private JavaPlugin plugin;
 	private Player player;
 	
 	private Object item;
@@ -56,7 +57,7 @@ public abstract class HoveredItem implements Removable {
 	
 	private PacketReader packetReader;
 	
-	public HoveredItem(Player player, ItemStack item, Location location, Plugin plugin) {
+	public HoveredItem(Player player, ItemStack item, Location location, JavaPlugin plugin) {
 		this.plugin = plugin;
 		this.player = player;
 		this.stack = item;
@@ -64,7 +65,7 @@ public abstract class HoveredItem implements Removable {
 		this.tempLocation = location.clone();
 	}
 	
-	public HoveredItem(Player player, ItemStack item, Location location, Plugin plugin, String name) {
+	public HoveredItem(Player player, ItemStack item, Location location, JavaPlugin plugin, String name) {
 		this(player, item, location, plugin);
 		this.name = name;
 	}
@@ -173,10 +174,10 @@ public abstract class HoveredItem implements Removable {
 			else corrected.add(line);
 		}
 		
-		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.player, corrected.toArray(new String[corrected.size()]));
+		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.player, this.plugin, corrected.toArray(new String[corrected.size()]));
 		this.hologram.update();
 		
-		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString()) {
+		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString(), this.plugin) {
 			@Override
 			public boolean readPacket(Object packet) {
 				if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {
@@ -215,7 +216,7 @@ public abstract class HoveredItem implements Removable {
 		spawned = false;
 	}
 	
-	public Plugin getPlugin() {
+	public JavaPlugin getPlugin() {
 		return plugin;
 	}
 	

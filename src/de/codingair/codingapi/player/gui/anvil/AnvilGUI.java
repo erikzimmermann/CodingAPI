@@ -1,9 +1,9 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,7 +15,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -30,7 +30,7 @@ import java.util.logging.Level;
 
 public class AnvilGUI implements Removable {
 	private UUID uniqueId = UUID.randomUUID();
-	private Plugin plugin;
+	private JavaPlugin plugin;
 	private Player player;
 	private AnvilListener listener;
 	private HashMap<AnvilSlot, ItemStack> items = new HashMap<>();
@@ -43,7 +43,7 @@ public class AnvilGUI implements Removable {
 
 	private boolean isClosing = false;
 	
-	public AnvilGUI(Plugin plugin, Player player, AnvilListener listener) {
+	public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
 		this.plugin = plugin;
 		this.player = player;
 		this.listener = listener;
@@ -65,7 +65,12 @@ public class AnvilGUI implements Removable {
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
-	
+
+	@Override
+	public JavaPlugin getPlugin() {
+		return plugin;
+	}
+
 	@Override
 	public void destroy() {
 		this.player.closeInventory();
@@ -264,7 +269,7 @@ public class AnvilGUI implements Removable {
 		API.removeRemovable(this);
 	}
 	
-	public static AnvilGUI openAnvil(Plugin plugin, Player p, AnvilListener listener, ItemStack item) {
+	public static AnvilGUI openAnvil(JavaPlugin plugin, Player p, AnvilListener listener, ItemStack item) {
 		return new AnvilGUI(plugin, p, listener).setSlot(AnvilSlot.INPUT_LEFT, item).open();
 	}
 }

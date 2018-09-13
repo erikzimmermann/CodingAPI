@@ -1,17 +1,8 @@
 package de.codingair.codingapi;
 
-import de.codingair.codingapi.customentity.CustomEntityType;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
-import de.codingair.codingapi.customentity.networkentity.NetworkEntity;
-import de.codingair.codingapi.player.Hologram;
-import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.gui.GUIListener;
-import de.codingair.codingapi.player.gui.bossbar.BossBar;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.events.WalkListener;
-import de.codingair.codingapi.server.playerdata.PlayerData;
-import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
@@ -20,10 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -32,65 +21,52 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//import de.codingair.codingapi.files.TempFile;
-
 public class API {
     private static final List<Removable> REMOVABLES = new ArrayList<>();
     private static final List<Ticker> TICKERS = new ArrayList<>();
 
     private static API instance;
 
-    private JavaPlugin plugin;
-    private List<PlayerData> dataList = new ArrayList<>();
+    private boolean initialized = false;
     private Timer tickerTimer = null;
 
+    private List<JavaPlugin> plugins = new ArrayList<>();
+    private BukkitRunnable tickHelper;
+
     public void onEnable(JavaPlugin plugin) {
-        if(this.plugin != null) return;
-        this.plugin = plugin;
+        if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
+        if(initialized) return;
+        initPlugin(plugin);
+    }
+
+    public synchronized void onDisable(JavaPlugin plugin) {
+        if(!initialized || !this.plugins.remove(plugin)) return;
+
+        removePlugin(plugin);
+        if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
+    }
+
+    private void removePlugin(JavaPlugin plugin) {
+        HandlerList.unregisterAll(plugin);
+        tickHelper.cancel();
+
+        List<Removable> removables = getRemovables(plugin);
+        removables.forEach(Removable::destroy);
+        removables.clear();
+
+        initialized = false;
+    }
+
+    private void initPlugin(JavaPlugin plugin) {
+        initialized = true;
         GUIListener.register(plugin);
-
-//        this.dataList = TempFile.loadTempFiles(this.plugin, "/PlayerData/", PlayerData.class, new PlayerDataTypeAdapter(), true);
-
-        for(Player player : Bukkit.getOnlinePlayers()) {
-            getPlayerData(player).setLoadedSpawnChunk(true);
-        }
-
-        Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
             /** PlayerDataListener - Start */
 
             @EventHandler
-            public void onJoin(PlayerJoinEvent e) {
-                PlayerData data = getPlayerData(e.getPlayer());
-
-                new PacketReader(e.getPlayer(), "PlayerDataListener-" + e.getPlayer().getName()) {
-                    @Override
-                    public boolean readPacket(Object packet) {
-                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInSettings")) {
-                            IReflection.FieldAccessor b = IReflection.getField(PacketUtils.PacketPlayInSettingsClass, "b");
-                            data.setViewDistance((int) b.get(packet));
-                            if(data.loadedSpawnChunk()) this.unInject();
-                        }
-
-                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInCustomPayLoad")) {
-                            data.setLoadedSpawnChunk(true);
-                            if(data.getViewDistance() != -999) this.unInject();
-                        }
-                        return false;
-                    }
-
-                    @Override
-                    public boolean writePacket(Object packet) {
-                        return false;
-                    }
-                }.inject();
-            }
-
-            @EventHandler
             public void onQuit(PlayerQuitEvent e) {
-                removePlayerData(e.getPlayer().getName());
                 removeRemovables(e.getPlayer());
             }
 
@@ -115,16 +91,13 @@ public class API {
 
         }, plugin);
 
-        CustomEntityType.registerEntities();
-
-        new BukkitRunnable() {
+        tickHelper = new BukkitRunnable() {
             int quarterSecond = 0;
             int second = 0;
 
             @Override
             public void run() {
                 API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
-                API.getRemovables(NetworkEntity.class).forEach(NetworkEntity::onTick);
                 GUIListener.onTick();
 
                 if(second >= 20) {
@@ -134,39 +107,11 @@ public class API {
                 if(quarterSecond >= 5) {
                     quarterSecond = 0;
 
-                    if(!Version.getVersion().isBiggerThan(Version.v1_8)) {
-                        BossBar.onTick();
-                    }
-
                 } else quarterSecond++;
             }
-        }.runTaskTimer(plugin, 0, 1);
-    }
+        };
 
-    public synchronized void onDisable(Plugin plugin) {
-        if(this.plugin == null) return;
-        CustomEntityType.unregisterEntities();
-
-        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
-        API.REMOVABLES.clear();
-        REMOVABLES.forEach(Removable::destroy);
-        REMOVABLES.clear();
-
-        HandlerList.unregisterAll(plugin);
-        this.plugin = null;
-    }
-
-    @Deprecated
-    public synchronized void onDisable() {
-        CustomEntityType.unregisterEntities();
-
-        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
-
-        API.REMOVABLES.clear();
-        REMOVABLES.forEach(Removable::destroy);
-        REMOVABLES.clear();
-
-//        TempFile.saveTempFiles(this.plugin, "/PlayerData/", PlayerData.class);
+        tickHelper.runTaskTimer(plugin, 0, 1);
     }
 
     public void runTicker() {
@@ -203,32 +148,6 @@ public class API {
         return instance;
     }
 
-    public JavaPlugin getPlugin() {
-        return plugin;
-    }
-
-    public PlayerData getPlayerData(Player p) {
-        for(PlayerData data : this.dataList) {
-            if(data.getName().equalsIgnoreCase(p.getName())) return data;
-        }
-
-        PlayerData data = new PlayerData(p);
-        this.dataList.add(data);
-
-        return data;
-    }
-
-    public boolean removePlayerData(String name) {
-        PlayerData playerData = null;
-
-        for(PlayerData data : this.dataList) {
-            if(data.getName().equalsIgnoreCase(name)) playerData = data;
-        }
-
-        if(playerData == null) return false;
-        return this.dataList.remove(playerData);
-    }
-
     public static synchronized boolean addRemovable(Removable removable) {
         if(isRegistered(removable)) removeRemovable(removable);
         return REMOVABLES.add(removable);
@@ -253,6 +172,34 @@ public class API {
         }
 
         return null;
+    }
+
+    public static synchronized List<Removable> getRemovables(JavaPlugin plugin) {
+        List<Removable> l = new ArrayList<>();
+
+        if(plugin == null) return l;
+
+        for(Removable r : REMOVABLES) {
+            if(r.getPlugin() == plugin) {
+                l.add(r);
+            }
+        }
+
+        return l;
+    }
+
+    public static synchronized <T extends Removable> List<T> getRemovables(JavaPlugin plugin, Class<? extends T> clazz) {
+        List<T> l = new ArrayList<>();
+
+        if(plugin == null) return l;
+
+        for(Removable r : REMOVABLES) {
+            if(clazz.isInstance(r) && r.getPlugin() == plugin) {
+                l.add(clazz.cast(r));
+            }
+        }
+
+        return l;
     }
 
     public static synchronized <T extends Removable> List<T> getRemovables(Player player, Class<? extends T> clazz) {
@@ -409,5 +356,17 @@ public class API {
 
     public Timer getTickerTimer() {
         return tickerTimer;
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public List<JavaPlugin> getPlugins() {
+        return plugins;
+    }
+
+    public JavaPlugin getMainPlugin() {
+        return  this.plugins.isEmpty() ? null : this.plugins.get(0);
     }
 }

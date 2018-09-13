@@ -1,6 +1,7 @@
 package de.codingair.codingapi.utils;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
@@ -19,6 +20,8 @@ public interface Removable {
 	Class<? extends Removable> getAbstractClass();
 	
 	UUID getUniqueId();
+
+	JavaPlugin getPlugin();
 	
 	default boolean equals(Removable removable) {
 		return getAbstractClass() == removable.getAbstractClass() && getUniqueId().toString().equals(removable.getUniqueId().toString());

@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -27,7 +27,7 @@ import java.util.*;
 
 public abstract class GUI extends Interface implements Removable {
     private UUID uniqueId = UUID.randomUUID();
-    private Plugin plugin;
+    private JavaPlugin plugin;
     private Player player;
     private SoundData openSound = null;
     private SoundData cancelSound = null;
@@ -39,11 +39,11 @@ public abstract class GUI extends Interface implements Removable {
     private boolean canDropItems = false;
     private boolean isClosed = false;
 
-    public GUI(Player p, String title, int size, Plugin plugin) {
+    public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
     }
 
-    public GUI(Player p, String title, int size, Plugin plugin, boolean preInitialize) {
+    public GUI(Player p, String title, int size, JavaPlugin plugin, boolean preInitialize) {
         super(p, title, size, plugin);
         oldUsage = false;
 
@@ -209,7 +209,7 @@ public abstract class GUI extends Interface implements Removable {
         return this.player.getName().equals(player.getName());
     }
 
-    public Plugin getPlugin() {
+    public JavaPlugin getPlugin() {
         return plugin;
     }
 

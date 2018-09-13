@@ -9,20 +9,23 @@ import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
 public abstract class SignGUI {
     private Player player;
-    private Sign sign = null;
+    private JavaPlugin plugin;
+    private Sign sign;
 
-    public SignGUI(Player player) {
-        this.player = player;
+    public SignGUI(Player player, JavaPlugin plugin) {
+        this(player, null, plugin);
     }
 
-    public SignGUI(Player player, Sign edit) {
+    public SignGUI(Player player, Sign edit, JavaPlugin plugin) {
         this.player = player;
         this.sign = edit;
+        this.plugin = plugin;
     }
     public abstract void onSignChangeEvent(String[] lines);
 
@@ -31,7 +34,7 @@ public abstract class SignGUI {
             throw new IllegalStateException("The SignEditor does not work with 1.7!");
         }
 
-        new PacketReader(this.player, "SignEditor") {
+        new PacketReader(this.player, "SignEditor", this.plugin) {
             @Override
             public boolean readPacket(Object packet) {
                 if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInUpdateSign")) {

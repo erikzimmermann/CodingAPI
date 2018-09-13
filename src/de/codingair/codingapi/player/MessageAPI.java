@@ -47,10 +47,6 @@ public class MessageAPI {
         sendActionBar(p, null);
     }
 
-    public static void sendActionBar(Player p, String message, int seconds) {
-        sendActionBar(p, message, API.getInstance().getPlugin(), seconds);
-    }
-
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
         Countdown countdown = countdowns.get(p.getName());
         if(countdown != null) {
