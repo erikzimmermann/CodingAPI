@@ -1,21 +1,19 @@
 package de.codingair.codingapi.player.gui.hovereditems;
 
-import de.codingair.codingapi.particles.Particle;
-import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.Hologram;
+import de.codingair.codingapi.player.data.PacketReader;
+import de.codingair.codingapi.server.DefaultFontInfo;
+import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -174,8 +172,8 @@ public abstract class HoveredItem implements Removable {
 			else corrected.add(line);
 		}
 		
-		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.player, this.plugin, corrected.toArray(new String[corrected.size()]));
-		this.hologram.update();
+		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.plugin, corrected.toArray(new String[corrected.size()]));
+		this.hologram.update(this.player);
 		
 		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString(), this.plugin) {
 			@Override
@@ -205,7 +203,7 @@ public abstract class HoveredItem implements Removable {
 		
 		PacketUtils.EntityPackets.destroyEntity(this.item, this.player);
 		PacketUtils.EntityPackets.destroyEntity(this.armorStand, this.player);
-		this.hologram.remove();
+		this.hologram.destroy();
 		
 		this.item = null;
 		this.armorStand = null;

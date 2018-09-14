@@ -1,6 +1,7 @@
 package de.codingair.codingapi;
 
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.utils.Removable;
@@ -16,10 +17,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 public class API {
     private static final List<Removable> REMOVABLES = new ArrayList<>();
@@ -60,6 +58,7 @@ public class API {
     private void initPlugin(JavaPlugin plugin) {
         initialized = true;
         GUIListener.register(plugin);
+        Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
@@ -168,6 +167,16 @@ public class API {
         for(Removable r : REMOVABLES) {
             if(clazz.isInstance(r)) {
                 if(getID(r) == id) return clazz.cast(r);
+            }
+        }
+
+        return null;
+    }
+
+    public static synchronized <T extends Removable> T getRemovable(Class<? extends T> clazz, UUID uniqueId) {
+        for(Removable r : REMOVABLES) {
+            if(clazz.isInstance(r)) {
+                if(r.getUniqueId() == uniqueId) return clazz.cast(r);
             }
         }
 
