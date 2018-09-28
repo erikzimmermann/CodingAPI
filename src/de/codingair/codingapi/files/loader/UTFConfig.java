@@ -13,19 +13,17 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
-    private HashMap<String, Integer> comments = new HashMap<>();
+    private List<Extra> extras = new ArrayList<>();
 
     private UTFConfig() {
     }
 
-    public void saveAndDestroy(File file) throws IOException {
-        this.save(file);
-        this.comments.clear();
+    public void destroy() {
+        this.extras.clear();
     }
 
     @Override
@@ -33,7 +31,7 @@ public class UTFConfig extends YamlConfiguration {
         Validate.notNull(file, "File cannot be null");
         Files.createParentDirs(file);
         String data = this.saveToString();
-        data = writeComments(data);
+        data = writeExtras(data);
 
         Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
 
@@ -81,19 +79,17 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public void loadFromString(String contents) throws InvalidConfigurationException {
-        loadComments(contents);
+        loadExtras(contents);
         super.loadFromString(contents);
     }
 
-    private void loadComments(String contents) {
-        this.comments.clear();
+    private void loadExtras(String contents) {
+        this.extras.clear();
 
         if(contents.contains("\n")) {
             int line = 0;
             for(String s : contents.split("\n")) {
-                if(isComment(s)) {
-                    comments.put(s, line);
-                }
+                if(isComment(s) || isEmpty(s)) extras.add(new Extra(s, line));
 
                 line++;
             }
@@ -105,13 +101,18 @@ public class UTFConfig extends YamlConfiguration {
         return s.startsWith(COMMENT);
     }
 
-    private String writeComments(String contents) {
+    private boolean isEmpty(String s) {
+        while(s.startsWith(" ")) s = s.replaceFirst(" ", "");
+        return s.isEmpty() || s.equals("\n");
+    }
+
+    private String writeExtras(String contents) {
         List<String> lines = contents.contains("\n") ? new ArrayList<>(Arrays.asList(contents.split("\n"))) : new ArrayList<>();
 
-        this.comments.forEach((c, l) -> {
-            if(l >= lines.size()) lines.add(c);
-            else lines.add(l, c);
-        });
+        for(Extra c : this.extras) {
+            if(c.getLine() >= lines.size()) lines.add(c.getText());
+            else lines.add(c.getLine(), c.getText());
+        }
 
         StringBuilder builder = new StringBuilder();
 

@@ -92,14 +92,17 @@ public class ConfigFile {
         saveConfig(false);
     }
 
+    public void destroy() {
+        getConfig().destroy();
+    }
+
     public void saveConfig(boolean destroy) {
         if(config == null || configFile == null) {
             return;
         }
         try {
-            if(destroy) getConfig().saveAndDestroy(configFile);
-            else getConfig().save(configFile);
-            this.loadConfig();
+            getConfig().save(configFile);
+            if(destroy) destroy();
         } catch(IOException ex) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
         }
