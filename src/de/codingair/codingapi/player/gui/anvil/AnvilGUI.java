@@ -73,8 +73,8 @@ public class AnvilGUI implements Removable {
 
 	@Override
 	public void destroy() {
-		this.player.closeInventory();
 		remove();
+		this.player.closeInventory();
 	}
 	
 	private void registerBukkitListener() {
