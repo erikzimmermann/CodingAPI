@@ -1,14 +1,13 @@
 package de.codingair.codingapi.files;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import de.codingair.codingapi.files.loader.UTFConfig;
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
 import java.util.logging.Level;
 
 public class ConfigFile {
-    private FileConfiguration config = null;
+    private UTFConfig config = null;
     private File configFile = null;
     private Plugin plugin;
     private String name;
@@ -51,11 +50,10 @@ public class ConfigFile {
                 }
             }
 
-            config = YamlConfiguration.loadConfiguration(configFile);
-            if(plugin.getResource(this.name + ".yml") != null) {
-                InputStreamReader reader = new InputStreamReader(plugin.getResource(this.name + ".yml"));
-                if(reader != null) config.setDefaults(YamlConfiguration.loadConfiguration(reader));
-            }
+            config = UTFConfig.loadConf(configFile);
+
+            InputStream reader = plugin.getResource(this.name + ".yml");
+            if(reader != null) config.setDefaults(UTFConfig.loadConf(reader));
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -84,18 +82,23 @@ public class ConfigFile {
         loadConfig();
     }
 
-    public FileConfiguration getConfig() {
+    public UTFConfig getConfig() {
         if(config == null) reloadConfig();
 
         return config;
     }
 
     public void saveConfig() {
+        saveConfig(false);
+    }
+
+    public void saveConfig(boolean destroy) {
         if(config == null || configFile == null) {
             return;
         }
         try {
-            getConfig().save(configFile);
+            if(destroy) getConfig().saveAndDestroy(configFile);
+            else getConfig().save(configFile);
             this.loadConfig();
         } catch(IOException ex) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);

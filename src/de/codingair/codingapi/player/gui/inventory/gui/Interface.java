@@ -261,10 +261,14 @@ public class Interface {
 		
 		return true;
 	}
-	
-	public void setTitle(String title) {
+
+	public void setTitle(String title, boolean reopen) {
 		this.title = title;
-        reopen();
+		if(reopen) reopen();
+	}
+
+	public void setTitle(String title) {
+		setTitle(title, true);
 	}
 
 	public void reopen() {

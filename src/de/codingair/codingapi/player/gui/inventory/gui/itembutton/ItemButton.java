@@ -72,10 +72,14 @@ public abstract class ItemButton {
 		i.removeButton(this.slot);
 		i.addButton(this);
 	}
-	
+
 	public void setItem(ItemStack item) {
+		setItem(item, true);
+	}
+
+	public void setItem(ItemStack item, boolean update) {
 		this.item = item;
-		inv.setItem(getSlot(), getItem());
+		if(update) inv.setItem(getSlot(), getItem());
 	}
 	
 	public boolean isCloseOnClick() {
