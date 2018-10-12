@@ -13,7 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
@@ -64,22 +67,25 @@ public class Hologram implements Removable {
             @EventHandler(priority = EventPriority.LOWEST)
             public void onTeleport(PlayerTeleportEvent e) {
                 if(e.getFrom().getWorld() != e.getTo().getWorld()) return;
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
 
-                for(Hologram hologram : holograms) {
-                    if(!hologram.isWatching(e.getPlayer())) continue;
+                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                    List<Hologram> holograms = API.getRemovables(Hologram.class);
 
-                    double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
-                    double from = e.getFrom().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getFrom());
+                    for(Hologram hologram : holograms) {
+                        if(!hologram.isWatching(e.getPlayer())) continue;
 
-                    if((to != -1 && to <= DISTANCE_TO_SEE) && (from == -1 || from > DISTANCE_TO_SEE)) {
-                        hologram.update(e.getPlayer());
-                    } else if((to == -1 || to > DISTANCE_TO_SEE) && (from != -1 && from <= DISTANCE_TO_SEE)) {
-                        hologram.remove(e.getPlayer());
+                        double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
+                        double from = e.getFrom().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getFrom());
+
+                        if((to != -1 && to <= DISTANCE_TO_SEE) && (from == -1 || from > DISTANCE_TO_SEE)) {
+                            hologram.update(e.getPlayer());
+                        } else if((to == -1 || to > DISTANCE_TO_SEE) && (from != -1 && from <= DISTANCE_TO_SEE)) {
+                            hologram.remove(e.getPlayer());
+                        }
                     }
-                }
 
-                holograms.clear();
+                    holograms.clear();
+                }, 1);
             }
 
             @EventHandler(priority = EventPriority.LOWEST)

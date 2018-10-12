@@ -24,6 +24,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -729,7 +730,7 @@ public class ItemBuilder {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true), 1, (short) 3);
         if(gameProfile == null) return item;
 
         ItemMeta meta = item.getItemMeta();

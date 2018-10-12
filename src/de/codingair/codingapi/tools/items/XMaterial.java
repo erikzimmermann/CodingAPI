@@ -1005,7 +1005,7 @@ public enum XMaterial {
         return parseMaterial(false);
     }
 
-    private Material parseMaterial(boolean itemTag) {
+    public Material parseMaterial(boolean itemTag) {
         Material mat = Material.matchMaterial(this.toString() + (itemTag && isItemTag() ? "_ITEM" : ""));
         if(mat != null) {
             return mat;
