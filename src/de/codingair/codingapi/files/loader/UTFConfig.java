@@ -86,13 +86,14 @@ public class UTFConfig extends YamlConfiguration {
     private void loadExtras(String contents) {
         this.extras.clear();
 
-        if(contents.contains("\n")) {
-            int line = 0;
-            for(String s : contents.split("\n")) {
-                if(isComment(s) || isEmpty(s)) extras.add(new Extra(s, line));
+        int line = 0;
 
-                line++;
-            }
+        String[] a = contents.split("\n", -1);
+
+        for(int i = 0; i < a.length - 1; i++) {
+            if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
+
+            line++;
         }
     }
 
@@ -107,7 +108,7 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     private String writeExtras(String contents) {
-        List<String> lines = contents.contains("\n") ? new ArrayList<>(Arrays.asList(contents.split("\n"))) : new ArrayList<>();
+        List<String> lines = new ArrayList<>(Arrays.asList(contents.split("\n", -1)));
 
         for(Extra c : this.extras) {
             if(c.getLine() >= lines.size()) lines.add(c.getText());
@@ -116,9 +117,12 @@ public class UTFConfig extends YamlConfiguration {
 
         StringBuilder builder = new StringBuilder();
 
-        for(String line : lines) {
-            builder.append(line).append("\n");
+        for(int i = 0; i < lines.size(); i++) {
+            builder.append(lines.get(i));
+            if(i < lines.size() - 1) builder.append("\n");
         }
+
+
 
         return builder.toString();
     }

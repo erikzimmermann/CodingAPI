@@ -2,6 +2,7 @@ package de.codingair.codingapi;
 
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import de.codingair.codingapi.player.Hologram;
+import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
 import de.codingair.codingapi.server.events.WalkListener;
@@ -62,6 +63,7 @@ public class API {
         Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new BookListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
             /** PlayerDataListener - Start */

@@ -249,7 +249,13 @@ public class GUIListener implements Listener {
 
                 e.setCancelled(!button.isMovable());
 
-                if((button.isOnlyLeftClick() && e.isLeftClick()) || (button.isOnlyRightClick() && e.isRightClick()) || (!button.isOnlyRightClick() && !button.isOnlyLeftClick()) || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
+                if(
+                        (button.isOnlyLeftClick() && e.isLeftClick())
+                                || (button.isOnlyRightClick() && e.isRightClick())
+                                || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
+                                || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
+                    if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
+
                     if(button.isCloseOnClick()) {
                         if(inv instanceof GUI) ((GUI) inv).setClosingByButton(true);
                         e.getWhoClicked().closeInventory();

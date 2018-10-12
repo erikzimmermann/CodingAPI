@@ -1,9 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
-import de.codingair.codingapi.player.gui.anvil.AnvilClickEvent;
-import de.codingair.codingapi.player.gui.anvil.AnvilCloseEvent;
-import de.codingair.codingapi.player.gui.anvil.AnvilGUI;
-import de.codingair.codingapi.player.gui.anvil.AnvilListener;
+import de.codingair.codingapi.player.gui.anvil.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -25,6 +22,7 @@ public abstract class SyncAnvilGUIButton extends SyncButton {
         if(interrupt()) return;
 
         getInterface().setClosingByButton(true);
+        getInterface().setClosingForAnvil(true);
 
         AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
             @Override
@@ -32,7 +30,7 @@ public abstract class SyncAnvilGUIButton extends SyncButton {
                 e.setCancelled(true);
                 e.setClose(false);
 
-                SyncAnvilGUIButton.this.onClick(e);
+                if(e.getSlot() == AnvilSlot.OUTPUT) SyncAnvilGUIButton.this.onClick(e);
             }
 
             @Override
@@ -42,14 +40,15 @@ public abstract class SyncAnvilGUIButton extends SyncButton {
                 if(e.getPost() == null) {
                     getInterface().reinitialize();
                     e.setPost(() -> getInterface().open());
+                    getInterface().setClosingForAnvil(false);
                 }
             }
         }, this.anvilItem);
     }
 
     @Override
-    public void reinitialize(boolean update) {
-        super.reinitialize(update);
+    public void update(boolean updateGUI) {
+        super.update(updateGUI);
         this.anvilItem = craftAnvilItem();
     }
 

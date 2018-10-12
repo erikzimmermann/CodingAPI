@@ -25,20 +25,26 @@ public class ConfigFile {
     }
 
     private void mkDir(File file) {
-        if(!file.canExecute()) mkDir(file.getParentFile());
-        if(!file.exists()) file.mkdir();
+        if(!file.getParentFile().exists()) mkDir(file.getParentFile());
+        if(!file.exists()) {
+            try {
+                file.mkdir();
+            } catch(SecurityException ex) {
+                throw new IllegalArgumentException("Plugin is not permitted to create a folder!");
+            }
+        }
     }
 
     public void loadConfig() {
         try {
             File folder = plugin.getDataFolder();
-            if(!folder.exists()) folder.mkdir();
+            if(!folder.exists()) mkDir(folder);
 
             if(!this.path.startsWith("/")) this.path = "/" + this.path;
             if(!this.path.endsWith("/")) this.path = this.path + "/";
 
             folder = new File(this.plugin.getDataFolder() + this.path);
-            mkDir(folder);
+            if(!this.path.isEmpty() && !this.path.equals("/") && !folder.exists()) mkDir(folder);
 
             configFile = new File(this.plugin.getDataFolder() + this.path, this.name + ".yml");
 

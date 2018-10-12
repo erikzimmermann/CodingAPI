@@ -79,7 +79,7 @@ public abstract class ItemButton {
 
 	public void setItem(ItemStack item, boolean update) {
 		this.item = item;
-		if(update) inv.setItem(getSlot(), getItem());
+		if(update && inv != null) inv.setItem(getSlot(), getItem());
 	}
 	
 	public boolean isCloseOnClick() {

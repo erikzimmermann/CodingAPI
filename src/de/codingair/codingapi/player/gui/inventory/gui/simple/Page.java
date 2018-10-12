@@ -9,6 +9,7 @@ public abstract class Page {
     private String title;
     private Layout layout;
     private List<Button> buttons = new ArrayList<>();
+    private SimpleGUI last;
 
     public Page(Player p, String title, Layout layout) {
         this(p, title, layout, true);
@@ -32,6 +33,7 @@ public abstract class Page {
     public abstract void initialize(Player p);
 
     public boolean initialize(SimpleGUI gui) {
+        this.last = gui;
         boolean haveToBeReopened = false;
 
         if(this.title != null && !gui.getTitle().equals(this.title)) {
@@ -62,6 +64,10 @@ public abstract class Page {
         return null;
     }
 
+    public void close() {
+        if(this.last != null) this.last.close();
+    }
+
     public Button getButton(int x, int y) {
         return getButton(x + y * 9);
     }
@@ -87,5 +93,14 @@ public abstract class Page {
 
     public Layout getLayout() {
         return layout;
+    }
+
+    public void updatePage() {
+        for(Button button : this.buttons) {
+            if(button instanceof SyncButton) ((SyncButton) button).update();
+        }
+    }
+
+    public void onExitByPlayer() {
     }
 }

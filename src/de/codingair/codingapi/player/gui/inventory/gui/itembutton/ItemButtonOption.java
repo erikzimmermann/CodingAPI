@@ -16,7 +16,8 @@ public class ItemButtonOption {
 	private boolean onlyLeftClick = false;
 	private boolean onlyRightClick = false;
 	private boolean numberKey = false;
-	
+	private boolean doubleClick = false;
+
 	public boolean isMovable() {
 		return movable;
 	}
@@ -74,5 +75,13 @@ public class ItemButtonOption {
 
 	public void setNumberKey(boolean numberKey) {
 		this.numberKey = numberKey;
+	}
+
+	public boolean isDoubleClick() {
+		return doubleClick;
+	}
+
+	public void setDoubleClick(boolean doubleClick) {
+		this.doubleClick = doubleClick;
 	}
 }

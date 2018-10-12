@@ -6,10 +6,9 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public enum XMaterial {
-
     ACACIA_BOAT("BOAT_ACACIA", 0),
     ACACIA_BUTTON("WOOD_BUTTON", 0),
-    ACACIA_DOOR("ACACIA_DOOR", 0),
+    ACACIA_DOOR("ACACIA_DOOR", 0, true),
     ACACIA_FENCE("ACACIA_FENCE", 0),
     ACACIA_FENCE_GATE("ACACIA_FENCE_GATE", 0),
     ACACIA_LEAVES("LEAVES_2", 0),
@@ -44,7 +43,7 @@ public enum XMaterial {
     BEETROOT_SOUP("BEETROOT_SOUP", 0),
     BIRCH_BOAT("BOAT_BIRCH", 0),
     BIRCH_BUTTON("WOOD_BUTTON", 0),
-    BIRCH_DOOR("BIRCH_DOOR", 0),
+    BIRCH_DOOR("BIRCH_DOOR", 0, true),
     BIRCH_FENCE("BIRCH_FENCE", 0),
     BIRCH_FENCE_GATE("BIRCH_FENCE_GATE", 0),
     BIRCH_LEAVES("LEAVES", 2),
@@ -204,7 +203,7 @@ public enum XMaterial {
     DANDELION_YELLOW("INK_SACK", 11),
     DARK_OAK_BOAT("BOAT_DARK_OAK", 0),
     DARK_OAK_BUTTON("WOOD_BUTTON", 0),
-    DARK_OAK_DOOR("DARK_OAK_DOOR", 0),
+    DARK_OAK_DOOR("DARK_OAK_DOOR", 0, true),
     DARK_OAK_FENCE("DARK_OAK_FENCE", 0),
     DARK_OAK_FENCE_GATE("DARK_OAK_FENCE_GATE", 0),
     DARK_OAK_LEAVES("LEAVES_2", 1),
@@ -292,7 +291,7 @@ public enum XMaterial {
     FISHING_ROD("FISHING_ROD", 0),
     FLINT("FLINT", 0),
     FLINT_AND_STEEL("FLINT_AND_STEEL", 0),
-    FLOWER_POT("FLOWER_POT_ITEM", 0),
+    FLOWER_POT("FLOWER_POT", 0, true),
     FROSTED_ICE("FROSTED_ICE", 0),
     FURNACE("FURNACE", 0),
     FURNACE_MINECART("POWERED_MINECART", 0),
@@ -392,7 +391,7 @@ public enum XMaterial {
     JUKEBOX("JUKEBOX", 0),
     JUNGLE_BOAT("BOAT_JUNGLE", 0),
     JUNGLE_BUTTON("WOOD_BUTTON", 0),
-    JUNGLE_DOOR("JUNGLE_DOOR", 0),
+    JUNGLE_DOOR("JUNGLE_DOOR", 0, true),
     JUNGLE_FENCE("JUNGLE_FENCE", 0),
     JUNGLE_FENCE_GATE("JUNGLE_FENCE_GATE", 0),
     JUNGLE_LEAVES("LEAVES", 3),
@@ -581,7 +580,7 @@ public enum XMaterial {
     PINK_WOOL("WOOL", 6),
     PISTON("PISTON_BASE", 0),
     PISTON_HEAD("PISTON_EXTENSION", 0),
-    PLAYER_HEAD("SKULL_ITEM", 0),
+    PLAYER_HEAD("SKULL", 0, true),
     PLAYER_WALL_HEAD("SKULL", 0),
     PODZOL("DIRT", 2),
     POISONOUS_POTATO("POISONOUS_POTATO", 0),
@@ -735,7 +734,7 @@ public enum XMaterial {
     SPONGE("SPONGE", 0),
     SPRUCE_BOAT("BOAT_SPRUCE", 0),
     SPRUCE_BUTTON("WOOD_BUTTON", 0),
-    SPRUCE_DOOR("SPRUCE_DOOR", 0),
+    SPRUCE_DOOR("SPRUCE_DOOR", 0, true),
     SPRUCE_FENCE("SPRUCE_FENCE", 0),
     SPRUCE_FENCE_GATE("SPRUCE_FENCE_GATE", 0),
     SPRUCE_LEAVES("LEAVES", 1),
@@ -860,14 +859,25 @@ public enum XMaterial {
     ;
     String m;
     int data;
+    boolean itemTag;
 
     XMaterial(String m, int data) {
         this.m = m;
         this.data = data;
     }
 
+    XMaterial(String m, int data, boolean itemTag) {
+        this.m = m;
+        this.data = data;
+        this.itemTag = itemTag;
+    }
+
+    public boolean isItemTag() {
+        return itemTag;
+    }
+
     public ItemStack parseItem() {
-        Material mat = parseMaterial();
+        Material mat = parseMaterial(true);
         if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
     }
@@ -992,12 +1002,16 @@ public enum XMaterial {
     }
 
     public Material parseMaterial() {
-        if(isNewVersion()) {
-            Material mat = Material.matchMaterial(this.toString());
-            if(mat != null) return mat;
+        return parseMaterial(false);
+    }
+
+    private Material parseMaterial(boolean itemTag) {
+        Material mat = Material.matchMaterial(this.toString() + (itemTag && isItemTag() ? "_ITEM" : ""));
+        if(mat != null) {
+            return mat;
         }
 
-        return Material.matchMaterial(m);
+        return Material.matchMaterial(m + (itemTag && isItemTag() ? "_ITEM" : ""));
     }
 
 }

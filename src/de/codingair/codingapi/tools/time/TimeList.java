@@ -150,9 +150,15 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
         if(hasExpire(e)) {
             if(expire > 0) {
                 this.time.replace(e, expire);
-                this.listeners.forEach(l -> l.onTick(e, expire));
+
+                List<TimeListener> listeners = new ArrayList<>(this.listeners);
+                listeners.forEach(l -> l.onTick(e, expire));
+                listeners.clear();
             } else {
-                this.listeners.forEach(l -> l.onRemove(e));
+                List<TimeListener> listeners = new ArrayList<>(this.listeners);
+                listeners.forEach(l -> l.onRemove(e));
+                listeners.clear();
+
                 remove(e);
             }
 

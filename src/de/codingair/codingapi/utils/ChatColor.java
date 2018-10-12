@@ -131,6 +131,30 @@ public enum ChatColor {
         return colorChar + data[data.length - 1].substring(0, 1);
     }
 
+    public static String getLastFullColor(String text, char colorChar) {
+        String otherColor = getLastColor(text, colorChar);
+        if(otherColor == null) return "";
+
+        ChatColor[] extra = new ChatColor[] {MAGIC, BOLD, STRIKETHROUGH, UNDERLINE, ITALIC};
+
+        String stripped = text;
+        for(ChatColor c : extra) {
+            stripped = stripped.replace(c.toString(), "");
+        }
+
+        String lastColor = getLastColor(stripped, colorChar);
+
+        if(!otherColor.equals(lastColor)) {
+            for(ChatColor c : extra) {
+                if(otherColor.equals(c.toString())) {
+                    return otherColor + lastColor;
+                }
+            }
+        }
+
+        return lastColor;
+    }
+
     public static String highlight(String text, String toHighlight, String highlighter) {
         return highlight(text, toHighlight, highlighter, RESET.toString);
     }

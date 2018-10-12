@@ -492,7 +492,6 @@ public class ItemBuilder {
         return this;
     }
 
-
     public ItemBuilder setText(String text, int wordWrap) {
         return setText(text, TextAlignment.LEFT, wordWrap);
     }

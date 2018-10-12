@@ -263,6 +263,101 @@ public abstract class GUI extends Interface implements Removable {
         if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
     }
 
+    @Override
+    public void addButton(int slot, ItemButton button) {
+        super.addButton(slot, button);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public HashMap<Integer, ItemStack> addItem(ItemStack... arg0) throws IllegalArgumentException {
+        HashMap<Integer, ItemStack> map = super.addItem(arg0);
+        this.player.updateInventory();
+        return map;
+    }
+
+    @Override
+    public void addButton(ItemButton button) {
+        super.addButton(button);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(ItemStack item, int startSlot, int endSlot) {
+        super.setItem(item, startSlot, endSlot);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setFrame(ItemStack item) {
+        super.setFrame(item);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setBackground(ItemStack background) {
+        super.setBackground(background);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public Interface setDisplayname(int slot, String name) {
+        super.setDisplayname(slot, name);
+        this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public Interface setLore(int slot, String... lore) {
+        super.setLore(slot, lore);
+        this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public Interface setAmount(int slot, int amount) {
+        super.setAmount(slot, amount);
+        this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public boolean setSize(int size) {
+        boolean result = super.setSize(size);
+        this.player.updateInventory();
+        return result;
+    }
+
+    @Override
+    public void setTitle(String title, boolean reopen) {
+        super.setTitle(title, reopen);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setTitle(String title) {
+        super.setTitle(title);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setContents(ItemStack[] arg0) throws IllegalArgumentException {
+        super.setContents(arg0);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(int x, ItemStack arg1) {
+        super.setItem(x, arg1);
+        this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(int x, int y, ItemStack arg1) {
+        super.setItem(x, y, arg1);
+        this.player.updateInventory();
+    }
+
     public ItemButton getButtonAt(int x, int y) {
         return getButtonAt(x + y * 9);
     }

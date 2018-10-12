@@ -14,11 +14,11 @@ public abstract class SyncButton extends Button {
 
     public abstract ItemStack craftItem();
 
-    public void reinitialize() {
-        reinitialize(true);
+    public void update() {
+        update(true);
     }
 
-    public void reinitialize(boolean update) {
-        setItem(craftItem(), update);
+    public void update(boolean updateGUI) {
+        setItem(craftItem(), updateGUI);
     }
 }
