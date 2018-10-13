@@ -730,7 +730,7 @@ public class ItemBuilder {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion())), 1, (short) 3);
         if(gameProfile == null) return item;
 
         ItemMeta meta = item.getItemMeta();

@@ -2,6 +2,7 @@ package de.codingair.codingapi.tools.items;
 
 import java.util.HashMap;
 
+import de.codingair.codingapi.server.Version;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -877,7 +878,7 @@ public enum XMaterial {
     }
 
     public ItemStack parseItem() {
-        Material mat = parseMaterial(true);
+        Material mat = parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion()));
         if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
     }
