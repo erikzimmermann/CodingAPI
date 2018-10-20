@@ -339,7 +339,7 @@ public class ItemBuilder {
                                 obj = jsonObject.get("Data");
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(jsonObject.get("Data") + "");
-                                material = XMaterial.requestXMaterial(name, data).parseMaterial();
+                                material = XMaterial.requestXMaterial(name, data).parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion()));
                             } else {
                                 XMaterial xType = XMaterial.valueOf(name);
                                 material = xType.parseMaterial();

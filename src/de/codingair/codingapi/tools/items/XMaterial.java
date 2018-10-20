@@ -1,10 +1,10 @@
 package de.codingair.codingapi.tools.items;
 
-import java.util.HashMap;
-
 import de.codingair.codingapi.server.Version;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.HashMap;
 
 public enum XMaterial {
     ACACIA_BOAT("BOAT_ACACIA", 0),
@@ -860,7 +860,7 @@ public enum XMaterial {
     ;
     String m;
     int data;
-    boolean itemTag;
+    boolean itemTag = false;
 
     XMaterial(String m, int data) {
         this.m = m;
@@ -878,6 +878,7 @@ public enum XMaterial {
     }
 
     public ItemStack parseItem() {
+        System.out.println("Test (" + this.name() + "): " + !Version.v1_12.isBiggerThan(Version.getVersion()));
         Material mat = parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion()));
         if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
@@ -908,15 +909,20 @@ public enum XMaterial {
     private static HashMap<String, XMaterial> cachedSearch = new HashMap<>();
 
     public static XMaterial requestXMaterial(String name, byte data) {
+        boolean itemTag = name.endsWith("_ITEM");
+        if(itemTag) name = name.replace("_ITEM", "");
+
         if(cachedSearch.containsKey(name.toUpperCase() + "," + data)) {
             return cachedSearch.get(name.toUpperCase() + "," + data);
         }
+
         for(XMaterial mat : XMaterial.values()) {
             if(name.toUpperCase().equals(mat.m) && ((byte) mat.data) == data) {
                 cachedSearch.put(mat.m + "," + data, mat);
                 return mat;
             }
         }
+
         return null;
     }
 
