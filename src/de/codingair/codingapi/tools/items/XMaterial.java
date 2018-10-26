@@ -878,7 +878,6 @@ public enum XMaterial {
     }
 
     public ItemStack parseItem() {
-        System.out.println("Test (" + this.name() + "): " + !Version.v1_12.isBiggerThan(Version.getVersion()));
         Material mat = parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion()));
         if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
