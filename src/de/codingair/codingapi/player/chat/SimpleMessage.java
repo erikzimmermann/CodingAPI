@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class SimpleMessage implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
-    private List<TextComponent> components = new ArrayList<>();
+    private List<Object> components = new ArrayList<>();
     private HoverEvent hoverEvent;
     private ClickEvent clickEvent;
     private JavaPlugin plugin;
@@ -93,9 +93,9 @@ public class SimpleMessage implements Removable {
     private TextComponent getTextComponent() {
         TextComponent base = null;
 
-        for(TextComponent tc : this.components) {
-            if(base == null) base = tc instanceof ChatButton ? ((ChatButton) tc).build() : tc;
-            else base.addExtra(tc instanceof ChatButton ? ((ChatButton) tc).build() : tc);
+        for(Object tc : this.components) {
+            if(base == null) base = tc instanceof ChatButton ? ((ChatButton) tc).build() : (TextComponent) tc;
+            else base.addExtra(tc instanceof ChatButton ? ((ChatButton) tc).build() : (TextComponent) tc);
         }
 
         return base;
@@ -124,7 +124,7 @@ public class SimpleMessage implements Removable {
     public List<ChatButton> getButtons() {
         List<ChatButton> buttons = new ArrayList<>();
 
-        for(TextComponent c : this.components) {
+        for(Object c : this.components) {
             if(c instanceof ChatButton) buttons.add((ChatButton) c);
         }
 
@@ -132,7 +132,7 @@ public class SimpleMessage implements Removable {
     }
 
     public ChatButton getButton(UUID uniqueId) {
-        for(TextComponent c : this.components) {
+        for(Object c : this.components) {
             if(c instanceof ChatButton && ((ChatButton) c).getUniqueId().equals(uniqueId)) return (ChatButton) c;
         }
 
@@ -143,9 +143,11 @@ public class SimpleMessage implements Removable {
         boolean foundSth = false;
 
         int i = 0;
-        List<TextComponent> components = new ArrayList<>(this.components);
+        List<Object> components = new ArrayList<>(this.components);
 
-        for(TextComponent c : components) {
+        for(Object o : components) {
+            TextComponent c = o instanceof ChatButton ? ((ChatButton) o).build() : (TextComponent) o;
+
             if(c.getText().contains(toReplaced)) {
                 this.components.remove(c);
                 foundSth = true;

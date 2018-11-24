@@ -1,21 +1,25 @@
 package de.codingair.codingapi.tools;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.text.DecimalFormat;
 
 public class Location extends org.bukkit.Location {
+    private String worldName;
 
     public Location(org.bukkit.Location location) {
         super(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        this.worldName = location instanceof Location ? ((Location) location).getWorldName() : location.getWorld() == null ? null : location.getWorld().getName();
     }
 
     public Location(JSONObject json) {
-        super(Bukkit.getWorld((String) json.get("World")),
+        super(json.get("World") == null ? null : Bukkit.getWorld((String) json.get("World")),
                 Double.parseDouble(((String) json.get("X")).replace(",", ".")), Double.parseDouble(((String) json.get("Y")).replace(",", ".")), Double.parseDouble(((String) json.get("Z")).replace(",", ".")),
                 json.get("Yaw") == null ? 0F : Float.parseFloat(((String) json.get("Yaw")).replace(",", ".")), json.get("Pitch") == null ? 0F : Float.parseFloat(((String) json.get("Pitch")).replace(",", ".")));
+        this.worldName = json.get("World") == null ? null : (String) json.get("World");
     }
 
     public boolean hasOnlyCoords() {
@@ -27,7 +31,7 @@ public class Location extends org.bukkit.Location {
 
         JSONObject json = new JSONObject();
 
-        json.put("World", this.getWorld().getName());
+        json.put("World", this.worldName);
         json.put("X", format.format(this.getX()).replace(",", "."));
         json.put("Y", format.format(this.getY()).replace(",", "."));
         json.put("Z", format.format(this.getZ()).replace(",", "."));
@@ -41,7 +45,6 @@ public class Location extends org.bukkit.Location {
     }
 
     public String toJSONString(int decimalPlaces) {
-        if(getWorld() == null) return null;
         StringBuilder s = new StringBuilder("0" + (decimalPlaces > 0 ? "." : ""));
         for(int i = 0; i < decimalPlaces; i++) {
             s.append("0");
@@ -51,7 +54,7 @@ public class Location extends org.bukkit.Location {
         JSONObject json = new JSONObject();
 
         if(decimalPlaces > 0) {
-            json.put("World", this.getWorld().getName());
+            json.put("World", this.worldName);
             json.put("X", format.format(this.getX()).replace(",", "."));
             json.put("Y", format.format(this.getY()).replace(",", "."));
             json.put("Z", format.format(this.getZ()).replace(",", "."));
@@ -61,7 +64,7 @@ public class Location extends org.bukkit.Location {
                 json.put("Pitch", format.format(this.getPitch()).replace(",", "."));
             }
         } else {
-            json.put("World", this.getWorld().getName());
+            json.put("World", this.worldName);
             json.put("X", (this.getX() + "").replace(",", "."));
             json.put("Y", (this.getY() + "").replace(",", "."));
             json.put("Z", (this.getZ() + "").replace(",", "."));
@@ -73,6 +76,12 @@ public class Location extends org.bukkit.Location {
         }
 
         return json.toJSONString();
+    }
+
+    @Override
+    public void setWorld(World world) {
+        super.setWorld(world);
+        this.worldName = world == null ? null : world.getName();
     }
 
     public boolean equals(Object obj) {
@@ -117,5 +126,9 @@ public class Location extends org.bukkit.Location {
         if(location == null) return null;
 
         return new Location(location);
+    }
+
+    public String getWorldName() {
+        return worldName;
     }
 }

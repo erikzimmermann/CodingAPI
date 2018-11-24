@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public abstract class ChatButton extends TextComponent {
+public abstract class ChatButton {
     private final UUID uniqueId = UUID.randomUUID();
     private String text;
     private String hover;
@@ -31,8 +31,9 @@ public abstract class ChatButton extends TextComponent {
         return component;
     }
 
-    public void setHover(String hover) {
+    public ChatButton setHover(String hover) {
         this.hover = hover;
+        return this;
     }
 
     public UUID getUniqueId() {

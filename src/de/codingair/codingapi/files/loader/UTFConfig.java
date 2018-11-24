@@ -4,6 +4,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.apache.commons.lang.Validate;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.yaml.snakeyaml.DumperOptions;
@@ -17,7 +18,9 @@ import java.util.List;
 
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
+    private static final String CONFIG_TAG = "~Config\n";
     private List<Extra> extras = new ArrayList<>();
+    private boolean loadExtras = false;
 
     private UTFConfig() {
     }
@@ -31,7 +34,10 @@ public class UTFConfig extends YamlConfiguration {
         Validate.notNull(file, "File cannot be null");
         Files.createParentDirs(file);
         String data = this.saveToString();
-        data = writeExtras(data);
+        if(this.loadExtras) {
+            data = writeExtras(data);
+            data = CONFIG_TAG + data;
+        }
 
         Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
 
@@ -59,16 +65,79 @@ public class UTFConfig extends YamlConfiguration {
             yamlOptions.setAllowUnicode(true);
             yamlRepresenter.setDefaultFlowStyle(fs);
 
+            String header = this.buildHeader();
             String dump = yaml.dump(this.getValues(false));
+            if(dump.equals("{}\n")) dump = "";
 
-            if(dump.equals("{}\n"))
-                dump = "";
-
-            return dump;
+            return header + dump;
         } catch(Exception ex) {
             ex.printStackTrace();
         }
         return "Error while running this#saveToString()";
+    }
+
+    @Override
+    protected String parseHeader(String input) {
+        if(loadExtras) return "";
+
+        String[] lines = input.split("\r?\n", -1);
+        StringBuilder result = new StringBuilder();
+        boolean readingHeader = true;
+        boolean foundHeader = false;
+
+        for(int i = 0; i < lines.length && readingHeader; ++i) {
+            String line = lines[i];
+            if(line.startsWith(COMMENT)) {
+                if(i > 0) {
+                    result.append("\n");
+                }
+
+                result.append(line.substring(COMMENT.length()));
+                foundHeader = true;
+            } else if(foundHeader && line.length() == 0) {
+                result.append("\n");
+            } else if(foundHeader) {
+                readingHeader = false;
+            }
+        }
+
+        return result.toString();
+    }
+
+    @Override
+    protected String buildHeader() {
+        if(loadExtras) return "";
+
+        String header = this.options().header();
+        if(this.options().copyHeader()) {
+            Configuration def = this.getDefaults();
+            if(def instanceof UTFConfig) {
+                UTFConfig fileDefaults = (UTFConfig) def;
+                String defaultsHeader = fileDefaults.buildHeader();
+                if(defaultsHeader != null && defaultsHeader.length() > 0) {
+                    return defaultsHeader;
+                }
+            }
+        }
+
+        if(header == null) {
+            return "";
+        } else {
+            StringBuilder builder = new StringBuilder();
+            String[] lines = header.split("\r?\n", -1);
+            boolean startedHeader = false;
+
+            for(int i = lines.length - 1; i >= 0; --i) {
+                builder.insert(0, "\n");
+                if(startedHeader || lines[i].length() != 0) {
+                    builder.insert(0, lines[i]);
+                    builder.insert(0, COMMENT);
+                    startedHeader = true;
+                }
+            }
+
+            return builder.toString();
+        }
     }
 
     @Override
@@ -79,8 +148,20 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public void loadFromString(String contents) throws InvalidConfigurationException {
-        loadExtras(contents);
+        if(contents.startsWith(CONFIG_TAG)) {
+            this.loadExtras = true;
+            contents = contents.replaceFirst(CONFIG_TAG, "");
+        }
+
+
+        if(loadExtras) loadExtras(contents);
         super.loadFromString(contents);
+    }
+
+    public void deployExtras(String contents) {
+        if(!contents.startsWith(CONFIG_TAG)) return;
+        this.loadExtras = true;
+        this.loadExtras(contents);
     }
 
     private void loadExtras(String contents) {
@@ -121,7 +202,6 @@ public class UTFConfig extends YamlConfiguration {
             builder.append(lines.get(i));
             if(i < lines.size() - 1) builder.append("\n");
         }
-
 
 
         return builder.toString();

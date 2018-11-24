@@ -1,5 +1,6 @@
 package de.codingair.codingapi.files;
 
+import com.google.common.base.Charsets;
 import de.codingair.codingapi.files.loader.UTFConfig;
 import org.bukkit.plugin.Plugin;
 
@@ -19,6 +20,31 @@ public class ConfigFile {
         this.path = path;
 
         this.loadConfig();
+
+        InputStream in = plugin.getResource(this.name + ".yml");
+        if(in != null) {
+            InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
+
+            BufferedReader input = new BufferedReader(reader);
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+            try {
+                try {
+                    while((line = input.readLine()) != null) {
+                        builder.append(line);
+                        builder.append('\n');
+                    }
+                } finally {
+                    input.close();
+                }
+            } catch(IOException ex) {
+                ex.printStackTrace();
+            }
+
+            this.config.deployExtras(builder.toString());
+        }
+
         this.config.options().copyDefaults(true);
         this.config.options().copyHeader(true);
         this.saveConfig();
