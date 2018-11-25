@@ -21,6 +21,7 @@ public class UTFConfig extends YamlConfiguration {
     private static final String CONFIG_TAG = "~Config\n";
     private List<Extra> extras = new ArrayList<>();
     private boolean loadExtras = false;
+    private boolean deployedExtras = false;
 
     private UTFConfig() {
     }
@@ -159,12 +160,16 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     public void deployExtras(String contents) {
-        if(!contents.startsWith(CONFIG_TAG)) return;
-        this.loadExtras = true;
-        this.loadExtras(contents);
+        if(contents.startsWith(CONFIG_TAG)) {
+            this.loadExtras = true;
+            contents = contents.replaceFirst(CONFIG_TAG, "");
+            this.loadExtras(contents);
+            this.deployedExtras = true;
+        }
     }
 
     private void loadExtras(String contents) {
+        if(this.deployedExtras) return;
         this.extras.clear();
 
         int line = 0;
