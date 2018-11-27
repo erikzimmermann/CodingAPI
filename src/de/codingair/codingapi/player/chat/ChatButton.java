@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-public abstract class ChatButton {
+public abstract class ChatButton extends TextComponent {
     private final UUID uniqueId = UUID.randomUUID();
     private String text;
     private String hover;
@@ -22,7 +22,7 @@ public abstract class ChatButton {
         setHover(hover);
     }
 
-    public TextComponent build() {
+    TextComponent build() {
         TextComponent component = new TextComponent(this.text);
 
         if(this.hover != null && !this.hover.isEmpty()) component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[] {new TextComponent(hover)}));
