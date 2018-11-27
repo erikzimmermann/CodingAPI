@@ -59,6 +59,11 @@ public class SimpleMessage implements Removable {
         return this;
     }
 
+    public SimpleMessage add(ChatButton button) {
+        this.components.add(button);
+        return this;
+    }
+
     public SimpleMessage add(int index, String s) {
         this.components.add(index, new TextComponent(s));
         return this;
@@ -66,6 +71,16 @@ public class SimpleMessage implements Removable {
 
     public SimpleMessage add(int index, TextComponent messageComponent) {
         this.components.add(index, messageComponent);
+        return this;
+    }
+
+    private SimpleMessage add(int index, Object messageComponent) {
+        this.components.add(index, messageComponent);
+        return this;
+    }
+
+    public SimpleMessage add(int index, ChatButton button) {
+        this.components.add(index, button);
         return this;
     }
 
@@ -139,7 +154,15 @@ public class SimpleMessage implements Removable {
         return null;
     }
 
+    public boolean replace(String toReplaced, ChatButton replacement) {
+        return replace(toReplaced, replacement);
+    }
+
     public boolean replace(String toReplaced, TextComponent replacement) {
+        return replace(toReplaced, replacement);
+    }
+
+    private boolean replace(String toReplaced, Object replacement) {
         boolean foundSth = false;
 
         int i = 0;
