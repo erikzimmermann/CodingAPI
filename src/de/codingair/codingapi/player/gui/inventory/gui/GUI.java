@@ -78,6 +78,16 @@ public abstract class GUI extends Interface implements Removable {
             }
 
             @Override
+            public void onClickBottomInventory(InventoryClickEvent e) {
+                listeners.forEach(l -> l.onClickBottomInventory(e));
+            }
+
+            @Override
+            public void onDropItem(InventoryClickEvent e) {
+                listeners.forEach(l -> l.onDropItem(e));
+            }
+
+            @Override
             public void onInvDragEvent(InventoryDragEvent e) {
                 listeners.forEach(l -> l.onInvDragEvent(e));
             }

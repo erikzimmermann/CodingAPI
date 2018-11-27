@@ -17,4 +17,8 @@ public interface InterfaceListener {
 	default void addTo(Interface i) {
 		i.addListener(this);
 	}
+
+	default void onClickBottomInventory(InventoryClickEvent e){}
+
+	default void onDropItem(InventoryClickEvent e){}
 }

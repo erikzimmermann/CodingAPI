@@ -149,17 +149,29 @@ public class GUIListener implements Listener {
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 
         if(e.getInventory().getName().equals(inv.getInventory().getName())) {
-            e.setCancelled(!inv.isEditableItems());
-
             if(e.getClickedInventory() == null) {
                 if(inv instanceof GUI) e.setCancelled(!((GUI) inv).isCanDropItems());
+                if(!e.isCancelled()) {
+                    for(InterfaceListener l : inv.getListener()) {
+                        l.onDropItem(e);
+                    }
+                }
                 return;
+            }
+
+            if(e.getClickedInventory() == e.getView().getBottomInventory()) {
+                for(InterfaceListener l : inv.getListener()) {
+                    l.onClickBottomInventory(e);
+                }
             }
 
             if(e.getClickedInventory().getName().equals(inv.getInventory().getName())) {
                 for(InterfaceListener l : inv.getListener()) {
                     l.onInvClickEvent(e);
                 }
+
+                if(e.isCancelled()) return;
+                e.setCancelled(!inv.isEditableItems());
 
                 if(inv instanceof GUI) {
                     GUI gui = (GUI) inv;
@@ -279,14 +291,50 @@ public class GUIListener implements Listener {
                                     e.setCancelled(true);
 
                                     List<Integer> movedTo = new ArrayList<>();
+                                    int empty = -999;
+
+                                    int cAmount = current.getAmount();
                                     for(Integer slot : gui.getMovableSlots()) {
+                                        ItemStack other = gui.getItem(slot);
+
+                                        if(other == null) {
+                                            if(empty == -999) empty = slot;
+                                        } else if(other.isSimilar(current)) {
+                                            int amount = other.getAmount();
+
+                                            if(amount < other.getMaxStackSize()) {
+                                                int a = other.getMaxStackSize() - amount;
+
+                                                if(current.getAmount() > a) {
+                                                    cAmount -= a;
+                                                    movedTo.add(slot);
+                                                } else {
+                                                    cAmount = 0;
+                                                    movedTo.add(slot);
+                                                }
+                                            }
+                                        }
+
+                                        if(cAmount == 0) break;
+                                    }
+
+                                    if(cAmount > 0 && empty != -999) movedTo.add(empty);
+
+                                    boolean cancelled = false;
+                                    for(de.codingair.codingapi.player.gui.inventory.gui.GUIListener l : gui.getGUIListeners()) {
+                                        if(l.onMoveToTopInventory(e.getRawSlot(), movedTo, current.clone())) cancelled = true;
+                                        l.onMoveToTopInventory(current.clone(), e.getRawSlot(), movedTo);
+                                    }
+
+                                    if(cancelled) break;
+
+                                    for(Integer slot : movedTo) {
                                         ItemStack other = gui.getItem(slot);
 
                                         if(other == null) {
                                             gui.setItem(slot, current.clone());
                                             current.setAmount(0);
-                                            movedTo.add(slot);
-                                        } else if(other.isSimilar(current)) {
+                                        } else {
                                             int amount = other.getAmount();
 
                                             if(amount < other.getMaxStackSize()) {
@@ -295,21 +343,15 @@ public class GUIListener implements Listener {
                                                 if(current.getAmount() > a) {
                                                     current.setAmount(current.getAmount() - a);
                                                     other.setAmount(other.getMaxStackSize());
-                                                    movedTo.add(slot);
                                                 } else {
                                                     other.setAmount(other.getAmount() + current.getAmount());
                                                     current.setAmount(0);
-                                                    movedTo.add(slot);
                                                 }
                                             }
                                         }
-
-                                        if(current.getAmount() == 0) {
-                                            gui.getGUIListeners().forEach(l -> l.onMoveToTopInventory(current.clone(), e.getRawSlot(), movedTo));
-                                            e.getClickedInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
-                                            break;
-                                        }
                                     }
+
+                                    if(current.getAmount() == 0) e.getClickedInventory().setItem(e.getSlot(), new ItemStack(Material.AIR));
                                 }
 
                                 break;
@@ -354,7 +396,6 @@ public class GUIListener implements Listener {
                                             ItemStack other = bottom.getItem(slot);
 
                                             if(other == null) {
-                                                continue;
                                             } else if(cursor.isSimilar(other)) {
                                                 int amount = cursor.getAmount();
 

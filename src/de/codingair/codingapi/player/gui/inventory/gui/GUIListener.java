@@ -8,16 +8,26 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public interface GUIListener {
-    void onInvClickEvent(InventoryClickEvent e);
+public abstract class GUIListener {
+    public abstract void onInvClickEvent(InventoryClickEvent e);
 
-    void onInvOpenEvent(InventoryOpenEvent e);
+    public abstract void onInvOpenEvent(InventoryOpenEvent e);
 
-    void onInvCloseEvent(InventoryCloseEvent e);
+    public abstract void onInvCloseEvent(InventoryCloseEvent e);
 
-    void onInvDragEvent(InventoryDragEvent e);
+    public abstract void onInvDragEvent(InventoryDragEvent e);
 
-    void onMoveToTopInventory(ItemStack item, int oldRawSlot, List<Integer> newRawSlots);
+    @Deprecated
+    public abstract void onMoveToTopInventory(ItemStack item, int oldRawSlot, List<Integer> newRawSlots);
 
-    void onCollectToCursor(ItemStack item, List<Integer> oldRawSlots, int newRawSlot);
+    public boolean onMoveToTopInventory(int oldRawSlot, List<Integer> newRawSlots, ItemStack item) {
+        return false;
+    }
+
+    public void onDropItem(InventoryClickEvent e) { }
+
+    public void onClickBottomInventory(InventoryClickEvent e) {
+    }
+
+    public abstract void onCollectToCursor(ItemStack item, List<Integer> oldRawSlots, int newRawSlot);
 }
