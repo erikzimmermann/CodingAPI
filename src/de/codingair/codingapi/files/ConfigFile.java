@@ -13,17 +13,27 @@ public class ConfigFile {
     private Plugin plugin;
     private String name;
     private String path;
+    private String srcPath;
 
     public ConfigFile(Plugin plugin, String name, String path) {
+        this(plugin, name, path, null);
+    }
+
+    public ConfigFile(Plugin plugin, String name, String path, String srcPath) {
         this.plugin = plugin;
         this.name = name;
         this.path = path;
+        this.srcPath = srcPath;
+        if(this.srcPath != null) {
+            if(!this.srcPath.startsWith("/")) this.srcPath = "/" + this.srcPath;
+            if(!this.srcPath.endsWith("/")) this.srcPath += "/";
+        }
 
         this.loadConfig();
 
-        InputStream in = plugin.getResource(this.name + ".yml");
+        InputStream in = plugin.getClass().getResourceAsStream((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
         if(in != null) {
-            InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
+            InputStreamReader reader = new InputStreamReader(in, Charsets.ISO_8859_1);
 
             BufferedReader input = new BufferedReader(reader);
             StringBuilder builder = new StringBuilder();
@@ -160,5 +170,9 @@ public class ConfigFile {
 
     public String getPath() {
         return path;
+    }
+
+    public File getConfigFile() {
+        return configFile;
     }
 }

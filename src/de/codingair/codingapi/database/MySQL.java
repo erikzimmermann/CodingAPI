@@ -5,7 +5,6 @@ import org.bukkit.plugin.Plugin;
 import java.sql.*;
 
 public class MySQL {
-    private Plugin plugin;
     private String host;
     private int port;
     private String database;
@@ -13,11 +12,11 @@ public class MySQL {
     private String password;
 
     private boolean autoReconnect = false;
+    private boolean allowMultiQueries = false;
     private Connection con;
 
     @Deprecated
     public MySQL(Plugin plugin, String host, int port, String database, String user, String password) {
-        this.plugin = plugin;
         this.host = host;
         this.port = port;
         this.database = database;
@@ -36,7 +35,7 @@ public class MySQL {
     public Connection openConnection() throws SQLException {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            this.con = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?autoReconnect=" + this.autoReconnect, this.user, this.password);
+            this.con = DriverManager.getConnection("jdbc:mysql://" + this.host + ":" + this.port + "/" + this.database + "?allowMultiQueries=" + allowMultiQueries + "&autoReconnect=" + this.autoReconnect, this.user, this.password);
             return con;
         } catch(ClassNotFoundException e) {
             e.printStackTrace();
@@ -56,6 +55,26 @@ public class MySQL {
         } finally {
             closeResources(null, st);
         }
+    }
+
+    public void queryUpdate(String... query) throws SQLException {
+        if(query.length == 0) return;
+        if(query.length == 1) {
+            queryUpdate(query[0]);
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        for(String s : query) {
+            if(s == null || s.isEmpty()) continue;
+            builder.append(s);
+            if(!s.endsWith(";")) builder.append(";");
+        }
+
+        if(builder.toString().isEmpty()) return;
+
+        queryUpdate(builder.toString());
     }
 
     public void closeResources(ResultSet rs, PreparedStatement st) {
@@ -108,5 +127,13 @@ public class MySQL {
 
     public void setAutoReconnect(boolean autoReconnect) {
         this.autoReconnect = autoReconnect;
+    }
+
+    public boolean isAllowMultiQueries() {
+        return allowMultiQueries;
+    }
+
+    public void setAllowMultiQueries(boolean allowMultiQueries) {
+        this.allowMultiQueries = allowMultiQueries;
     }
 }

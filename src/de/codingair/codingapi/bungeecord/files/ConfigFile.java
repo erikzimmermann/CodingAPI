@@ -1,5 +1,6 @@
 package de.codingair.codingapi.bungeecord.files;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -26,6 +27,9 @@ public class ConfigFile {
 		this.name = name;
 		this.path = path;
 		this.plugin = plugin;
+
+		this.load();
+		this.save();
 	}
 	
 	public String getName() {
@@ -40,20 +44,21 @@ public class ConfigFile {
 		return plugin;
 	}
 	
-	public void reload() {
-		if(!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdir();
+	private File getDataFolder() {
+		return plugin.getDataFolder();
+	}
+	
+	public void load() {
+		if(getDataFolder() == null || !getDataFolder().exists()) getDataFolder().mkdir();
 		
-		File file = new File(plugin.getDataFolder() + this.path, this.name + ".yml");
+		File file = new File(getDataFolder() + this.path, this.name + ".yml");
 		
 		if(!file.exists()) {
 			try {
 				file.createNewFile();
-				
-				InputStream is = plugin.getResourceAsStream(this.name + ".yml");
-
-				if(is != null) {
-					OutputStream os = new FileOutputStream(file);
-					ByteStreams.copy(is, os);
+				try(InputStream in = plugin.getResourceAsStream(this.name + ".yml");
+					OutputStream out = new FileOutputStream(file)) {
+					copy(in, out);
 				}
 			} catch(IOException e) {
 				e.printStackTrace();
@@ -66,17 +71,35 @@ public class ConfigFile {
 			e.printStackTrace();
 		}
 	}
+
+	private long copy(InputStream from, OutputStream to) throws IOException {
+		if(from == null) return -1;
+		if(to == null) throw new NullPointerException();
+
+		byte[] buf = new byte[4096];
+		long total = 0L;
+
+		while(true) {
+			int r = from.read(buf);
+			if(r == -1) {
+				return total;
+			}
+
+			to.write(buf, 0, r);
+			total += (long) r;
+		}
+	}
 	
 	public void save() {
 		try {
-			ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(plugin.getDataFolder(), this.name + ".yml"));
+			ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(getDataFolder(), this.name + ".yml"));
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public Configuration getConfig() {
-		if(config == null) this.reload();
+		if(config == null) this.load();
 		return config;
 	}
 }

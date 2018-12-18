@@ -27,7 +27,7 @@ public class FileManager {
 
     public void reloadAll() {
         for (ConfigFile file : this.configList) {
-            file.reload();
+            file.load();
         }
     }
 }

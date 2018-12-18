@@ -155,11 +155,11 @@ public class SimpleMessage implements Removable {
     }
 
     public boolean replace(String toReplaced, ChatButton replacement) {
-        return replace(toReplaced, replacement);
+        return replace(toReplaced, (Object) replacement);
     }
 
     public boolean replace(String toReplaced, TextComponent replacement) {
-        return replace(toReplaced, replacement);
+        return replace(toReplaced, (Object) replacement);
     }
 
     private boolean replace(String toReplaced, Object replacement) {
@@ -174,6 +174,9 @@ public class SimpleMessage implements Removable {
             if(c.getText().contains(toReplaced)) {
                 this.components.remove(c);
                 foundSth = true;
+            } else {
+                i++;
+                continue;
             }
 
             int j = 0;

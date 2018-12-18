@@ -25,6 +25,10 @@ public class FileManager {
         this.configList.add(new ConfigFile(plugin, name, path));
     }
 
+    public void loadFile(String name, String path, String srcPath) {
+        this.configList.add(new ConfigFile(plugin, name, path, srcPath));
+    }
+
     public void reloadAll() {
         for (ConfigFile file : this.configList) {
             file.reloadConfig();

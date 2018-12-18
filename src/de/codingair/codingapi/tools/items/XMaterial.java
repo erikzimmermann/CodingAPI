@@ -1007,6 +1007,14 @@ public enum XMaterial {
         }
     }
 
+    public Material parseMaterialSavely() {
+        try {
+            return parseMaterial(false);
+        } catch(Exception ex) {
+            return null;
+        }
+    }
+
     public Material parseMaterial() {
         return parseMaterial(false);
     }
