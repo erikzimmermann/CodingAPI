@@ -77,30 +77,13 @@ public class MySQL {
         queryUpdate(builder.toString());
     }
 
-    public void closeResources(ResultSet rs, PreparedStatement st) {
-        if(rs != null) {
-            try {
-                rs.close();
-            } catch(SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(st != null) {
-            try {
-                st.close();
-            } catch(SQLException e) {
-                e.printStackTrace();
-            }
-        }
+    public void closeResources(ResultSet rs, PreparedStatement st) throws SQLException {
+        if(rs != null) rs.close();
+        if(st != null) st.close();
     }
 
-    public void closeConnection() {
-        try {
-            con.close();
-        } catch(SQLException e) {
-            e.printStackTrace();
-        }
+    public void closeConnection() throws SQLException {
+        if(con != null) con.close();
     }
 
     public ResultSet query(String query) throws SQLException {

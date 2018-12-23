@@ -236,4 +236,17 @@ public enum Sound {
 	public void playSound(Player player, float volume, float pitch) {
 		player.playSound(player.getLocation(), bukkitSound(), volume, pitch);
 	}
+
+	public int getId() {
+		for(int i = 0; i < values().length; i++) {
+			if(values()[i] == this) return i;
+		}
+
+		return -1;
+	}
+
+	public static Sound getById(int id) {
+		if(id == -1 || values().length >= id) return null;
+		return values()[id];
+	}
 }

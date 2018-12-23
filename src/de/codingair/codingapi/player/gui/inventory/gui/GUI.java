@@ -71,10 +71,6 @@ public abstract class GUI extends Interface implements Removable {
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
                 listeners.forEach(l -> l.onInvCloseEvent(e));
-
-                if(e.getPlayer().equals(player)) {
-                    onClose(player);
-                }
             }
 
             @Override
@@ -166,10 +162,10 @@ public abstract class GUI extends Interface implements Removable {
 
     @Override
     public void close(Player p, boolean isClosing) {
-        API.removeRemovable(this);
         if(isClosed) return;
         else isClosed = true;
 
+        API.removeRemovable(this);
         closingByOperation = !isClosing;
         super.close(p, isClosing);
     }
