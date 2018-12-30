@@ -97,12 +97,12 @@ public class ParticlePacket {
 			float e = 0, f = 0, g = 0, h = 0;
 			int i = 1;
 			if(particle.isColorable() && this.color != null) {
-				e = this.color.getRed() / 255;
+				e = (float) this.color.getRed() / 255F;
 
 				if(e == 0) e = 0.003921569F;
 
-				f = this.color.getGreen() / 255;
-				g = this.color.getBlue() / 255;
+				f = (float) this.color.getGreen() / 255F;
+				g = (float) this.color.getBlue() / 255F;
 				h = 1F;
 				i = 0;
 			}

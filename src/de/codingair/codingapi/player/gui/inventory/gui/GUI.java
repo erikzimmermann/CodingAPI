@@ -62,10 +62,6 @@ public abstract class GUI extends Interface implements Removable {
             @Override
             public void onInvOpenEvent(InventoryOpenEvent e) {
                 listeners.forEach(l -> l.onInvOpenEvent(e));
-
-                if(e.getPlayer().equals(player)) {
-                    onOpen(player);
-                }
             }
 
             @Override

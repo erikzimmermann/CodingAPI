@@ -164,13 +164,15 @@ public class Hologram implements Removable {
     }
 
     public void teleport(Location location) {
-        if(!isInitialized()) return;
         this.source = location.clone();
+        if(!isInitialized()) return;
+
         this.location = location.clone();
         this.location.subtract(0, 2, 0);
         this.location.add(0, this.text.size() * DISTANCE, 0);
 
         for(Object entity : this.entities) {
+            HologramPackets.setLocation(entity, this.location);
             Object packet = PacketUtils.EntityPackets.getTeleportPacket(entity, this.location);
             PacketUtils.sendPacket(packet, this.initedPlayers.keySet().toArray(new Player[0]));
             this.location.subtract(0, DISTANCE, 0);
@@ -519,6 +521,14 @@ public class Hologram implements Removable {
         public static void spawn(Player player, Object armorStand) {
             Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
+        }
+
+        public static void setLocation(Object armorStand, Location location) {
+            IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, "setPosition", new Class[] {double.class, double.class, double.class});
+            IReflection.FieldAccessor world = IReflection.getField(PacketUtils.EntityClass, "world");
+
+            world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));
+            setPosition.invoke(armorStand, location.getX(), location.getY(), location.getZ());
         }
 
         public static Object createArmorStand(Location location) {

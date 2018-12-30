@@ -133,6 +133,7 @@ public class PacketUtils {
 
     public static void sendPacket(Object packet, Player... target) {
         for(Player player : target) {
+            if(player == null) continue;
             Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(player));
             sendPacket.invoke(playerConnection.get(entityPlayer), packet);
         }
