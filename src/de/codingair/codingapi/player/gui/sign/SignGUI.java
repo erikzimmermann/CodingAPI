@@ -80,11 +80,11 @@ public abstract class SignGUI {
         if(this.sign != null) {
             Object tileEntity;
 
-            try {
-                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "sign");
-                tileEntity = field.get(this.sign);
-            } catch(Exception ex) {
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
                 IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "tileEntity");
+                tileEntity = field.get(this.sign);
+            } else {
+                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "sign");
                 tileEntity = field.get(this.sign);
             }
 
@@ -92,11 +92,12 @@ public abstract class SignGUI {
             editable.set(tileEntity, true);
 
             IReflection.FieldAccessor owner;
-            try {
-                owner = IReflection.getField(tileEntity.getClass(), "h");
-            } catch(Exception ignored) {
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
                 owner = IReflection.getField(tileEntity.getClass(), "g");
+            } else {
+                owner = IReflection.getField(tileEntity.getClass(), "h");
             }
+
             owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
         }
 

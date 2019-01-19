@@ -34,6 +34,9 @@ public class PacketUtils {
     public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IBlockData");
     public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntity");
     public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntitySign");
+    public static final Class<?> PlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerList");
+    public static final Class<?> DedicatedPlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DedicatedPlayerList");
+    public static final Class<?> DimensionManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DimensionManager");
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Entity");
     public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
@@ -93,24 +96,38 @@ public class PacketUtils {
     public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
     public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatComponentText");
 
-    public static final IReflection.MethodAccessor getHandle = IReflection.getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[] {});
-    public static final IReflection.MethodAccessor getHandleEntity = IReflection.getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[] {});
-    public static final IReflection.MethodAccessor getBukkitEntity = IReflection.getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[] {});
-    public static final IReflection.MethodAccessor getHandleOfCraftWorld = IReflection.getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[] {});
-    public static final IReflection.MethodAccessor sendPacket = IReflection.getMethod(PlayerConnectionClass, "sendPacket");
-    public static final IReflection.MethodAccessor getEntityId = IReflection.getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
-    public static final IReflection.MethodAccessor getServer = IReflection.getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
-    public static final IReflection.MethodAccessor getTileEntity = IReflection.getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
+    public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[] {});
+    public static final IReflection.MethodAccessor getHandleCraftServer = getMethod(CraftServerClass, "getHandle", DedicatedPlayerListClass, new Class[] {});
+    public static final IReflection.MethodAccessor moveToWorld = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[] {EntityPlayerClass, int.class, boolean.class, Location.class, boolean.class});
+    public static final IReflection.MethodAccessor moveToWorldV1_13 = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[] {EntityPlayerClass, DimensionManagerClass, boolean.class, Location.class, boolean.class});
+    public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[] {});
+    public static final IReflection.MethodAccessor getBukkitEntity = getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[] {});
+    public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[] {});
+    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, "sendPacket");
+    public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
+    public static final IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
+    public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
 
     public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, "playerConnection");
 
     public static class Blocks {
-
         public static Object findByName(String name) {
             IReflection.FieldAccessor field = IReflection.getField(BlocksClass, name);
             if(field == null) return null;
 
             return field.get(null);
+        }
+    }
+
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
+        return getMethod(target, methodName, null, parameterTypes);
+    }
+
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
+        try {
+            return IReflection.getSaveMethod(target, methodName, returnType, parameterTypes);
+        } catch(IllegalStateException ex) {
+            return null;
         }
     }
 

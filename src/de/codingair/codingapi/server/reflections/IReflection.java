@@ -175,7 +175,7 @@ public class IReflection {
 		throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, parameterTypes));
 	}
 	
-	public static MethodAccessor getSaveMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
+	public static MethodAccessor getSaveMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) throws IllegalStateException {
 		Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
 		for (Method method : target.getDeclaredMethods())
 			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {

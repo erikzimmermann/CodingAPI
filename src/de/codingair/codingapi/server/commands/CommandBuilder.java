@@ -17,6 +17,7 @@ import java.util.List;
 public class CommandBuilder implements CommandExecutor, TabCompleter {
     private static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
     private static Listener listener;
+    private CommandBackup backup = null;
 
     private static void registerListener(JavaPlugin plugin) {
         if(listener != null) return;
@@ -62,6 +63,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         Command main = plugin.getCommand(this.name);
 
         if(highestPriority && command != null) {
+            backup = new CommandBackup(command);
             command.setExecutor(this);
             command.setTabCompleter(this);
             command.setName(main.getName());
@@ -84,6 +86,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         plugin.getCommand(this.name).setExecutor(null);
         plugin.getCommand(this.name).setTabCompleter(null);
+
+        if(this.backup != null) {
+            this.backup.restore();
+        }
 
         REGISTERED.remove(this.name.toLowerCase());
     }
@@ -130,7 +136,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         for(CommandComponent child : component.getChildren()) {
             if(child.hasPermission(sender)) {
-                if(child instanceof MultiCommandComponent && child.useInTabCompleter(sender, label, args)) ((MultiCommandComponent) child).addArguments(sender, sub);
+                if(child instanceof MultiCommandComponent && child.useInTabCompleter(sender, label, args)) ((MultiCommandComponent) child).addArguments(sender, args, sub);
                 else if(child.useInTabCompleter(sender, label, args)) sub.add(child.getArgument());
             }
         }

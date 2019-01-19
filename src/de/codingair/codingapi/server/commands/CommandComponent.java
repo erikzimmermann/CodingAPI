@@ -72,6 +72,19 @@ public abstract class CommandComponent {
         return child == null ? multi : child;
     }
 
+    public boolean removeChild(CommandComponent child) {
+        if(this.children.remove(child)) {
+            child.setParent(null);
+            return true;
+        } else return false;
+    }
+
+    public boolean removeChild(String arg) {
+        CommandComponent cc = getChild(arg);
+        if(cc == null) return false;
+        else return removeChild(cc);
+    }
+
     public String getArgument() {
         return argument;
     }
