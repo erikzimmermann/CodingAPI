@@ -10,6 +10,11 @@ import java.text.DecimalFormat;
 public class Location extends org.bukkit.Location {
     private String worldName;
 
+    public Location(String worldName, double x, double y, double z, float yaw, float pitch) {
+        super(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
+        this.worldName = worldName;
+    }
+
     public Location(org.bukkit.Location location) {
         super(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         this.worldName = location instanceof Location ? ((Location) location).getWorldName() : location.getWorld() == null ? null : location.getWorld().getName();
@@ -118,6 +123,7 @@ public class Location extends org.bukkit.Location {
         try {
             return new Location((JSONObject) new JSONParser().parse(jsonString));
         } catch(Exception e) {
+            e.printStackTrace();
             return null;
         }
     }

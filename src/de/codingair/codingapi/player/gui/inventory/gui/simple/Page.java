@@ -103,4 +103,8 @@ public abstract class Page {
 
     public void onExitByPlayer() {
     }
+
+    public SimpleGUI getLast() {
+        return last;
+    }
 }

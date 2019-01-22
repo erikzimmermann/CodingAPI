@@ -126,7 +126,7 @@ public class PacketUtils {
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
         try {
             return IReflection.getSaveMethod(target, methodName, returnType, parameterTypes);
-        } catch(IllegalStateException ex) {
+        } catch(Exception ex) {
             return null;
         }
     }
@@ -134,7 +134,7 @@ public class PacketUtils {
     public static Class<?> getClass(IReflection.ServerPacket packet, String className) {
         try {
             return IReflection.getSaveClass(packet, className);
-        } catch(ClassNotFoundException ex) {
+        } catch(Exception ex) {
             return null;
         }
     }

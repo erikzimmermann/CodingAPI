@@ -327,7 +327,7 @@ public class Interface {
 	
 	public void open(Player p) {
 		this.currentPlayers.add(p);
-		setTitle(this.title);
+		setTitle(this.title, false);
 		if(oldUsage) interfaces.add(this);
 
 		p.openInventory(this.inventory);
