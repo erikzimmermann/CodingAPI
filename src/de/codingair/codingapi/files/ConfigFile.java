@@ -31,7 +31,7 @@ public class ConfigFile {
 
         this.loadConfig();
 
-        InputStream in = plugin.getClass().getResourceAsStream((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+        InputStream in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
         if(in != null) {
             InputStreamReader reader = new InputStreamReader(in, Charsets.ISO_8859_1);
 
