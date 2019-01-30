@@ -92,10 +92,13 @@ public class ConfigFile {
                 }
             }
 
-            config = UTFConfig.loadConf(configFile);
-
             InputStream reader = plugin.getResource(this.name + ".yml");
-            if(reader != null) config.setDefaults(UTFConfig.loadConf(reader));
+            if(reader != null) {
+                config = UTFConfig.loadConf(reader);
+                config.load(configFile);
+            } else {
+                config = UTFConfig.loadConf(configFile);
+            }
         } catch(Exception e) {
             e.printStackTrace();
         }

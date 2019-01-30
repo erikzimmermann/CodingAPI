@@ -5,6 +5,7 @@ import com.google.common.io.Files;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.yaml.snakeyaml.DumperOptions;
@@ -12,9 +13,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
@@ -154,9 +153,25 @@ public class UTFConfig extends YamlConfiguration {
             contents = contents.replaceFirst(CONFIG_TAG, "");
         }
 
-
         if(loadExtras) loadExtras(contents);
         super.loadFromString(contents);
+    }
+
+    @Override
+    public void convertMapsToSections(Map<?, ?> input, ConfigurationSection section) {
+        Iterator var3 = input.entrySet().iterator();
+
+        while(var3.hasNext()) {
+            Map.Entry<?, ?> entry = (Map.Entry) var3.next();
+            String key = entry.getKey().toString();
+            Object value = entry.getValue();
+            if(value instanceof Map) {
+                this.convertMapsToSections((Map) value, section.getConfigurationSection(key) == null ? section.createSection(key) : section.getConfigurationSection(key));
+            } else {
+                section.set(key, value);
+            }
+        }
+
     }
 
     public void deployExtras(String contents) {
