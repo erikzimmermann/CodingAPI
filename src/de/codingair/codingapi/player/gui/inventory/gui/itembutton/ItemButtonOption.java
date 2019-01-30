@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui.itembutton;
 
+import de.codingair.codingapi.server.SoundData;
 import org.bukkit.Sound;
 
 /**
@@ -12,6 +13,7 @@ import org.bukkit.Sound;
 public class ItemButtonOption {
 	private boolean movable = false;
 	private Sound clickSound = null;
+	private SoundData clickSound2 = null;
 	private boolean closeOnClick = false;
 	private boolean onlyLeftClick = false;
 	private boolean onlyRightClick = false;
@@ -83,5 +85,13 @@ public class ItemButtonOption {
 
 	public void setDoubleClick(boolean doubleClick) {
 		this.doubleClick = doubleClick;
+	}
+
+	public SoundData getClickSound2() {
+		return clickSound2;
+	}
+
+	public void setClickSound2(SoundData clickSound2) {
+		this.clickSound2 = clickSound2;
 	}
 }
