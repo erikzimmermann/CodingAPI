@@ -5,20 +5,29 @@ import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
+import de.codingair.codingapi.server.commands.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 
 public class API {
@@ -42,8 +51,43 @@ public class API {
     public synchronized void onDisable(JavaPlugin plugin) {
         if(!initialized || !this.plugins.remove(plugin)) return;
 
+        for(String s : plugin.getDescription().getCommands().keySet()) {
+            PluginCommand command = Bukkit.getPluginCommand(s);
+            if(command == null) continue;
+
+            if(command.getExecutor() instanceof CommandBuilder) {
+                CommandBuilder b = (CommandBuilder) command.getExecutor();
+                b.unregister(plugin);
+            }
+        }
+
+        HandlerList.unregisterAll(plugin);
+
         removePlugin(plugin);
         if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
+    }
+
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException {
+        List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
+
+        for(JavaPlugin p : plugins) {
+            if(p == plugin) continue;
+            Bukkit.getPluginManager().disablePlugin(p);
+        }
+
+        Bukkit.getPluginManager().disablePlugin(plugin);
+        enablePlugin(plugin.getName());
+
+        for(JavaPlugin p : plugins) {
+            if(p == plugin) continue;
+            enablePlugin(p.getName());
+        }
+
+        plugins.clear();
+    }
+
+    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException {
+        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(new File("plugins", name + ".jar")));
     }
 
     private void removePlugin(JavaPlugin plugin) {
@@ -380,6 +424,6 @@ public class API {
     }
 
     public JavaPlugin getMainPlugin() {
-        return  this.plugins.isEmpty() ? null : this.plugins.get(0);
+        return this.plugins.isEmpty() ? null : this.plugins.get(0);
     }
 }

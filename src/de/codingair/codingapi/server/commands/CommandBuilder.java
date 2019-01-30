@@ -7,8 +7,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,21 +63,33 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         if(plugin.getCommand(this.name) == null) throw new IllegalStateException("You must first add the command to the plugin.yml!");
 
         PluginCommand command = Bukkit.getPluginCommand(this.name);
-        Command main = plugin.getCommand(this.name);
+        PluginCommand main = plugin.getCommand(this.name);
 
-        if(highestPriority && command != null) {
-            backup = new CommandBackup(command);
-            command.setExecutor(this);
-            command.setTabCompleter(this);
-            command.setName(main.getName());
-            command.setDescription(main.getDescription());
-            command.setAliases(main.getAliases());
-            command.setPermission(main.getPermission());
-            command.setUsage(main.getUsage());
+        if(command != null) {
+            if(highestPriority) {
+                backup = new CommandBackup(command);
+                command.setExecutor(this);
+                command.setTabCompleter(this);
+                command.setName(main.getName());
+                command.setDescription(main.getDescription());
+                command.setAliases(main.getAliases());
+                command.setPermission(main.getPermission());
+                command.setUsage(main.getUsage());
+            } else if(command.getPlugin().getName().equals(plugin.getName())) {
+                command.setExecutor(this);
+                command.setTabCompleter(this);
+
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                }
+            }
         }
 
-        plugin.getCommand(this.name).setExecutor(this);
-        if(tabCompleter) plugin.getCommand(this.name).setTabCompleter(this);
+        main.setExecutor(this);
+        if(tabCompleter) main.setTabCompleter(this);
 
         REGISTERED.put(this.name.toLowerCase(), this);
 
