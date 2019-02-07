@@ -426,4 +426,13 @@ public class API {
     public JavaPlugin getMainPlugin() {
         return this.plugins.isEmpty() ? null : this.plugins.get(0);
     }
+
+    public static PluginCommand getPluginCommand(String name) {
+        for(JavaPlugin plugin : getInstance().plugins) {
+            PluginCommand command;
+            if((command = plugin.getCommand(name)) != null) return command;
+        }
+
+        return null;
+    }
 }

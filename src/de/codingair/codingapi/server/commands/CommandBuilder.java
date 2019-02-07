@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server.commands;
 
+import de.codingair.codingapi.API;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -7,8 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
@@ -30,7 +29,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
             public void onPreProcess(PlayerCommandPreprocessEvent e) {
                 String label = e.getMessage().split(" ")[0].replaceFirst("/", "");
-                Command command = Bukkit.getPluginCommand(label);
+                Command command = API.getPluginCommand(label);
 
                 if(command == null || command.getName() == null) return;
 
