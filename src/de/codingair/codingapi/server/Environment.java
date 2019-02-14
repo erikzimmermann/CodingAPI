@@ -91,7 +91,7 @@ public class Environment {
 	}
 	
 	public static boolean isBlock(Block block) {
-		return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().equals(Material.SIGN_POST) && !block.getType().equals(Material.AIR);
+		return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().equals(Material.SIGN) && !block.getType().equals(Material.AIR);
 	}
 	
 	public static boolean isSlab(Block block) {

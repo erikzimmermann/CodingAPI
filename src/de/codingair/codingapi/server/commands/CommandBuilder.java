@@ -67,9 +67,15 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         if(command != null) {
             if(highestPriority) {
                 backup = new CommandBackup(command);
+
+                try {
+                    //1.9+
+                    command.setName(main.getName());
+                } catch(Throwable ignored){
+                }
+
                 command.setExecutor(this);
                 command.setTabCompleter(this);
-                command.setName(main.getName());
                 command.setDescription(main.getDescription());
                 command.setAliases(main.getAliases());
                 command.setPermission(main.getPermission());
