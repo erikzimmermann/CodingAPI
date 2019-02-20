@@ -80,6 +80,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
                 command.setAliases(main.getAliases());
                 command.setPermission(main.getPermission());
                 command.setUsage(main.getUsage());
+
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                }
             } else if(command.getPlugin().getName().equals(plugin.getName())) {
                 command.setExecutor(this);
                 command.setTabCompleter(this);

@@ -25,7 +25,7 @@ public class ConfigFile {
         this.path = path;
         this.srcPath = srcPath;
         if(this.srcPath != null) {
-            if(!this.srcPath.startsWith("/")) this.srcPath = "/" + this.srcPath;
+            if(this.srcPath.startsWith("/")) this.srcPath = this.srcPath.replaceFirst("/", "");
             if(!this.srcPath.endsWith("/")) this.srcPath += "/";
         }
 
@@ -86,13 +86,13 @@ public class ConfigFile {
 
             if(!configFile.exists()) {
                 configFile.createNewFile();
-                try(InputStream in = plugin.getResource(this.name + ".yml");
+                try(InputStream in = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
                     OutputStream out = new FileOutputStream(configFile)) {
                     copy(in, out);
                 }
             }
 
-            InputStream reader = plugin.getResource(this.name + ".yml");
+            InputStream reader = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
             if(reader != null) {
                 config = UTFConfig.loadConf(reader);
                 config.load(configFile);

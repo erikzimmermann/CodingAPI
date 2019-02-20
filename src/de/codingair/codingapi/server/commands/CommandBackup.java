@@ -3,7 +3,9 @@ package de.codingair.codingapi.server.commands;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class CommandBackup {
@@ -15,6 +17,7 @@ public class CommandBackup {
     private List<String> aliases;
     private String permission;
     private String usage;
+    private Plugin owningPlugin;
 
     public CommandBackup(PluginCommand command) {
         this.command = command;
@@ -25,6 +28,14 @@ public class CommandBackup {
         this.aliases = command.getAliases();
         this.permission = command.getPermission();
         this.usage = command.getUsage();
+
+        try {
+            final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+            owningPlugin.setAccessible(true);
+            this.owningPlugin = (Plugin) owningPlugin.get(command);
+        } catch(NoSuchFieldException | IllegalAccessException ignored) {
+            this.owningPlugin = null;
+        }
     }
 
     public void restore() {
@@ -35,6 +46,15 @@ public class CommandBackup {
         this.command.setAliases(this.aliases);
         this.command.setPermission(this.permission);
         this.command.setUsage(this.usage);
+
+        if(this.owningPlugin != null) {
+            try {
+                final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                owningPlugin.setAccessible(true);
+                owningPlugin.set(command, this.owningPlugin);
+            } catch(NoSuchFieldException | IllegalAccessException ignored) {
+            }
+        }
     }
 
     public TabCompleter getTabCompleter() {
