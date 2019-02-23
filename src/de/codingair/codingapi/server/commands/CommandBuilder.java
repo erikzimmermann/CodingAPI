@@ -47,6 +47,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     private String name;
     private BaseComponent baseComponent;
+    private TabCompleter ownTabCompleter = null;
     private boolean tabCompleter;
     private boolean highestPriority = false;
 
@@ -123,7 +124,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) ? getBaseComponent() : getComponent(args);
+        CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) || baseComponent.getChildren().isEmpty() ? getBaseComponent() : getComponent(args);
 
         if(component == null) {
             this.baseComponent.unknownSubCommand(sender, label, args);
@@ -150,6 +151,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if(this.ownTabCompleter != null) return this.ownTabCompleter.onTabComplete(sender, command, label, args);
+
         List<String> sub = new ArrayList<>();
         List<String> sug = new ArrayList<>();
 
@@ -220,5 +223,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     public CommandBuilder setHighestPriority(boolean highestPriority) {
         this.highestPriority = highestPriority;
         return this;
+    }
+
+    public TabCompleter getOwnTabCompleter() {
+        return ownTabCompleter;
+    }
+
+    public void setOwnTabCompleter(TabCompleter ownTabCompleter) {
+        this.ownTabCompleter = ownTabCompleter;
     }
 }
