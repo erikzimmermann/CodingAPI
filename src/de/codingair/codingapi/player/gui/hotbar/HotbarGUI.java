@@ -50,6 +50,9 @@ public class HotbarGUI implements Removable {
         if(this.openSound != null && sound) this.openSound.play(this.player);
 
         API.addRemovable(this);
+
+        ItemComponent ic = getItem(player.getInventory().getHeldItemSlot());
+        if(ic != null && ic.getAction() != null) ic.getAction().onHover(this, null, ic, player);
     }
 
     public void close(boolean sound) {
