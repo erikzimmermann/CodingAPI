@@ -105,6 +105,15 @@ public class Interface {
 	public ItemButton removeButton(int slot) {
 		return this.buttons.remove(slot);
 	}
+
+	public Interface removeAllButtons() {
+		for(Integer slot : this.buttons.keySet()) {
+			setItem(slot, new ItemStack(Material.AIR));
+		}
+
+		this.buttons.clear();
+		return this;
+	}
 	
 	public ItemButton removeButton(ItemButton button) {
 		return this.buttons.remove(button);
@@ -653,14 +662,14 @@ public class Interface {
 		
 	}
 
-	public void setItem(int x, ItemStack arg1) {
-		this.inventory.setItem(x, arg1);
+	public void setItem(int x, ItemStack item) {
+		ItemStack old;
+		if((old = this.inventory.getItem(x)) != null && old.equals(item)) return;
+		this.inventory.setItem(x, item);
 	}
 
-	public void setItem(int x, int y, ItemStack arg1) {
-		int slot = x + 9 * y;
-
-		this.inventory.setItem(slot, arg1);
+	public void setItem(int x, int y, ItemStack item) {
+		setItem(x + 9 * y, item);
 	}
 	
 	public void setMaxStackSize(int arg0) {

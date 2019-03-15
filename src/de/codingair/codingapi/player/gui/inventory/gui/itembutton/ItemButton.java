@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.inventory.gui.itembutton;
 
 import de.codingair.codingapi.player.gui.inventory.gui.Interface;
+import de.codingair.codingapi.server.SoundData;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -51,6 +52,11 @@ public abstract class ItemButton {
     }
 
     public ItemButton setClickSound(Sound clickSound) {
+        this.option.setClickSound(clickSound);
+        return this;
+    }
+
+    public ItemButton setClickSound2(SoundData clickSound) {
         this.option.setClickSound(clickSound);
         return this;
     }

@@ -350,14 +350,14 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     @Override
-    public void setItem(int x, ItemStack arg1) {
-        super.setItem(x, arg1);
+    public void setItem(int x, ItemStack item) {
+        super.setItem(x, item);
         if(!buffering) this.player.updateInventory();
     }
 
     @Override
-    public void setItem(int x, int y, ItemStack arg1) {
-        super.setItem(x, y, arg1);
+    public void setItem(int x, int y, ItemStack item) {
+        super.setItem(x, y, item);
         if(!buffering) this.player.updateInventory();
     }
 

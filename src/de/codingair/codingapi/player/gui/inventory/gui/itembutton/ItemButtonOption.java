@@ -63,6 +63,8 @@ public class ItemButtonOption {
 	public ItemButtonOption clone() {
 		ItemButtonOption option = new ItemButtonOption();
 		option.setClickSound(this.clickSound);
+		option.setClickSound(this.clickSound2);
+		option.setDoubleClick(this.doubleClick);
 		option.setMovable(this.movable);
 		option.setOnlyLeftClick(this.onlyLeftClick);
 		option.setCloseOnClick(this.closeOnClick);
@@ -91,7 +93,7 @@ public class ItemButtonOption {
 		return clickSound2;
 	}
 
-	public void setClickSound2(SoundData clickSound2) {
+	public void setClickSound(SoundData clickSound2) {
 		this.clickSound2 = clickSound2;
 	}
 }

@@ -599,6 +599,7 @@ public class ItemBuilder {
         if(this.lore != null) this.lore.clear();
         else this.lore = new ArrayList<>();
 
+        if(lore == null) return this;
         this.lore.addAll(lore);
         return this;
     }
@@ -609,13 +610,13 @@ public class ItemBuilder {
 
     public ItemBuilder addLore(List<String> lore) {
         if(this.lore == null) this.lore = new ArrayList<>();
-        this.lore.addAll(lore);
+        if(lore != null) this.lore.addAll(lore);
         return this;
     }
 
     public ItemBuilder addLore(int index, List<String> lore) {
         if(this.lore == null) this.lore = new ArrayList<>();
-        this.lore.addAll(index, lore);
+        if(lore != null) this.lore.addAll(index, lore);
 
         return this;
     }

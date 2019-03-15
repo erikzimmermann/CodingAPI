@@ -2,6 +2,7 @@ package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOption;
+import de.codingair.codingapi.server.SoundData;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -53,6 +54,11 @@ public abstract class Button extends ItemButton {
     @Override
     public Button setClickSound(Sound clickSound) {
         return (Button) super.setClickSound(clickSound);
+    }
+
+    @Override
+    public Button setClickSound2(SoundData clickSound) {
+        return (Button) super.setClickSound2(clickSound);
     }
 
     @Override
