@@ -450,6 +450,8 @@ public class GUIListener implements Listener {
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvCloseEvent(e);
             }
+
+            if(inv instanceof GUI) ((GUI) inv).confirmClosing();
         }
     }
 

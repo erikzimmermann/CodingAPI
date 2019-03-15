@@ -4,7 +4,9 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -39,6 +41,7 @@ public abstract class GUI extends Interface implements Removable {
     private boolean canDropItems = false;
     private boolean isClosed = false;
     private boolean buffering = false;
+    private Callback<GUI> closingConfirmed = null;
 
     public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
@@ -144,12 +147,29 @@ public abstract class GUI extends Interface implements Removable {
         closingByButton = false;
         closingByOperation = false;
 
-        if(GUI.usesGUI(p)) GUI.getGUI(p).close();
-        if(GUI.usesOldGUI(p)) GUI.getOldGUI(p).close(p);
+        Callback<GUI> run = new Callback<GUI>() {
+            @Override
+            public void accept(GUI old) {
+                if(GUI.this.openSound != null) GUI.this.openSound.play(p);
+                API.addRemovable(GUI.this);
+                GUI.super.open(p);
 
-        if(this.openSound != null) this.openSound.play(p);
-        API.addRemovable(this);
-        super.open(p);
+                if(old != null) old.closingConfirmed = null;
+            }
+        };
+
+        if(GUI.usesGUI(p)) {
+            GUI gui = GUI.getGUI(p);
+            gui.closingConfirmed = run;
+            gui.close();
+            return;
+        }
+
+        if(GUI.usesOldGUI(p)) {
+            GUI.getOldGUI(p).close(p);
+        }
+
+        run.accept(null);
     }
 
     public void open() {
@@ -161,7 +181,6 @@ public abstract class GUI extends Interface implements Removable {
         if(isClosed) return;
         else isClosed = true;
 
-        API.removeRemovable(this);
         closingByOperation = !isClosing;
         super.close(p, isClosing);
     }
@@ -173,6 +192,13 @@ public abstract class GUI extends Interface implements Removable {
 
     public void close() {
         close(this.player);
+    }
+
+    public void confirmClosing() {
+        API.removeRemovable(this);
+        if(this.closingConfirmed != null) {
+            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> closingConfirmed.accept(this), 1L);
+        }
     }
 
     public void setEditableSlots(boolean movable, Integer... slots) {
