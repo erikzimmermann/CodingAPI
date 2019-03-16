@@ -339,7 +339,7 @@ public class ItemBuilder {
                                 obj = jsonObject.get("Data");
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(jsonObject.get("Data") + "");
-                                material = XMaterial.requestXMaterial(name, data).parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion()));
+                                material = XMaterial.requestXMaterial(name, data).parseMaterial();
                             } else {
                                 XMaterial xType = XMaterial.valueOf(name);
                                 material = xType.parseMaterial();
@@ -731,7 +731,7 @@ public class ItemBuilder {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(Version.v1_13.isBiggerThan(Version.getVersion())), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1, (short) 3);
         if(gameProfile == null) return item;
 
         ItemMeta meta = item.getItemMeta();
