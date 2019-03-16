@@ -11,9 +11,7 @@ import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -22,12 +20,10 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.*;
 
 public class API {
@@ -37,10 +33,9 @@ public class API {
     private static API instance;
 
     private boolean initialized = false;
-    private Timer tickerTimer = null;
 
     private List<JavaPlugin> plugins = new ArrayList<>();
-    private BukkitRunnable tickHelper;
+    private BukkitTask tickerTimer = null;
 
     public void onEnable(JavaPlugin plugin) {
         if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
@@ -92,7 +87,7 @@ public class API {
 
     private void removePlugin(JavaPlugin plugin) {
         HandlerList.unregisterAll(plugin);
-        tickHelper.cancel();
+        if(this.tickerTimer.getOwner() == plugin) this.tickerTimer.cancel();
 
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
@@ -138,8 +133,13 @@ public class API {
 
         }, plugin);
 
-        tickHelper = new BukkitRunnable() {
-            int quarterSecond = 0;
+        runTicker(plugin);
+    }
+
+    public void runTicker(JavaPlugin plugin) {
+        if(this.tickerTimer != null) return;
+
+        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             int second = 0;
 
             @Override
@@ -149,45 +149,16 @@ public class API {
 
                 if(second >= 20) {
                     second = 0;
-                } else second++;
-
-                if(quarterSecond >= 5) {
-                    quarterSecond = 0;
-
-                } else quarterSecond++;
-            }
-        };
-
-        tickHelper.runTaskTimer(plugin, 0, 1);
-    }
-
-    public void runTicker() {
-        if(this.tickerTimer != null) return;
-
-        this.tickerTimer = new Timer();
-
-        this.tickerTimer.schedule(new TimerTask() {
-            int second = 0;
-
-            @Override
-            public void run() {
-                List<Ticker> tickers = new ArrayList<>(TICKERS);
-
-                if(second == 20) {
-                    second = 0;
-
-                    for(Ticker ticker : tickers) {
+                    for(Ticker ticker : TICKERS) {
                         ticker.onSecond();
                     }
                 } else second++;
 
-                for(Ticker ticker : tickers) {
+                for(Ticker ticker : TICKERS) {
                     ticker.onTick();
                 }
-
-                tickers.clear();
             }
-        }, 50, 50);
+        }, 1, 1);
     }
 
     public static API getInstance() {
@@ -347,7 +318,6 @@ public class API {
 
     public static void addTicker(Ticker ticker) {
         TICKERS.add(ticker);
-        getInstance().runTicker();
     }
 
     public static Ticker removeTicker(Ticker ticker) {
@@ -409,10 +379,6 @@ public class API {
 
         tickers.clear();
         return contains ? i : -999;
-    }
-
-    public Timer getTickerTimer() {
-        return tickerTimer;
     }
 
     public boolean isInitialized() {
