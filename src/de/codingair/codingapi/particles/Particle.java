@@ -149,6 +149,16 @@ public enum Particle {
 		}
 	}
 
+	public void send(Location loc, double maxDistance) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(true);
+			packet.setMaxDistance(maxDistance);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
 	public void send(Location loc, boolean longDistance, Player... players) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {

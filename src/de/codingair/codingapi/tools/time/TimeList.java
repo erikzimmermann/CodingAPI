@@ -83,7 +83,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
 
     @Override
     public boolean remove(Object o) {
-        if(this.time.containsKey(o)) this.time.remove(o);
+        this.time.remove(o);
         return super.remove(o);
     }
 
@@ -97,7 +97,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     @Override
     protected void removeRange(int fromIndex, int toIndex) {
         for(int i = fromIndex; i < toIndex; i++) {
-            if(this.time.containsKey(super.get(i))) this.time.remove(super.get(i));
+            this.time.remove(super.get(i));
         }
 
         super.removeRange(fromIndex, toIndex);
@@ -106,7 +106,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     @Override
     public boolean removeAll(Collection<?> c) {
         for(Object o : c) {
-            if(this.time.containsKey(o)) this.time.remove(o);
+            this.time.remove(o);
         }
 
         return super.removeAll(c);

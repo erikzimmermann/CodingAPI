@@ -24,6 +24,7 @@ public class ParticlePacket {
 	private Color color = null;
 	private boolean longDistance = false;
 	private Location location;
+	private double maxDistance = 0;
 	
 	public ParticlePacket(Particle particle) {
 		this.particle = particle;
@@ -144,7 +145,9 @@ public class ParticlePacket {
 		if(packet == null || location == null) return;
 
 		for(Player player : p) {
-			if(player.getWorld() == this.location.getWorld()) PacketUtils.sendPacket(packet, player);
+			if(player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
+				PacketUtils.sendPacket(packet, player);
+			}
 		}
 	}
 	
@@ -184,5 +187,13 @@ public class ParticlePacket {
 	
 	public void setLongDistance(boolean longDistance) {
 		this.longDistance = longDistance;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(double maxDistance) {
+		this.maxDistance = maxDistance;
 	}
 }

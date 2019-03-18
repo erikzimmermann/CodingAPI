@@ -60,7 +60,7 @@ public class PulsingCircleAnimation extends Animation {
         }
 
         for(Location loc : locations) {
-            getParticle().send(loc, false);
+            sendParticle(loc);
         }
     }
 
