@@ -49,7 +49,7 @@ public class SinusAnimation extends Animation {
 
     @Override
     public void onTick() {
-        getParticle().send(this.circleLocation, true);
+        getParticle().send(this.circleLocation, false);
         calculateStep();
     }
 

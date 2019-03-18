@@ -62,7 +62,7 @@ public class RotatingCircleAnimation extends Animation {
 
             loc.add(x, y, z);
 
-            getParticle().send(loc, true);
+            getParticle().send(loc, false);
         }
     }
 

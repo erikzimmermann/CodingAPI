@@ -57,7 +57,7 @@ public class CircleAnimation extends Animation {
 
 		loc.add(x, y, z);
 
-		getParticle().send(loc, true);
+		getParticle().send(loc, false);
 	}
 	
 	public double getRadius() {
