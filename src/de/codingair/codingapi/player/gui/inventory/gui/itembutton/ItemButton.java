@@ -117,7 +117,7 @@ public abstract class ItemButton {
         return inv;
     }
 
-    public void setInterface(Interface inv) {
+    public final void setInterface(Interface inv) {
         this.inv = inv;
     }
 

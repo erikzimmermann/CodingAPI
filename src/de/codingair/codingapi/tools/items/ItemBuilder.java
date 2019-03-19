@@ -493,6 +493,19 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Moves the lore at the top of the Item text, if the given name is null.
+     * @return ItemBuilder instance
+     */
+    public ItemBuilder checkFirstLine() {
+        if(this.name == null && this.lore != null && !this.lore.isEmpty()) {
+            setName(this.lore.remove(0));
+        }
+
+        setHideName(this.name == null);
+        return this;
+    }
+
     public ItemBuilder setText(String text, int wordWrap) {
         return setText(text, TextAlignment.LEFT, wordWrap);
     }
@@ -600,7 +613,10 @@ public class ItemBuilder {
         else this.lore = new ArrayList<>();
 
         if(lore == null) return this;
-        this.lore.addAll(lore);
+
+        for(String s : lore) {
+            if(s != null) this.lore.add(s);
+        }
         return this;
     }
 
@@ -610,14 +626,23 @@ public class ItemBuilder {
 
     public ItemBuilder addLore(List<String> lore) {
         if(this.lore == null) this.lore = new ArrayList<>();
-        if(lore != null) this.lore.addAll(lore);
+
+        if(lore == null) return this;
+
+        for(String s : lore) {
+            if(s != null) this.lore.add(s);
+        }
         return this;
     }
 
     public ItemBuilder addLore(int index, List<String> lore) {
         if(this.lore == null) this.lore = new ArrayList<>();
-        if(lore != null) this.lore.addAll(index, lore);
 
+        if(lore == null) return this;
+
+        for(String s : lore) {
+            if(s != null) this.lore.add(index++, s);
+        }
         return this;
     }
 

@@ -25,7 +25,6 @@ public abstract class SyncAnvilGUIButton extends SyncButton {
     public SyncAnvilGUIButton(int slot, ClickType trigger) {
         super(slot);
         this.trigger = trigger;
-        this.anvilItem = craftAnvilItem();
     }
 
     public SyncAnvilGUIButton(int x, int y, ClickType trigger) {
