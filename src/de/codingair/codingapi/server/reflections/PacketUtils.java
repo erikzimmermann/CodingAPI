@@ -183,12 +183,14 @@ public class PacketUtils {
     }
 
     public static Object getIChatBaseComponent(String text) {
+        String jsonFormat = "{\"text\":\"" + text +"\"}";
+
         if(Version.getVersion().isBiggerThan(Version.v1_8)) {
-            IReflection.MethodAccessor b = IReflection.getMethod(ChatSerializerClass, "b", IChatBaseComponentClass, new Class[] {String.class});
-            return b.invoke(IChatBaseComponentClass, text);
+            IReflection.MethodAccessor b = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
+            return b.invoke(IChatBaseComponentClass, jsonFormat);
         } else {
             IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
-            return a.invoke(IChatBaseComponentClass, text);
+            return a.invoke(IChatBaseComponentClass, jsonFormat);
         }
     }
 

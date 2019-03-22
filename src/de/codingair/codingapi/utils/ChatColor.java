@@ -159,21 +159,56 @@ public enum ChatColor {
         return highlight(text, toHighlight, highlighter, RESET.toString);
     }
 
-
     public static String highlight(String text, String toHighlight, String highlighter, String resetColor) {
+        return highlight(text, toHighlight, highlighter, RESET.toString, false);
+    }
+
+    public static String highlight(String text, String toHighlight, String highlighter, String resetColor, boolean ignoreCase) {
         if(toHighlight == null || toHighlight.isEmpty() || highlighter == null || highlighter.isEmpty()) return text;
 
-        List<String> data = new ArrayList<>(Arrays.asList(text.split(toHighlight, -1)));
+        List<String> data = new ArrayList<>(Arrays.asList(ignoreCase ? text.toLowerCase().split(toHighlight.toLowerCase(), -1) : text.split(toHighlight, -1)));
+
+        if(ignoreCase) {
+            int size = data.size();
+            int index = 0;
+            for(int i = 0; i < size; i++) {
+                String value = data.get(i);
+                if(value.isEmpty()) continue;
+
+                StringBuilder corrected = new StringBuilder();
+
+                for(int i1 = 0; i1 < value.length(); i1++) {
+                    int origin = index + corrected.length() + i * toHighlight.length();
+                    corrected.append(text.charAt(origin));
+                }
+
+                data.set(i, corrected.toString());
+                index += corrected.length();
+            }
+        }
+
         StringBuilder builder = new StringBuilder();
         String lastColor = "";
 
+        int index = 0;
         for(int i = 0; i < data.size(); i++) {
             String current = data.get(i);
             String color = getLastColor(current, '§');
             if(color != null) lastColor = color;
 
             builder.append(current);
-            if(i < data.size() - 1) builder.append(highlighter).append(toHighlight).append(resetColor).append(lastColor);
+
+            if(i < data.size() - 1) {
+                index += current.length();
+
+                StringBuilder highlight = new StringBuilder();
+                for(int j = index; j < index + toHighlight.length(); j++) {
+                    highlight.append(text.charAt(j));
+                }
+
+                builder.append(highlighter).append(highlight.toString()).append(resetColor).append(lastColor);
+                index += toHighlight.length();
+            }
         }
 
         return builder.toString();
