@@ -108,9 +108,8 @@ public class Hologram implements Removable {
                 List<Hologram> holograms = API.getRemovables(Hologram.class);
 
                 for(Hologram hologram : holograms) {
-                    if(!hologram.isWatching(e.getPlayer())) continue;
-
                     hologram.remove(e.getPlayer());
+                    hologram.watchList.remove(e.getPlayer());
                 }
 
                 holograms.clear();
@@ -199,6 +198,12 @@ public class Hologram implements Removable {
             backupText.clear();
 
             initialize();
+        } else {
+            for(int i = 0; i < this.entities.size(); i++) {
+                Object entity = this.entities.get(i);
+                String text = this.text.get(i);
+                HologramPackets.setCustomName(entity, text);
+            }
         }
 
         update(null);

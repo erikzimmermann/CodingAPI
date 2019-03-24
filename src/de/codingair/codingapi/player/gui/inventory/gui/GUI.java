@@ -128,8 +128,7 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void reinitialize(String title) {
-        clear();
-        initialize(this.player);
+        this.reinitialize();
         setTitle(title);
     }
 
