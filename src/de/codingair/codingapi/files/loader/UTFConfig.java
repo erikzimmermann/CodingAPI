@@ -10,6 +10,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
@@ -35,8 +36,7 @@ public class UTFConfig extends YamlConfiguration {
         Files.createParentDirs(file);
         String data = this.saveToString();
         if(this.loadExtras) {
-            data = writeExtras(data);
-            data = CONFIG_TAG + data;
+            data = writeExtras(CONFIG_TAG + data);
         }
 
         Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
@@ -150,10 +150,10 @@ public class UTFConfig extends YamlConfiguration {
     public void loadFromString(String contents) throws InvalidConfigurationException {
         if(contents.startsWith(CONFIG_TAG)) {
             this.loadExtras = true;
+            loadExtras(contents);
             contents = contents.replaceFirst(CONFIG_TAG, "");
         }
 
-        if(loadExtras) loadExtras(contents);
         super.loadFromString(contents);
     }
 
@@ -171,13 +171,23 @@ public class UTFConfig extends YamlConfiguration {
                 section.set(key, value);
             }
         }
+    }
 
+    public void removeUnused(UTFConfig origin) {
+        List<String> toRemove = new ArrayList<>();
+
+        for(String key : getKeys(true)) {
+            if(!origin.contains(key)) toRemove.add(key);
+        }
+
+        for(String key : toRemove) {
+            set(key, null);
+        }
     }
 
     public void deployExtras(String contents) {
         if(contents.startsWith(CONFIG_TAG)) {
             this.loadExtras = true;
-            contents = contents.replaceFirst(CONFIG_TAG, "");
             this.loadExtras(contents);
             this.deployedExtras = true;
         }
@@ -222,7 +232,6 @@ public class UTFConfig extends YamlConfiguration {
             builder.append(lines.get(i));
             if(i < lines.size() - 1) builder.append("\n");
         }
-
 
         return builder.toString();
     }

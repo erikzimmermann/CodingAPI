@@ -33,7 +33,7 @@ public class ConfigFile {
 
         InputStream in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
         if(in != null) {
-            InputStreamReader reader = new InputStreamReader(in, Charsets.ISO_8859_1);
+            InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
 
             BufferedReader input = new BufferedReader(reader);
             StringBuilder builder = new StringBuilder();
@@ -53,6 +53,8 @@ public class ConfigFile {
             }
 
             this.config.deployExtras(builder.toString());
+            in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+            if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
         }
 
         this.config.options().copyDefaults(true);
