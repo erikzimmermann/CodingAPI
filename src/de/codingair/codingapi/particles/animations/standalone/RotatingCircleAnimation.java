@@ -50,7 +50,7 @@ public class RotatingCircleAnimation extends Animation {
         double radius = this.radius;
 
         for(int i = 0; i < 360; i += 36) {
-            double degrees = (12 - this.radius * 0.2) * i + this.degrees;
+            double degrees = i + this.degrees;
             if(degrees >= 360) degrees -= 360;
             if(degrees < 0) degrees += 360;
 
