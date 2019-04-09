@@ -2,6 +2,7 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
+import de.codingair.codingapi.player.gui.inventory.gui.simple.SimpleGUI;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.tools.Callback;
@@ -35,6 +36,7 @@ public abstract class GUI extends Interface implements Removable {
     private SoundData cancelSound = null;
     private boolean closingByButton = false;
     private boolean closingByOperation = false;
+    private boolean closingForAnvil = false;
     private boolean moveOwnItems = false;
     private List<Integer> movableSlots = new ArrayList<>();
     private List<GUIListener> listeners = new ArrayList<>();
@@ -42,6 +44,8 @@ public abstract class GUI extends Interface implements Removable {
     private boolean isClosed = false;
     private boolean buffering = false;
     private Callback<GUI> closingConfirmed = null;
+    private GUI fallbackGUI = null;
+    private boolean useFallbackGUI = false;
 
     public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
@@ -70,6 +74,7 @@ public abstract class GUI extends Interface implements Removable {
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
                 listeners.forEach(l -> l.onInvCloseEvent(e));
+                if(!closingByOperation && !closingByButton && !closingForAnvil && useFallbackGUI && fallbackGUI != null) fallbackGUI.open();
             }
 
             @Override
@@ -145,10 +150,12 @@ public abstract class GUI extends Interface implements Removable {
         isClosed = false;
         closingByButton = false;
         closingByOperation = false;
+        closingForAnvil = false;
 
         Callback<GUI> run = new Callback<GUI>() {
             @Override
             public void accept(GUI old) {
+                if(fallbackGUI == null) fallbackGUI = old;
                 if(GUI.this.openSound != null) GUI.this.openSound.play(p);
                 API.addRemovable(GUI.this);
                 GUI.super.open(p);
@@ -453,5 +460,25 @@ public abstract class GUI extends Interface implements Removable {
 
     public void release() {
         getPlayer().updateInventory();
+    }
+
+    public boolean isUseFallbackGUI() {
+        return useFallbackGUI;
+    }
+
+    public void setUseFallbackGUI(boolean useFallbackGUI) {
+        this.useFallbackGUI = useFallbackGUI;
+    }
+
+    public GUI getFallbackGUI() {
+        return fallbackGUI;
+    }
+
+    public boolean isClosingForAnvil() {
+        return closingForAnvil;
+    }
+
+    public void setClosingForAnvil(boolean closingForAnvil) {
+        this.closingForAnvil = closingForAnvil;
     }
 }

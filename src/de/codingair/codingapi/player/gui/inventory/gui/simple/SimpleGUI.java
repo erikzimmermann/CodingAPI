@@ -16,7 +16,6 @@ public class SimpleGUI extends GUI {
     private Layout layout;
     private Page main;
     private Page current;
-    private boolean closingForAnvil = false;
 
     public SimpleGUI(Player p, Page main, JavaPlugin plugin) {
         this(p, null, main, plugin);
@@ -82,13 +81,5 @@ public class SimpleGUI extends GUI {
 
     public Layout getLayout() {
         return layout;
-    }
-
-    public boolean isClosingForAnvil() {
-        return closingForAnvil;
-    }
-
-    public void setClosingForAnvil(boolean closingForAnvil) {
-        this.closingForAnvil = closingForAnvil;
     }
 }
