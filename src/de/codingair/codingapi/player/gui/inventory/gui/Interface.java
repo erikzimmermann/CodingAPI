@@ -1,8 +1,9 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
-import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.player.gui.GUIListener;
+import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
+import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import org.bukkit.Bukkit;
@@ -48,6 +49,7 @@ public class Interface {
 	private boolean editableItems = true;
 	private String title;
 	boolean oldUsage = true;
+	private Plugin plugin;
 
 	/**
 	 * @param owner  (InventoryHolder) (can be null)
@@ -64,6 +66,7 @@ public class Interface {
 
 		this.inventory = Bukkit.createInventory(owner, size, this.title);
 		if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
+		this.plugin = plugin;
 	}
 	
 	public void addListener(InterfaceListener listener) {
@@ -284,22 +287,37 @@ public class Interface {
 
 	public void reopen() {
         this.currentPlayers.forEach(p -> {
-            Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
-            Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
+			Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
+			Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
 
-            IReflection.MethodAccessor updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[]{containerClass});
+			IReflection.MethodAccessor updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[]{containerClass});
 
-            IReflection.FieldAccessor activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
-            IReflection.FieldAccessor windowId = IReflection.getField(containerClass, "windowId");
+			IReflection.FieldAccessor activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
+			IReflection.FieldAccessor windowId = IReflection.getField(containerClass, "windowId");
 
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
+			Object ep = PacketUtils.getEntityPlayer(p);
+			Object packet;
 
-            Object ep = PacketUtils.getEntityPlayer(p);
-            Object packet = con.newInstance(windowId.get(activeContainer.get(ep)), "minecraft:chest", PacketUtils.getChatMessage(this.title), p.getOpenInventory().getTopInventory().getSize());
-            PacketUtils.sendPacket(p, packet);
-            updateInventory.invoke(ep, activeContainer.get(ep));
+        	if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+				Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+
+				IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
+				packet = con.newInstance(windowId.get(activeContainer.get(ep)), getContainerType(getSize()), PacketUtils.getChatMessage(this.title));
+			} else {
+				IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
+				packet = con.newInstance(windowId.get(activeContainer.get(ep)), "minecraft:chest", PacketUtils.getChatMessage(this.title), p.getOpenInventory().getTopInventory().getSize());
+			}
+
+			PacketUtils.sendPacket(p, packet);
+			updateInventory.invoke(ep, activeContainer.get(ep));
         });
     }
+
+    private Object getContainerType(int size) {
+		Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+		IReflection.FieldAccessor generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
+		return generic.get(null);
+	}
 	
 	public int getItemAmount() {
 		int i = 0;
@@ -341,7 +359,7 @@ public class Interface {
 		setTitle(this.title, false);
 		if(oldUsage) interfaces.add(this);
 
-		p.openInventory(this.inventory);
+		Bukkit.getScheduler().runTask(plugin, () -> p.openInventory(this.inventory));
 	}
 
 	public void close(Player p) {
@@ -362,7 +380,9 @@ public class Interface {
 		this.currentPlayers = current;
 		if(oldUsage) interfaces.remove(this);
 
-		if(!isClosing) p.closeInventory();
+		if(!isClosing) {
+			Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
+		}
 	}
 	
 	public boolean isUsing(Player p) {
@@ -530,11 +550,6 @@ public class Interface {
 		return this.inventory.addItem(arg0);
 	}
 	
-	@SuppressWarnings("deprecation")
-	public HashMap<Integer, ? extends ItemStack> all(int arg0) {
-		return this.inventory.all(arg0);
-	}
-	
 	public HashMap<Integer, ? extends ItemStack> all(Material arg0)
 			throws IllegalArgumentException {
 		return this.inventory.all(arg0);
@@ -553,22 +568,12 @@ public class Interface {
 		this.inventory.clear(arg0);
 	}
 	
-	@SuppressWarnings("deprecation")
-	public boolean contains(int arg0) {
-		return this.inventory.contains(arg0);
-	}
-	
 	public boolean contains(Material arg0) throws IllegalArgumentException {
 		return this.inventory.contains(arg0);
 	}
 	
 	public boolean contains(ItemStack arg0) {
 		return this.inventory.contains(arg0);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public boolean contains(int arg0, int arg1) {
-		return this.inventory.contains(arg0, arg1);
 	}
 	
 	public boolean contains(Material arg0, int arg1) {
@@ -581,11 +586,6 @@ public class Interface {
 	
 	public boolean containsAtLeast(ItemStack arg0, int arg1) {
 		return this.inventory.containsAtLeast(arg0, arg1);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public int first(int arg0) {
-		return this.inventory.first(arg0);
 	}
 	
 	public int first(Material arg0) throws IllegalArgumentException {
@@ -621,7 +621,7 @@ public class Interface {
 	}
 	
 	public String getName() {
-		return this.inventory.getName();
+		return this.title;
 	}
 	
 	public InventoryType getType() {
@@ -638,11 +638,6 @@ public class Interface {
 	
 	public ListIterator<ItemStack> iterator(int arg0) {
 		return this.inventory.iterator(arg0);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public void remove(int arg0) {
-		this.inventory.remove(arg0);
 	}
 	
 	public void remove(Material arg0) throws IllegalArgumentException {
@@ -682,6 +677,6 @@ public class Interface {
 	}
 	
 	public String getTitle() {
-		return this.inventory.getTitle();
+		return this.title;
 	}
 }

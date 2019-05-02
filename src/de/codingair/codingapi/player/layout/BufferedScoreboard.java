@@ -2,7 +2,6 @@ package de.codingair.codingapi.player.layout;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import org.apache.commons.codec.Charsets;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -257,7 +256,7 @@ public class BufferedScoreboard {
 			p.setScoreboard(scoreboard);
 	}
 	
-	private final UUID invalidUserUUID = UUID.nameUUIDFromBytes("InvalidUsername".getBytes(Charsets.UTF_8));
+	private final UUID invalidUserUUID = UUID.nameUUIDFromBytes("InvalidUsername".getBytes());
 	private Class<?> gameProfileClass;
 	private Constructor<?> gameProfileConstructor;
 	private Constructor<?> craftOfflinePlayerConstructor;

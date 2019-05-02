@@ -6,6 +6,7 @@ import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -125,7 +126,7 @@ public abstract class SignGUI {
         }
 
         packetReader.unInject();
-        this.player.closeInventory();
+        Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
     }
 
 }

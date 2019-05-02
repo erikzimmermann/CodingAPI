@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.anvil.depended.ContainerAccess;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -42,14 +43,21 @@ public class AnvilGUI implements Removable {
 	private Inventory inv;
 
 	private boolean isClosing = false;
+	//Only for 1.14+
+	private String title;
 	
-	public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
+	public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener, String title) {
 		this.plugin = plugin;
 		this.player = player;
 		this.listener = listener;
-		
+		this.title = title;
+
 		registerBukkitListener();
 	}
+
+    public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
+	    this(plugin, player, listener, "Repair & Name");
+    }
 	
 	@Override
 	public Class<? extends Removable> getAbstractClass() {
@@ -74,7 +82,7 @@ public class AnvilGUI implements Removable {
 	@Override
 	public void destroy() {
 		remove();
-		this.player.closeInventory();
+		Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
 	}
 	
 	private void registerBukkitListener() {
@@ -169,11 +177,16 @@ public class AnvilGUI implements Removable {
 		Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
 		Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
 		Class<?> chatMessageClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
-		
-		IReflection.ConstructorAccessor anvilContainerCon = IReflection.getConstructor(containerAnvilClass, playerInventoryClass, worldClass, blockPositionClass, entityPlayerClass);
+		Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
+
+		IReflection.ConstructorAccessor anvilContainerCon;
+		if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+			anvilContainerCon = IReflection.getConstructor(containerAnvilClass, int.class, playerInventoryClass, containerAccessClass);
+		} else {
+			anvilContainerCon = IReflection.getConstructor(containerAnvilClass, playerInventoryClass, worldClass, blockPositionClass, entityPlayerClass);
+		}
 		IReflection.ConstructorAccessor blockPositionCon = IReflection.getConstructor(blockPositionClass, Integer.class, Integer.class, Integer.class);
 		IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(chatMessageClass, String.class, Object[].class);
-		IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, Integer.class, String.class, chatMessageClass, int.class);
 		
 		IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, null);
 		IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, null);
@@ -185,14 +198,20 @@ public class AnvilGUI implements Removable {
 		IReflection.FieldAccessor reachable = IReflection.getField(containerAnvilClass, "checkReachable");
 		IReflection.FieldAccessor activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
 		IReflection.FieldAccessor windowId = IReflection.getField(containerClass, "windowId");
-		
-		
+
 		Object entityPlayer = PacketUtils.getEntityPlayer(this.player);
 		Object inventory = getInventory.get(entityPlayer);
 		Object world = getWorld.get(entityPlayer);
 		Object blockPosition = blockPositionCon.newInstance(0, 0, 0);
-		
-		Object container = anvilContainerCon.newInstance(inventory, world, blockPosition, entityPlayer);
+
+		int c = (int) nextContainerCounter.invoke(entityPlayer);
+
+		Object container;
+		if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+			container = anvilContainerCon.newInstance(c, inventory, new ContainerAccess(player, world, blockPosition));
+		} else {
+			container = anvilContainerCon.newInstance(inventory, world, blockPosition, entityPlayer);
+		}
 		reachable.set(container, false);
 		
 		inv = (Inventory) getTopInventory.invoke(getBukkitView.invoke(container));
@@ -201,12 +220,20 @@ public class AnvilGUI implements Removable {
 			inv.setItem(slot.getSlot(), items.get(slot));
 		}
 		
-		int c = (int) nextContainerCounter.invoke(entityPlayer);
-		
-		
 		try {
-			PacketUtils.sendPacket(this.player, packetPlayOutOpenWindowCon.newInstance(c, "minecraft:anvil", chatMessageCon.newInstance("AnvilGUI", new Object[]{}), 0));
+            if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+                IReflection.FieldAccessor generic = IReflection.getField(containersClass, "ANVIL");
+                IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
+
+                Object packet = packetPlayOutOpenWindowCon.newInstance(c, generic.get(null), PacketUtils.getChatMessage(title));
+                PacketUtils.sendPacket(this.player, packet);
+            } else {
+                IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, Integer.class, String.class, chatMessageClass, int.class);
+                PacketUtils.sendPacket(this.player, packetPlayOutOpenWindowCon.newInstance(c, "minecraft:anvil", chatMessageCon.newInstance("AnvilGUI", new Object[]{}), 0));
+            }
 		} catch(Exception e) {
+		    e.printStackTrace();
 			plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.getVersion().name() + "!");
 		}
 		
@@ -272,4 +299,12 @@ public class AnvilGUI implements Removable {
 	public static AnvilGUI openAnvil(JavaPlugin plugin, Player p, AnvilListener listener, ItemStack item) {
 		return new AnvilGUI(plugin, p, listener).setSlot(AnvilSlot.INPUT_LEFT, item).open();
 	}
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
 }

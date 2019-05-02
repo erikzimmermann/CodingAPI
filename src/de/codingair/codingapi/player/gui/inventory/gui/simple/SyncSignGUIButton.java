@@ -1,13 +1,17 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Arrays;
 
 public abstract class SyncSignGUIButton extends SyncButton {
     private Sign sign;
@@ -58,7 +62,9 @@ public abstract class SyncSignGUIButton extends SyncButton {
             new SignGUI(player, this.sign, getInterface().getPlugin()) {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
-                    if(updateSign) SignTools.updateSign(sign, lines);
+                    if(updateSign) {
+                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign((Sign) sign.getLocation().getBlock().getState(), lines));
+                    }
 
                     close();
                     SyncSignGUIButton.this.onSignChangeEvent(lines);

@@ -148,7 +148,7 @@ public class GUIListener implements Listener {
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 
-        if(e.getInventory().getName().equals(inv.getInventory().getName())) {
+        if(e.getView().getTitle().equals(inv.getName())) {
             if(e.getClickedInventory() == null) {
                 if(inv instanceof GUI) e.setCancelled(!((GUI) inv).isCanDropItems());
                 if(!e.isCancelled()) {
@@ -165,7 +165,7 @@ public class GUIListener implements Listener {
                 }
             }
 
-            if(e.getClickedInventory().getName().equals(inv.getInventory().getName())) {
+            if(e.getClickedInventory() == e.getView().getTopInventory()) {
                 for(InterfaceListener l : inv.getListener()) {
                     l.onInvClickEvent(e);
                 }
@@ -440,7 +440,7 @@ public class GUIListener implements Listener {
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 
-        if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getPlayer())) {
+        if(e.getView().getTitle().equals(inv.getName()) && inv.isUsing((Player) e.getPlayer())) {
             if(inv instanceof GUI && !((GUI) inv).isClosingByButton()) {
                 SoundData sound = ((GUI) inv).getCancelSound();
                 if(sound != null) sound.play(p);
@@ -462,7 +462,7 @@ public class GUIListener implements Listener {
         Player p = (Player) e.getPlayer();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
-        if(e.getInventory().getName().equals(inv.getInventory().getName()) && inv.isUsing((Player) e.getPlayer())) {
+        if(e.getView().getTitle().equals(inv.getName()) && inv.isUsing((Player) e.getPlayer())) {
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvOpenEvent(e);
             }
@@ -477,7 +477,7 @@ public class GUIListener implements Listener {
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
 
-        if(e.getInventory().getName().equals(inv.getInventory().getName())) {
+        if(e.getView().getTitle().equals(inv.getName())) {
             e.setCancelled(!inv.isEditableItems());
 
             if(inv instanceof GUI) {

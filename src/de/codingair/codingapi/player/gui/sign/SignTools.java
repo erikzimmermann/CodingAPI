@@ -21,6 +21,7 @@ public class SignTools {
         }
 
         switch(Version.getVersion()) {
+            case v1_14:
             case v1_13:
             case v1_12:
             case v1_11:
@@ -28,8 +29,9 @@ public class SignTools {
             case v1_8: {
                 for(int i = 0; i < 4; i++) {
                     sign.setLine(i, text[i]);
-                    sign.update(true);
                 }
+
+                sign.update(true);
                 break;
             }
 
@@ -38,7 +40,7 @@ public class SignTools {
 
                 Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");
                 IReflection.FieldAccessor lines = IReflection.getField(PacketUtils.TileEntitySignClass, "lines");
-                IReflection.MethodAccessor getUpdatePacket = IReflection.getMethod(PacketUtils.TileEntitySignClass, "getUpdatePacket", packet, new Class[]{});
+                IReflection.MethodAccessor getUpdatePacket = IReflection.getMethod(PacketUtils.TileEntitySignClass, "getUpdatePacket", packet, new Class[] {});
 
                 Object[] array = (Object[]) lines.get(tileEntitySign);
 
