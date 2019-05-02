@@ -1016,6 +1016,14 @@ public enum XMaterial {
         return Material.matchMaterial(m[0]);
     }
 
+    public Material parseMaterial(boolean item) {
+        Material mat = Material.matchMaterial(this.toString());
+        if(mat != null) {
+            return mat;
+        }
+        return Material.matchMaterial(m[item ? 1 : 0]);
+    }
+
     public Material parseMaterialSafely() {
         try {
             return parseMaterial();

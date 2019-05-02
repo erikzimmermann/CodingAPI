@@ -18,13 +18,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.potion.Potion;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -495,6 +495,7 @@ public class ItemBuilder {
 
     /**
      * Moves the lore at the top of the Item text, if the given name is null.
+     *
      * @return ItemBuilder instance
      */
     public ItemBuilder checkFirstLine() {
@@ -756,10 +757,10 @@ public class ItemBuilder {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true), 1, (short) 3);
         if(gameProfile == null) return item;
 
-        ItemMeta meta = item.getItemMeta();
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
         profile.set(meta, gameProfile);

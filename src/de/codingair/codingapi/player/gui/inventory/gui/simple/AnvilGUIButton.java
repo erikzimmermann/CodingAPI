@@ -43,7 +43,7 @@ public abstract class AnvilGUIButton extends Button {
 
         if(trigger == null || e.getClick() == trigger) {
             getInterface().setClosingByButton(true);
-            getInterface().setClosingForAnvil(true);
+            getInterface().setClosingForGUI(true);
 
             AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
                 @Override
@@ -61,7 +61,7 @@ public abstract class AnvilGUIButton extends Button {
                     if(e.getPost() == null) {
                         getInterface().reinitialize();
                         e.setPost(() -> getInterface().open());
-                        getInterface().setClosingForAnvil(false);
+                        getInterface().setClosingForGUI(false);
                     }
                 }
             }, this.anvilItem);

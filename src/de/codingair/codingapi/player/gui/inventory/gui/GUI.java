@@ -2,7 +2,6 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.player.gui.inventory.gui.simple.SimpleGUI;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.tools.Callback;
@@ -36,7 +35,7 @@ public abstract class GUI extends Interface implements Removable {
     private SoundData cancelSound = null;
     private boolean closingByButton = false;
     private boolean closingByOperation = false;
-    private boolean closingForAnvil = false;
+    private boolean closingForGUI = false;
     private boolean moveOwnItems = false;
     private List<Integer> movableSlots = new ArrayList<>();
     private List<GUIListener> listeners = new ArrayList<>();
@@ -74,7 +73,7 @@ public abstract class GUI extends Interface implements Removable {
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
                 listeners.forEach(l -> l.onInvCloseEvent(e));
-                if(!closingByOperation && !closingByButton && !closingForAnvil && useFallbackGUI && fallbackGUI != null) fallbackGUI.open();
+                if(!closingByOperation && !closingByButton && !closingForGUI && useFallbackGUI && fallbackGUI != null) fallbackGUI.open();
             }
 
             @Override
@@ -150,7 +149,7 @@ public abstract class GUI extends Interface implements Removable {
         isClosed = false;
         closingByButton = false;
         closingByOperation = false;
-        closingForAnvil = false;
+        closingForGUI = false;
 
         Callback<GUI> run = new Callback<GUI>() {
             @Override
@@ -474,11 +473,11 @@ public abstract class GUI extends Interface implements Removable {
         return fallbackGUI;
     }
 
-    public boolean isClosingForAnvil() {
-        return closingForAnvil;
+    public boolean isClosingForGUI() {
+        return closingForGUI;
     }
 
-    public void setClosingForAnvil(boolean closingForAnvil) {
-        this.closingForAnvil = closingForAnvil;
+    public void setClosingForGUI(boolean closingForGUI) {
+        this.closingForGUI = closingForGUI;
     }
 }

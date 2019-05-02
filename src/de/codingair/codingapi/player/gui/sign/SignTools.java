@@ -3,15 +3,27 @@ package de.codingair.codingapi.player.gui.sign;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 public class SignTools {
 
     public static void updateSign(Sign sign, String[] text) {
+        updateSign(sign, text, true);
+    }
+
+    public static void updateSign(Sign sign, String[] text, boolean colorSupport) {
+        if(colorSupport) {
+            for(int i = 0; i < text.length; i++) {
+                text[i] = ChatColor.translateAlternateColorCodes('&', text[i]);
+            }
+        }
+
         switch(Version.getVersion()) {
             case v1_13:
             case v1_12:
+            case v1_11:
             case v1_9:
             case v1_8: {
                 for(int i = 0; i < 4; i++) {
@@ -21,8 +33,7 @@ public class SignTools {
                 break;
             }
 
-            case v1_10:
-            case v1_11: {
+            case v1_10: {
                 Object tileEntitySign = PacketUtils.getTileEntity(sign.getLocation());
 
                 Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");

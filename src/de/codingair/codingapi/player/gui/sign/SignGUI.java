@@ -9,6 +9,7 @@ import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
@@ -27,7 +28,12 @@ public abstract class SignGUI {
         this.sign = edit;
         this.plugin = plugin;
     }
+
     public abstract void onSignChangeEvent(String[] lines);
+
+    public void onClose(InventoryCloseEvent e) {
+
+    }
 
     public void open() {
         if(Version.getVersion().equals(Version.v1_7)) {
@@ -92,7 +98,9 @@ public abstract class SignGUI {
             editable.set(tileEntity, true);
 
             IReflection.FieldAccessor owner;
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
+            if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+                owner = IReflection.getField(tileEntity.getClass(), "j");
+            } else if(Version.getVersion().isBiggerThan(Version.v1_12)) {
                 owner = IReflection.getField(tileEntity.getClass(), "g");
             } else {
                 owner = IReflection.getField(tileEntity.getClass(), "h");
