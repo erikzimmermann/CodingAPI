@@ -1,7 +1,9 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -55,16 +57,28 @@ public abstract class SignGUIButton extends Button {
             getInterface().setClosingByButton(true);
             getInterface().setClosingForGUI(true);
 
+            String[] lines = sign.getLines();
+            for(int i = 0; i < lines.length; i++) {
+                lines[i] = lines[i].replace("§", "&");
+            }
+
+            SignTools.updateSign(sign, lines, false);
+
             new SignGUI(player, this.sign, getInterface().getPlugin()) {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
-                    if(updateSign) SignTools.updateSign(sign, lines);
+                    if(updateSign) {
+                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign((Sign) sign.getLocation().getBlock().getState(), lines));
+                    }
 
                     close();
                     SignGUIButton.this.onSignChangeEvent(lines);
                     getInterface().reinitialize();
-                    getInterface().open();
-                    getInterface().setClosingForGUI(false);
+
+                    Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                        getInterface().open();
+                        getInterface().setClosingForGUI(false);
+                    }, 1L);
                 }
             }.open();
         } else {
