@@ -1,6 +1,5 @@
 package de.codingair.codingapi.player.gui.anvil.depended;
 
-import de.codingair.codingapi.server.reflections.PacketUtils;
 import net.minecraft.server.v1_14_R1.BlockPosition;
 import net.minecraft.server.v1_14_R1.World;
 import org.bukkit.Location;

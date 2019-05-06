@@ -38,11 +38,11 @@ public class AnvilGUI implements Removable {
 
 	private String submittedText = null;
 	private boolean submitted = false;
-	
+
+	private AnvilCloseEvent closeEvent = null;
 	private Listener bukkitListener;
 	private Inventory inv;
 
-	private boolean isClosing = false;
 	//Only for 1.14+
 	private String title;
 	
@@ -111,24 +111,17 @@ public class AnvilGUI implements Removable {
 						e.setCancelled(clickEvent.isCancelled());
 						
 						if(clickEvent.getWillClose()) {
+							closeEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
 							
-							AnvilCloseEvent anvilCloseEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
+							Bukkit.getPluginManager().callEvent(closeEvent);
+							if(listener != null) listener.onClose(closeEvent);
 							
-							Bukkit.getPluginManager().callEvent(anvilCloseEvent);
-							if(listener != null) listener.onClose(anvilCloseEvent);
-							
-							if(!anvilCloseEvent.isCancelled()) {
-							    isClosing = true;
+							if(!closeEvent.isCancelled()) {
 								inv.clear();
-								remove();
 								p.closeInventory();
 							}
 							
-							if(anvilCloseEvent.getPost() != null) anvilCloseEvent.getPost().run();
-						}
-						
-						if(clickEvent.getWillDestroy()) {
-							remove();
+							if(closeEvent.getPost() != null) closeEvent.getPost().run();
 						}
 					}
 				}
@@ -137,19 +130,19 @@ public class AnvilGUI implements Removable {
 			@EventHandler
 			public void onInventoryClose(InventoryCloseEvent e) {
 				if(e.getPlayer() instanceof Player) {
-					
-					if(e.getInventory().equals(inv) && !isClosing) {
-						
-						AnvilCloseEvent anvilCloseEvent = new AnvilCloseEvent(player, AnvilGUI.this);
-						
-						Bukkit.getPluginManager().callEvent(anvilCloseEvent);
-						if(listener != null) listener.onClose(anvilCloseEvent);
-						
+					if(e.getInventory().equals(inv)) {
+
+						if(closeEvent == null) {
+							closeEvent = new AnvilCloseEvent(player, AnvilGUI.this);
+							Bukkit.getPluginManager().callEvent(closeEvent);
+							if(listener != null) listener.onClose(closeEvent);
+						}
+
 						inv.clear();
 						remove();
-						
-						if(anvilCloseEvent.getPost() != null) {
-							Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, anvilCloseEvent.getPost(), 1L);
+
+						if(closeEvent.getPost() != null) {
+							Bukkit.getScheduler().runTask(plugin, closeEvent.getPost());
 						}
 					}
 				}
@@ -177,10 +170,10 @@ public class AnvilGUI implements Removable {
 		Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
 		Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
 		Class<?> chatMessageClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
-		Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
 
 		IReflection.ConstructorAccessor anvilContainerCon;
 		if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+			Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
 			anvilContainerCon = IReflection.getConstructor(containerAnvilClass, int.class, playerInventoryClass, containerAccessClass);
 		} else {
 			anvilContainerCon = IReflection.getConstructor(containerAnvilClass, playerInventoryClass, worldClass, blockPositionClass, entityPlayerClass);

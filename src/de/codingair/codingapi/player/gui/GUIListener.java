@@ -141,9 +141,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvClickEvent(InventoryClickEvent e) {
-        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked()))) {
-            return;
-        }
+        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())) || e.getInventory().getType() != InventoryType.CHEST) return;
         Player p = (Player) e.getWhoClicked();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
@@ -431,7 +429,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvCloseEvent(InventoryCloseEvent e) {
-        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())))
+        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())) || e.getInventory().getType() != InventoryType.CHEST)
             return;
 
         Player p = (Player) e.getPlayer();
@@ -453,8 +451,9 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvOpenEvent(InventoryOpenEvent e) {
-        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())))
+        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())) || e.getInventory().getType() != InventoryType.CHEST)
             return;
+
         Player p = (Player) e.getPlayer();
 
         Interface inv = GUI.usesGUI(p) ? GUI.getGUI(p) : GUI.getOldGUI(p);
@@ -466,7 +465,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvDragEvent(InventoryDragEvent e) {
-        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())))
+        if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())) || e.getInventory().getType() != InventoryType.CHEST)
             return;
         Player p = (Player) e.getWhoClicked();
 
