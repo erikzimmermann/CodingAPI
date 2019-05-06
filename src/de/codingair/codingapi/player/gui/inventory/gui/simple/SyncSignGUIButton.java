@@ -4,6 +4,7 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -59,6 +60,13 @@ public abstract class SyncSignGUIButton extends SyncButton {
             getInterface().setClosingByButton(true);
             getInterface().setClosingForGUI(true);
 
+            String[] lines = sign.getLines();
+            for(int i = 0; i < lines.length; i++) {
+                lines[i] = lines[i].replace("§", "&");
+            }
+
+            SignTools.updateSign(sign, lines, false);
+
             new SignGUI(player, this.sign, getInterface().getPlugin()) {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
@@ -69,8 +77,11 @@ public abstract class SyncSignGUIButton extends SyncButton {
                     close();
                     SyncSignGUIButton.this.onSignChangeEvent(lines);
                     getInterface().reinitialize();
-                    getInterface().open();
-                    getInterface().setClosingForGUI(false);
+
+                    Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                        getInterface().open();
+                        getInterface().setClosingForGUI(false);
+                    }, 1L);
                 }
             }.open();
         } else {
