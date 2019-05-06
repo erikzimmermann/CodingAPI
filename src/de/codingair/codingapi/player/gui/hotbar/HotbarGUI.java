@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,9 +25,12 @@ public class HotbarGUI implements Removable {
     private SoundData openSound;
     private SoundData closeSound;
 
-    public HotbarGUI(Player player, Plugin plugin) {
+    private JavaPlugin plugin;
+
+    public HotbarGUI(Player player, JavaPlugin plugin) {
         this.player = player;
 
+        this.plugin = plugin;
         EventListener.register(plugin);
     }
 
@@ -46,6 +50,9 @@ public class HotbarGUI implements Removable {
         if(this.openSound != null && sound) this.openSound.play(this.player);
 
         API.addRemovable(this);
+
+        ItemComponent ic = getItem(player.getInventory().getHeldItemSlot());
+        if(ic != null && ic.getAction() != null) ic.getAction().onHover(this, null, ic, player);
     }
 
     public void close(boolean sound) {
@@ -177,5 +184,10 @@ public class HotbarGUI implements Removable {
 
     public void setCloseSound(SoundData closeSound) {
         this.closeSound = closeSound;
+    }
+
+    @Override
+    public JavaPlugin getPlugin() {
+        return plugin;
     }
 }

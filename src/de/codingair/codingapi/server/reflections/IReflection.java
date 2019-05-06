@@ -175,7 +175,7 @@ public class IReflection {
 		throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, parameterTypes));
 	}
 	
-	public static MethodAccessor getSaveMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
+	public static MethodAccessor getSaveMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) throws IllegalStateException {
 		Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
 		for (Method method : target.getDeclaredMethods())
 			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
@@ -320,7 +320,10 @@ public class IReflection {
 	
 	public enum ServerPacket {
 		
-		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)), MOJANG_AUTHLIB("com.mojang.authlib"), CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName());
+		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
+		MOJANG_AUTHLIB("com.mojang.authlib"),
+		CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),
+		BUKKIT_PACKET("org.bukkit");
 		
 		ServerPacket(String source) {
 			this.name = source;

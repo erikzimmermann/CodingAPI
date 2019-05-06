@@ -1,21 +1,20 @@
 package de.codingair.codingapi.player.gui.hovereditems;
 
-import de.codingair.codingapi.particles.Particle;
-import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.Hologram;
+import de.codingair.codingapi.player.data.PacketReader;
+import de.codingair.codingapi.server.DefaultFontInfo;
+import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public abstract class HoveredItem implements Removable {
 	private int ID = ID_COUNTER++;
 	private String name = null;
 	
-	private Plugin plugin;
+	private JavaPlugin plugin;
 	private Player player;
 	
 	private Object item;
@@ -56,7 +55,7 @@ public abstract class HoveredItem implements Removable {
 	
 	private PacketReader packetReader;
 	
-	public HoveredItem(Player player, ItemStack item, Location location, Plugin plugin) {
+	public HoveredItem(Player player, ItemStack item, Location location, JavaPlugin plugin) {
 		this.plugin = plugin;
 		this.player = player;
 		this.stack = item;
@@ -64,7 +63,7 @@ public abstract class HoveredItem implements Removable {
 		this.tempLocation = location.clone();
 	}
 	
-	public HoveredItem(Player player, ItemStack item, Location location, Plugin plugin, String name) {
+	public HoveredItem(Player player, ItemStack item, Location location, JavaPlugin plugin, String name) {
 		this(player, item, location, plugin);
 		this.name = name;
 	}
@@ -173,10 +172,10 @@ public abstract class HoveredItem implements Removable {
 			else corrected.add(line);
 		}
 		
-		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.player, corrected.toArray(new String[corrected.size()]));
-		this.hologram.update();
+		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.plugin, corrected.toArray(new String[corrected.size()]));
+		this.hologram.update(this.player);
 		
-		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString()) {
+		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString(), this.plugin) {
 			@Override
 			public boolean readPacket(Object packet) {
 				if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {
@@ -204,7 +203,7 @@ public abstract class HoveredItem implements Removable {
 		
 		PacketUtils.EntityPackets.destroyEntity(this.item, this.player);
 		PacketUtils.EntityPackets.destroyEntity(this.armorStand, this.player);
-		this.hologram.remove();
+		this.hologram.destroy();
 		
 		this.item = null;
 		this.armorStand = null;
@@ -215,7 +214,7 @@ public abstract class HoveredItem implements Removable {
 		spawned = false;
 	}
 	
-	public Plugin getPlugin() {
+	public JavaPlugin getPlugin() {
 		return plugin;
 	}
 	

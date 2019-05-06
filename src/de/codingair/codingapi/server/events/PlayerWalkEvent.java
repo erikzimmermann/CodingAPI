@@ -24,11 +24,19 @@ public class PlayerWalkEvent extends Event implements Cancellable {
     }
 
     public Location getFrom() {
-        return from;
+        return from.clone();
+    }
+
+    public void setFrom(Location from) {
+        this.from = from;
     }
 
     public Location getTo() {
-        return to;
+        return to.clone();
+    }
+
+    public void setTo(Location to) {
+        this.to = to;
     }
 
     @Override

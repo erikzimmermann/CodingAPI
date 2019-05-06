@@ -1,16 +1,16 @@
 package de.codingair.codingapi.database;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class QueryUpdate {
 	private MySQL MySQL;
 	private String table;
 	private String where = null;
 	private String value = null;
-	private HashMap<Integer, Object> entry_key = new HashMap<>();
-	private HashMap<Integer, Object> entry_value = new HashMap<>();
-	private int entryID = 0;
+	private HashMap<String, Object> entries = new HashMap<>();
 	
 	public QueryUpdate(MySQL MySQL, String table) {
 		this.MySQL = MySQL;
@@ -27,30 +27,26 @@ public class QueryUpdate {
 	public void send() throws SQLException {
 		if(where != null && value != null) this.MySQL.queryUpdate("DELETE FROM `"+this.table+"` WHERE "+this.where+" = '"+this.value+"'");
 		
-		String query = "INSERT INTO `"+this.table+"` (";
-		
-		for(int id = 0; id < this.entryID; id++){
-			query = query + "`" + entry_key.get(id) + "`, ";
-		}
-		
-		query = query.substring(0, query.length()-2) + ") VALUES (";
-		
-		for(int id = 0; id < this.entryID; id++){
-			query = query + "'" + entry_value.get(id) + "', ";
-		}
-		
-		query = query.substring(0, query.length()-2) + ")";
-		
-		this.MySQL.queryUpdate(query);
+		StringBuilder query = new StringBuilder("INSERT INTO `" + this.table + "` (");
 
-		entry_key.clear();
-		entry_value.clear();
+		for(String key : this.entries.keySet()) {
+			query.append("`").append(key).append("`, ");
+		}
+		
+		query = new StringBuilder(query.substring(0, query.length() - 2) + ") VALUES (");
+
+		for(Object value : this.entries.values()) {
+			query.append("'").append(value).append("', ");
+		}
+		
+		query = new StringBuilder(query.substring(0, query.length() - 2) + ")");
+		
+		this.MySQL.queryUpdate(query.toString());
+		this.entries.clear();
 	}
 	
 	public void addEntry(String key, Object value){
-		this.entry_key.put(entryID, key);
-		this.entry_value.put(entryID, value);
-		this.entryID++;
+		this.entries.put(key, value);
 	}
 
 	public MySQL getMySQL() {
@@ -67,5 +63,13 @@ public class QueryUpdate {
 
 	public String getValue() {
 		return value;
+	}
+
+	public void setWhere(String where) {
+		this.where = where;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
 	}
 }

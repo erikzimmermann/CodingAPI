@@ -1,10 +1,8 @@
 package de.codingair.codingapi.server.commands;
 
+import de.codingair.codingapi.API;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,6 +19,7 @@ import java.util.List;
 public class CommandBuilder implements CommandExecutor, TabCompleter {
     private static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
     private static Listener listener;
+    private CommandBackup backup = null;
 
     private static void registerListener(JavaPlugin plugin) {
         if(listener != null) return;
@@ -29,7 +29,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
             public void onPreProcess(PlayerCommandPreprocessEvent e) {
                 String label = e.getMessage().split(" ")[0].replaceFirst("/", "");
-                Command command = Bukkit.getPluginCommand(label);
+                Command command = API.getPluginCommand(label);
 
                 if(command == null || command.getName() == null) return;
 
@@ -47,6 +47,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     private String name;
     private BaseComponent baseComponent;
+    private TabCompleter ownTabCompleter = null;
     private boolean tabCompleter;
     private boolean highestPriority = false;
 
@@ -61,8 +62,47 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         if(plugin.getCommand(this.name) == null) throw new IllegalStateException("You must first add the command to the plugin.yml!");
 
-        plugin.getCommand(this.name).setExecutor(this);
-        if(tabCompleter) plugin.getCommand(this.name).setTabCompleter(this);
+        PluginCommand command = Bukkit.getPluginCommand(this.name);
+        PluginCommand main = plugin.getCommand(this.name);
+
+        if(command != null) {
+            if(highestPriority) {
+                backup = new CommandBackup(command);
+
+                try {
+                    //1.9+
+                    command.setName(main.getName());
+                } catch(Throwable ignored){
+                }
+
+                command.setExecutor(this);
+                command.setTabCompleter(this);
+                command.setDescription(main.getDescription());
+                command.setAliases(main.getAliases());
+                command.setPermission(main.getPermission());
+                command.setUsage(main.getUsage());
+
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                }
+            } else if(command.getPlugin().getName().equals(plugin.getName())) {
+                command.setExecutor(this);
+                command.setTabCompleter(this);
+
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                }
+            }
+        }
+
+        main.setExecutor(this);
+        if(tabCompleter) main.setTabCompleter(this);
 
         REGISTERED.put(this.name.toLowerCase(), this);
 
@@ -75,12 +115,16 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         plugin.getCommand(this.name).setExecutor(null);
         plugin.getCommand(this.name).setTabCompleter(null);
 
+        if(this.backup != null) {
+            this.backup.restore();
+        }
+
         REGISTERED.remove(this.name.toLowerCase());
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) ? getBaseComponent() : getComponent(args);
+        CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) || baseComponent.getChildren().isEmpty() ? getBaseComponent() : getComponent(args);
 
         if(component == null) {
             this.baseComponent.unknownSubCommand(sender, label, args);
@@ -107,6 +151,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if(this.ownTabCompleter != null) return this.ownTabCompleter.onTabComplete(sender, command, label, args);
+
         List<String> sub = new ArrayList<>();
         List<String> sug = new ArrayList<>();
 
@@ -120,8 +166,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         for(CommandComponent child : component.getChildren()) {
             if(child.hasPermission(sender)) {
-                if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, sub);
-                else sub.add(child.getArgument());
+                if(child instanceof MultiCommandComponent && child.useInTabCompleter(sender, label, args)) ((MultiCommandComponent) child).addArguments(sender, args, sub);
+                else if(child.useInTabCompleter(sender, label, args)) sub.add(child.getArgument());
             }
         }
 
@@ -147,7 +193,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         CommandComponent current = this.baseComponent;
 
         for(String value : s) {
-            if(current == null || value.isEmpty() || current.getChild(value) == null) break;
+            if(current == null || (value != null && value.isEmpty())) break;
             current = current.getChild(value);
         }
 
@@ -177,5 +223,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     public CommandBuilder setHighestPriority(boolean highestPriority) {
         this.highestPriority = highestPriority;
         return this;
+    }
+
+    public TabCompleter getOwnTabCompleter() {
+        return ownTabCompleter;
+    }
+
+    public void setOwnTabCompleter(TabCompleter ownTabCompleter) {
+        this.ownTabCompleter = ownTabCompleter;
     }
 }

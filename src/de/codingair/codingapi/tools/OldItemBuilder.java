@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.tools.items.ItemBuilder;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -328,20 +329,9 @@ public class OldItemBuilder {
 	public static ItemStack getHead(GameProfile gameProfile, String displayName) {
 		return OldItemBuilder.setDisplayName(getHead(gameProfile), displayName);
 	}
-		
+
 	public static ItemStack getHead(GameProfile gameProfile) {
-		ItemStack item = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-		
-		if(gameProfile == null) return item;
-		
-		ItemMeta meta = item.getItemMeta();
-		
-		IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
-		profile.set(meta, gameProfile);
-		
-		item.setItemMeta(meta);
-		
-		return item;
+		return ItemBuilder.getHead(gameProfile);
 	}
 	
 	@Deprecated

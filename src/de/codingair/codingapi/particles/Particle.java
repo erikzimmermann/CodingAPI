@@ -15,65 +15,81 @@ import java.util.List;
  **/
 
 public enum Particle {
-	EXPLOSION_NORMAL("explode", 0),
-	EXPLOSION_LARGE("largeexplode", 1),
-	EXPLOSION_HUGE("hugeexplosion", 2),
-	FIREWORKS_SPARK("fireworksSpark", 3),
-	WATER_BUBBLE("bubble", 4, ParticleProperty.REQUIRES_WATER),
-	WATER_SPLASH("splash", 5),
-	WATER_WAKE("wake", 6),
-	SUSPENDED("suspended", 7, ParticleProperty.REQUIRES_WATER),
-	SUSPENDED_DEPTH("depthsuspend", 8),
-	CRIT("crit", 9),
-	CRIT_MAGIC("magicCrit", 10),
-	SMOKE_NORMAL("smoke", 11),
-	SMOKE_LARGE("largesmoke", 12),
-	SPELL("spell", 13),
-	SPELL_INSTANT("instantSpell", 14),
-	SPELL_MOB("mobSpell", 15, ParticleProperty.COLORABLE),
-	SPELL_MOB_AMBIENT("mobSpellAmbient", 16, ParticleProperty.COLORABLE),
-	SPELL_WITCH("witchMagic", 17),
-	DRIP_WATER("dripWater", 18),
-	DRIP_LAVA("dripLava", 19),
-	VILLAGER_ANGRY("angryVillager", 20),
-	VILLAGER_HAPPY("happyVillager", 21),
-	TOWN_AURA("townaura", 22),
-	NOTE("note", 23, ParticleProperty.COLORABLE),
-	PORTAL("portal", 24),
-	ENCHANTMENT_TABLE("enchantmenttable", 25),
-	FLAME("flame", 26),
-	LAVA("lava", 27),
+	EXPLOSION_NORMAL("explode", "poof", 0),
+	EXPLOSION_LARGE("largeexplode", "explosion", 1),
+	EXPLOSION_HUGE("hugeexplosion", "explosion_emitter", 2),
+	FIREWORKS_SPARK("fireworksSpark", "firework", 3),
+	WATER_BUBBLE("bubble", "bubble", 4, ParticleProperty.REQUIRES_WATER),
+	WATER_SPLASH("splash", "splash", 5),
+	WATER_WAKE("wake", "fishing", 6),
+	SUSPENDED("suspended", "underwater", 7, ParticleProperty.REQUIRES_WATER),
+	SUSPENDED_DEPTH("depthsuspend", "underwater", 8),
+	CRIT("crit", "crit", 9),
+	CRIT_MAGIC("magicCrit", "enchanted_hit", 10),
+	SMOKE_NORMAL("smoke", "smoke", 11),
+	SMOKE_LARGE("largesmoke", "large_smoke", 12),
+	SPELL("spell", "effect", 13),
+	SPELL_INSTANT("instantSpell", "instant_effect", 14),
+	SPELL_MOB("mobSpell", "entity_effect", 15, ParticleProperty.COLORABLE),
+	SPELL_MOB_AMBIENT("mobSpellAmbient", "ambient_entity_effect", 16, ParticleProperty.COLORABLE),
+	SPELL_WITCH("witchMagic", "witch", 17),
+	DRIP_WATER("dripWater", "dripping_water", 18),
+	DRIP_LAVA("dripLava", "dripping_lava", 19),
+	VILLAGER_ANGRY("angryVillager", "angry_villager", 20),
+	VILLAGER_HAPPY("happyVillager", "happy_villager", 21),
+	TOWN_AURA("townaura", "mycelium", 22),
+	NOTE("note", "note", 23, ParticleProperty.COLORABLE),
+	PORTAL("portal", "portal", 24),
+	ENCHANTMENT_TABLE("enchantmenttable", "enchant", 25),
+	FLAME("flame", "flame", 26),
+	LAVA("lava", "lava", 27),
 	FOOTSTEP("footstep", 28),
-	CLOUD("cloud", 29),
-	REDSTONE("reddust", 30, ParticleProperty.COLORABLE),
-	SNOWBALL("snowballpoof", 31),
-	SNOW_SHOVEL("snowshovel", 32),
-	SLIME("slime", 33),
-	HEART("heart", 34),
-	BARRIER("barrier", 35),
-	ITEM_CRACK("iconcrack", 36, ParticleProperty.REQUIRES_DATA),
-	BLOCK_CRACK("blockcrack", 37, ParticleProperty.REQUIRES_DATA),
-	BLOCK_DUST("blockdust", 38, ParticleProperty.REQUIRES_DATA),
-	WATER_DROP("droplet", 39),
+	CLOUD("cloud", "cloud", 29),
+	REDSTONE("reddust", "dust", 30, ParticleProperty.COLORABLE),
+	SNOWBALL("snowballpoof", "item_snowball", 31),
+	SNOW_SHOVEL("snowshovel", "item_snowball", 32),
+	SLIME("slime", "item_slime", 33),
+	HEART("heart", "heart", 34),
+	BARRIER("barrier", "barrier", 35),
+	ITEM_CRACK("iconcrack", "item", 36, ParticleProperty.REQUIRES_DATA),
+	BLOCK_CRACK("blockcrack", "block", 37, ParticleProperty.REQUIRES_DATA),
+	BLOCK_DUST("blockdust", "block", 38, ParticleProperty.REQUIRES_DATA),
+	WATER_DROP("droplet", "rain", 39),
 	ITEM_TAKE("take", 40),
-	MOB_APPEARANCE("mobappearance", 41),
-	DRAGON_BREATH("dragonbreath", 42),
-	END_ROD("endRod", 43),
-	DAMAGE_INDICATOR("damageIndicator", 44),
-	SWEEP_ATTACK("sweepAttack", 45),
-	FALLING_DUST("fallingdust", 46);
+	MOB_APPEARANCE("mobappearance", "elder_guardian", 41),
+	DRAGON_BREATH("dragonbreath", "dragon_breath", 42),
+	END_ROD("endRod", "end_rod", 43),
+	DAMAGE_INDICATOR("damageIndicator", "damage_indicator", 44),
+	SWEEP_ATTACK("sweepAttack", "sweep_attack", 45),
+	FALLING_DUST("fallingdust", "falling_dust", 46);
 	
 	private String name;
+	private String name_v1_13;
 	private int id;
 	private List<ParticleProperty> properties = null;
-	
+
 	Particle(String name, int id) {
 		this.name = name;
+		this.name_v1_13 = null;
 		this.id = id;
 	}
-	
+
 	Particle(String name, int id, ParticleProperty... property) {
 		this.name = name;
+		this.name_v1_13 = null;
+		this.id = id;
+		properties = Arrays.asList(property);
+	}
+
+	Particle(String name, String name_v1_13, int id) {
+		this.name = name;
+		this.name_v1_13 = name_v1_13;
+		this.id = id;
+	}
+
+	Particle(String name, String name_v1_13, int id, ParticleProperty... property) {
+		this.name = name;
+		this.name_v1_13 = name_v1_13;
 		this.id = id;
 		properties = Arrays.asList(property);
 	}
@@ -133,6 +149,16 @@ public enum Particle {
 		}
 	}
 
+	public void send(Location loc, double maxDistance) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(true);
+			packet.setMaxDistance(maxDistance);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
 	public void send(Location loc, boolean longDistance, Player... players) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {
@@ -154,9 +180,32 @@ public enum Particle {
 		}
 	}
 
+	public void send(Location loc, Color color, boolean longDistance) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
+			packet.setColor(color);
+			packet.initialize(loc);
+			packet.send();
+		}
+	}
+
 	public void send(Location loc, Color color, Player... players) {
 		ParticlePacket packet = new ParticlePacket(this);
 		if(packet.available()) {
+			packet.setColor(color);
+			packet.initialize(loc);
+
+			for(Player player : players) {
+				packet.send(player);
+			}
+		}
+	}
+
+	public void send(Location loc, Color color, boolean longDistance, Player... players) {
+		ParticlePacket packet = new ParticlePacket(this);
+		if(packet.available()) {
+			packet.setLongDistance(longDistance);
 			packet.setColor(color);
 			packet.initialize(loc);
 
@@ -178,5 +227,9 @@ public enum Particle {
 		}
 		
 		return null;
+	}
+
+	public String getName_v1_13() {
+		return name_v1_13;
 	}
 }

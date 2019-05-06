@@ -13,7 +13,7 @@ public abstract class MultiCommandComponent extends CommandComponent {
         super(null, permission);
     }
 
-    public abstract void addArguments(CommandSender sender, List<String> suggestions);
+    public abstract void addArguments(CommandSender sender, String[] args, List<String> suggestions);
 
     @Override
     public boolean runCommand(CommandSender sender, String label, String[] args) {

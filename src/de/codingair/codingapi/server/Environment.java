@@ -2,13 +2,9 @@ package de.codingair.codingapi.server;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import net.minecraft.server.v1_8_R3.BlockPosition;
-import net.minecraft.server.v1_8_R3.Blocks;
-import net.minecraft.server.v1_8_R3.PacketPlayOutBlockAction;
 import org.bukkit.*;
 import org.bukkit.Color;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
@@ -95,7 +91,7 @@ public class Environment {
 	}
 	
 	public static boolean isBlock(Block block) {
-		return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().equals(Material.SIGN_POST) && !block.getType().equals(Material.AIR);
+		return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().equals(Material.SIGN) && !block.getType().equals(Material.AIR);
 	}
 	
 	public static boolean isSlab(Block block) {

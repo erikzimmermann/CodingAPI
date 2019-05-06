@@ -2,6 +2,7 @@ package de.codingair.codingapi.bungeecord.files;
 
 import net.md_5.bungee.api.plugin.Plugin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,9 +26,17 @@ public class FileManager {
         this.configList.add(new ConfigFile(name, path, plugin));
     }
 
+    public void loadFile(String name, String path, String srcPath) {
+        this.configList.add(new ConfigFile(name, path, srcPath, plugin));
+    }
+
     public void reloadAll() {
         for (ConfigFile file : this.configList) {
-            file.reload();
+            try {
+                file.load();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

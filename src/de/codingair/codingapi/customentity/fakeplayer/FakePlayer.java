@@ -30,6 +30,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -53,7 +54,7 @@ public class FakePlayer implements Removable {
     private static final long TABLIST_REMOVE_TIME = 20L;
     private static final int VIEW_RADIUS = 160;
 
-    private Plugin plugin;
+    private JavaPlugin plugin;
 
     private final int id = FakePlayer.ID++;
 
@@ -86,7 +87,7 @@ public class FakePlayer implements Removable {
 
     private Runnable runnable = null;
 
-    public FakePlayer(GameProfile gameProfile, Location location, Plugin plugin) {
+    public FakePlayer(GameProfile gameProfile, Location location, JavaPlugin plugin) {
         this.gameProfile = gameProfile;
         this.setLocation(location);
         this.oldLocation = location.clone();
@@ -878,7 +879,7 @@ public class FakePlayer implements Removable {
 
     private boolean isReady(Player p) {
         IReflection.FieldAccessor joining = IReflection.getField(PacketUtils.EntityPlayerClass, "joining");
-        return !(boolean) joining.get(PacketUtils.getEntityPlayer(p)) || API.getInstance().getPlayerData(p).loadedSpawnChunk();
+        return !(boolean) joining.get(PacketUtils.getEntityPlayer(p))/* || API.getInstance().getPlayerData(p).loadedSpawnChunk()*/;
 //        return true;
     }
 
@@ -903,7 +904,7 @@ public class FakePlayer implements Removable {
         return onTablist;
     }
 
-    public Plugin getPlugin() {
+    public JavaPlugin getPlugin() {
         return plugin;
     }
 

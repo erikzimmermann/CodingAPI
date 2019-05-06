@@ -37,6 +37,15 @@ public class MessageAPI {
         PacketUtils.sendPacket(p, bar);
     }
 
+    public static void stopSendingActionBar(Player p) {
+        Countdown countdown = countdowns.get(p.getName());
+        if(countdown != null) {
+            countdown.end();
+        }
+
+        sendActionBar(p, null);
+    }
+
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
         Countdown countdown = countdowns.get(p.getName());
         if(countdown != null) {
@@ -75,10 +84,16 @@ public class MessageAPI {
         countdowns.put(p.getName(), countdown);
     }
 
-    public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut) {
-        if(msg1 == null) msg1 = "";
-        if(msg2 == null) msg2 = "";
 
+    public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut) {
+        sendTitle(p, msg1, msg2, fadeIn, stay, fadeOut, false);
+    }
+
+    public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket) {
+        sendTitle(p, msg1, msg2, fadeIn, stay, fadeOut, ignoreTimePacket, false, false);
+    }
+
+    public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket, boolean reset, boolean clear) {
         Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle");
         Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle$EnumTitleAction");
         IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
@@ -88,11 +103,17 @@ public class MessageAPI {
 
         String[] names = (String[]) getNames.invoke(enumTitle);
 
-        Object title = constructor.newInstance(getEnum.invoke(enumTitle, names[0]), PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
-        Object subTitle = constructor.newInstance(getEnum.invoke(enumTitle, names[1]), PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
+        Object resetP = constructor.newInstance(getEnum.invoke(enumTitle, names[4]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object clearP = constructor.newInstance(getEnum.invoke(enumTitle, names[3]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object times = constructor.newInstance(getEnum.invoke(enumTitle, names[2]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object subTitle = msg2 == null ? null : constructor.newInstance(getEnum.invoke(enumTitle, names[1]), PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
+        Object title = msg1 == null ? null : constructor.newInstance(getEnum.invoke(enumTitle, names[0]), PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
 
-        PacketUtils.sendPacket(p, title);
-        PacketUtils.sendPacket(p, subTitle);
+        if(reset) PacketUtils.sendPacket(p, resetP);
+        if(clear) PacketUtils.sendPacket(p, clearP);
+        if(!ignoreTimePacket) PacketUtils.sendPacket(p, times);
+        if(msg2 != null) PacketUtils.sendPacket(p, subTitle);
+        if(msg1 != null) PacketUtils.sendPacket(p, title);
     }
 
     public static void sendTablist(Player p, String header, String footer) {

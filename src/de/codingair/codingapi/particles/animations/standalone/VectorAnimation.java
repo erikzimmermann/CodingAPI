@@ -63,7 +63,7 @@ public class VectorAnimation extends Animation {
         }
 
         Location loc = start.clone().add(this.direction.clone().multiply(this.pos));
-        getParticle().send(loc);
+        sendParticle(loc);
 
         pos++;
     }

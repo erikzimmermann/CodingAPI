@@ -3,7 +3,7 @@ package de.codingair.codingapi.server;
 import org.bukkit.Bukkit;
 
 public enum Version {
-	UNKNOWN, v1_7, v1_8, v1_9, v1_10, v1_11, v1_12;
+	UNKNOWN, v1_7, v1_8, v1_9, v1_10, v1_11, v1_12, v1_13, v1_14;
 	
 	public static Version getVersion() {
 		if(Bukkit.getVersion().contains("1.7")) return v1_7;
@@ -12,6 +12,8 @@ public enum Version {
 		else if(Bukkit.getVersion().contains("1.10")) return v1_10;
 		else if(Bukkit.getVersion().contains("1.11")) return v1_11;
 		else if(Bukkit.getVersion().contains("1.12")) return v1_12;
+		else if(Bukkit.getVersion().contains("1.13")) return v1_13;
+		else if(Bukkit.getVersion().contains("1.14")) return v1_14;
 		else return UNKNOWN;
 	}
 	
@@ -29,6 +31,10 @@ public enum Version {
 				return "v1_11_R1";
 			case v1_12:
 				return "v1_12";
+			case v1_13:
+				return "v1_13";
+			case v1_14:
+				return "v1_14";
 			default:
 				return UNKNOWN.name();
 		}

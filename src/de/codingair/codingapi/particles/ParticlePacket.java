@@ -1,5 +1,6 @@
 package de.codingair.codingapi.particles;
 
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.Bukkit;
@@ -23,6 +24,7 @@ public class ParticlePacket {
 	private Color color = null;
 	private boolean longDistance = false;
 	private Location location;
+	private double maxDistance = 0;
 	
 	public ParticlePacket(Particle particle) {
 		this.particle = particle;
@@ -37,63 +39,104 @@ public class ParticlePacket {
 	public ParticlePacket initialize(Location loc) {
 		if(!available()) return this;
 		this.location = loc;
-		
-		Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
+
 		Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
 		Constructor packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
-		
-		ParticleData data = null;
-		
-		if(particle.requiresData()) {
-			Location below = loc.clone();
-			below.setY(loc.getBlockY() - 1);
-			
-			//noinspection deprecation
-			data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());
-		}
-		
-		if(particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.STATIONARY_WATER)) return this;
-		
-		float e = 0, f = 0, g = 0, h = 0;
-		int i = 1;
-		if(particle.isColorable() && this.color != null) {
-			e = this.color.getRed() / 255;
-			
-			if(e == 0) e = 0.003921569F;
-			
-			f = this.color.getGreen() / 255;
-			g = this.color.getBlue() / 255;
-			h = 1F;
-			i = 0;
-		}
-		
-		try {
-			packet = packetConstructor.newInstance();
-			
-			IReflection.setValue(packet, "a", enumParticle.getEnumConstants()[particle.getId()]);
-			IReflection.setValue(packet, "j", this.longDistance);
-			
-			if (data != null) {
-				int[] packetData = data.getPacketData();
-				IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[] { packetData[0] | (packetData[1] << 12) });
+
+		if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+			Class<?> packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
+			Class<?> particleParam = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ParticleParam");
+			Class<?> craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
+			Class<?> dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
+			IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles);
+			IReflection.MethodAccessor toNMS = IReflection.getMethod(craftParticle, "toNMS", particleParam, new Class[]{org.bukkit.Particle.class, Object.class});
+
+			Object data = null;
+			if(this.color != null) {
+				data = IReflection.getConstructor(dustOptions, org.bukkit.Color.class, float.class).newInstance(org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue()), 1);
 			}
-			
-			IReflection.setValue(packet, "b", (float) loc.getX());
-			IReflection.setValue(packet, "c", (float) loc.getY());
-			IReflection.setValue(packet, "d", (float) loc.getZ());
-			IReflection.setValue(packet, "e", e);
-			IReflection.setValue(packet, "f", f);
-			IReflection.setValue(packet, "g", g);
-			IReflection.setValue(packet, "h", h);
-			IReflection.setValue(packet, "i", i);
-		} catch(Exception exception) {
-			exception.printStackTrace();
+
+			Object particle;
+
+			try {
+				particle = toNMS.invoke(null, org.bukkit.Particle.valueOf(this.particle.name()), data);
+			} catch(Exception ex) {
+				return this;
+			}
+
+			packet = packetCon.newInstance();
+
+			try {
+				IReflection.setValue(packet, "a", (float) this.location.getX());
+				IReflection.setValue(packet, "b", (float) this.location.getY());
+				IReflection.setValue(packet, "c", (float) this.location.getZ());
+				IReflection.setValue(packet, "d", 0);
+				IReflection.setValue(packet, "e", 0);
+				IReflection.setValue(packet, "f", 0);
+				IReflection.setValue(packet, "g", 0);
+				IReflection.setValue(packet, "h", 1);
+				IReflection.setValue(packet, "i", this.longDistance);
+				IReflection.setValue(packet, "j", particle);
+			} catch(IllegalAccessException | NoSuchFieldException e1) {
+				e1.printStackTrace();
+			}
+		} else {
+			Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
+
+			ParticleData data = null;
+
+			if(particle.requiresData()) {
+				Location below = loc.clone();
+				below.setY(loc.getBlockY() - 1);
+
+				//noinspection deprecation
+				data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());
+			}
+
+			if(particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER"))) return this;
+
+			float e = 0, f = 0, g = 0, h = 0;
+			int i = 1;
+			if(particle.isColorable() && this.color != null) {
+				e = (float) this.color.getRed() / 255F;
+
+				if(e == 0) e = 0.003921569F;
+
+				f = (float) this.color.getGreen() / 255F;
+				g = (float) this.color.getBlue() / 255F;
+				h = 1F;
+				i = 0;
+			}
+
+			try {
+				packet = packetConstructor.newInstance();
+
+				IReflection.setValue(packet, "a", enumParticle.getEnumConstants()[particle.getId()]);
+				IReflection.setValue(packet, "j", this.longDistance);
+
+				if (data != null) {
+					int[] packetData = data.getPacketData();
+					IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[] { packetData[0] | (packetData[1] << 12) });
+				}
+
+				IReflection.setValue(packet, "b", (float) loc.getX());
+				IReflection.setValue(packet, "c", (float) loc.getY());
+				IReflection.setValue(packet, "d", (float) loc.getZ());
+				IReflection.setValue(packet, "e", e);
+				IReflection.setValue(packet, "f", f);
+				IReflection.setValue(packet, "g", g);
+				IReflection.setValue(packet, "h", h);
+				IReflection.setValue(packet, "i", i);
+			} catch(Exception exception) {
+				exception.printStackTrace();
+			}
 		}
 		
 		return this;
 	}
 	
-	public boolean available() {
+	boolean available() {
+		if(Version.getVersion().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
 		Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
 		return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();
 	}
@@ -102,16 +145,15 @@ public class ParticlePacket {
 		if(packet == null || location == null) return;
 
 		for(Player player : p) {
-			if(player.getWorld() == this.location.getWorld()) PacketUtils.sendPacket(packet, player);
+			if(player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
+				PacketUtils.sendPacket(packet, player);
+			}
 		}
 	}
 	
 	public void send() {
 		if(packet == null || location == null) return;
-
-		for(Player player : Bukkit.getOnlinePlayers()) {
-			if(player.getWorld() == this.location.getWorld()) PacketUtils.sendPacket(packet, player);
-		}
+		send(Bukkit.getOnlinePlayers().toArray(new Player[0]));
 	}
 	
 	public Particle getParticle() {
@@ -145,5 +187,13 @@ public class ParticlePacket {
 	
 	public void setLongDistance(boolean longDistance) {
 		this.longDistance = longDistance;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(double maxDistance) {
+		this.maxDistance = maxDistance;
 	}
 }

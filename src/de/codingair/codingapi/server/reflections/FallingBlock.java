@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
@@ -22,10 +23,12 @@ public class FallingBlock implements Removable {
 	private Location location;
 	private MaterialData data;
 	private Object fallingBlock;
+	private JavaPlugin plugin;
 	
-	public FallingBlock(Location location, MaterialData data) {
+	public FallingBlock(Location location, MaterialData data, JavaPlugin plugin) {
 		this.location = location;
 		this.data = data;
+		this.plugin = plugin;
 	}
 	
 	@Override
@@ -47,7 +50,12 @@ public class FallingBlock implements Removable {
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
-	
+
+	@Override
+	public JavaPlugin getPlugin() {
+		return plugin;
+	}
+
 	public void spawn() {
 		this.fallingBlock = Environment.spawnNonSolidFallingBlock(this.location, this.data);
 		API.addRemovable(this);

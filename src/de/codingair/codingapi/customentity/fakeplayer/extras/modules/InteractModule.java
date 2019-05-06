@@ -43,7 +43,7 @@ public class InteractModule extends Module {
 			if(reader.getName().equals(name)) return;
 		}
 		
-		PacketReader reader = new PacketReader(p, name) {
+		PacketReader reader = new PacketReader(p, name, getPlayer().getPlugin()) {
 			
 			@Override
 			public boolean readPacket(Object packet) {

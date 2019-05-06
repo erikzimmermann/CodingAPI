@@ -1,9 +1,12 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -12,10 +15,10 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -25,207 +28,456 @@ import java.util.UUID;
  **/
 
 public abstract class GUI extends Interface implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
-	private Plugin plugin;
-	private Player player;
-	private SoundData openSound = null;
-	private SoundData cancelSound = null;
-	private boolean closingByButton = false;
-	private boolean moveOwnItems = false;
-	
-	public GUI(Player p, String title, int size, Plugin plugin) {
-		this(p, title, size, plugin, true);
-	}
-	
-	public GUI(Player p, String title, int size, Plugin plugin, boolean preInitialize) {
-		super(p, title, size, plugin);
-		oldUsage = false;
+    private UUID uniqueId = UUID.randomUUID();
+    private JavaPlugin plugin;
+    private Player player;
+    private SoundData openSound = null;
+    private SoundData cancelSound = null;
+    private boolean closingByButton = false;
+    private boolean closingByOperation = false;
+    private boolean closingForGUI = false;
+    private boolean moveOwnItems = false;
+    private List<Integer> movableSlots = new ArrayList<>();
+    private List<GUIListener> listeners = new ArrayList<>();
+    private boolean canDropItems = false;
+    private boolean isClosed = false;
+    private boolean buffering = false;
+    private Callback<GUI> closingConfirmed = null;
+    private GUI fallbackGUI = null;
+    private boolean useFallbackGUI = false;
 
-		super.setEditableItems(false);
+    public GUI(Player p, String title, int size, JavaPlugin plugin) {
+        this(p, title, size, plugin, true);
+    }
 
-		this.plugin = plugin;
-		this.player = p;
-		
-		super.addListener(new InterfaceListener() {
-			@Override
-			public void onInvClickEvent(InventoryClickEvent e) {
-			}
-			
-			@Override
-			public void onInvOpenEvent(InventoryOpenEvent e) {
-				if(e.getPlayer().equals(player)) {
-					onOpen(player);
-				}
-			}
-			
-			@Override
-			public void onInvCloseEvent(InventoryCloseEvent e) {
-				if(e.getPlayer().equals(player)) {
-					onClose(player);
-				}
-			}
-			
-			@Override
-			public void onInvDragEvent(InventoryDragEvent e) {
-			
-			}
-		});
-		
-		this.setEditableItems(false);
-		
-		if(preInitialize) initialize(p);
-	}
-	
-	@Override
-	public UUID getUniqueId() {
-		return uniqueId;
-	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return GUI.class;
-	}
-	
-	@Override
-	public void destroy() {
-		close();
-	}
-	
-	public abstract void initialize(Player p);
+    public GUI(Player p, String title, int size, JavaPlugin plugin, boolean preInitialize) {
+        super(p, title, size, plugin);
+        oldUsage = false;
 
-	public void reinitialize() {
-		clear();
-		initialize(this.player);
-		setTitle(getTitle());
-	}
+        super.setEditableItems(false);
 
-	public void reinitialize(String title) {
-		clear();
-		initialize(this.player);
-		setTitle(title);
-	}
-	
-	public void onClose(Player p) { }
-	public void onOpen(Player p) { }
-	
-	@Override
-	public void open(Player p) {
-		if(GUI.usesGUI(p)) GUI.getGUI(p).close();
-		if(GUI.usesOldGUI(p)) GUI.getOldGUI(p).close(p);
+        this.plugin = plugin;
+        this.player = p;
 
-		if(this.openSound != null) this.openSound.play(p);
-		super.open(p);
-		API.addRemovable(this);
-	}
-	
-	public void open() {
-		this.open(this.player);
-	}
-	
-	@Override
-	public void close(Player p) {
-		super.close(p);
-		API.removeRemovable(this);
-	}
-	
-	public void close() {
-		super.close(this.player);
-		API.removeRemovable(this);
-	}
-	
-	@Override
-	public Player getPlayer() {
-		return player;
-	}
-	
-	@Override
-	public boolean isUsing(Player player) {
-		return this.player.getName().equals(player.getName());
-	}
-	
-	public Plugin getPlugin() {
-		return plugin;
-	}
+        super.addListener(new InterfaceListener() {
+            @Override
+            public void onInvClickEvent(InventoryClickEvent e) {
+                listeners.forEach(l -> l.onInvClickEvent(e));
+            }
 
-	public SoundData getCancelSound() {
-		return cancelSound;
-	}
+            @Override
+            public void onInvOpenEvent(InventoryOpenEvent e) {
+                listeners.forEach(l -> l.onInvOpenEvent(e));
+            }
 
-	public GUI setCancelSound(Sound sound) {
-		this.cancelSound = new SoundData(sound, 1, 1);
-		return this;
-	}
+            @Override
+            public void onInvCloseEvent(InventoryCloseEvent e) {
+                listeners.forEach(l -> l.onInvCloseEvent(e));
+                if(!closingByOperation && !closingByButton && !closingForGUI && useFallbackGUI && fallbackGUI != null) fallbackGUI.open();
+            }
 
-	public GUI setCancelSound(SoundData cancelSound) {
-		this.cancelSound = cancelSound;
-		return this;
-	}
+            @Override
+            public void onClickBottomInventory(InventoryClickEvent e) {
+                listeners.forEach(l -> l.onClickBottomInventory(e));
+            }
 
-	public boolean isClosingByButton() {
-		return closingByButton;
-	}
+            @Override
+            public void onDropItem(InventoryClickEvent e) {
+                listeners.forEach(l -> l.onDropItem(e));
+            }
 
-	public void setClosingByButton(boolean closingByButton) {
-		this.closingByButton = closingByButton;
-	}
+            @Override
+            public void onInvDragEvent(InventoryDragEvent e) {
+                listeners.forEach(l -> l.onInvDragEvent(e));
+            }
+        });
 
-	public void changeGUI(GUI newGui) {
-		setSize(newGui.getSize());
-        newGui.setInventory(getInventory());
-		newGui.reinitialize();
-	}
+        this.setEditableItems(false);
 
-	protected void setInventory(Inventory inv) {
-		this.inventory = inv;
-	}
+        if(preInitialize) initialize(p);
+    }
 
-	public void addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
-		double cX = (double) x0, cY = (double) y0;
-		Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
+    public List<GUIListener> getGUIListeners() {
+        return listeners;
+    }
 
-		do {
-			if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
-			cX += v.getX();
-			cY += v.getY();
-		} while((int) cX != x1 || (int) cY != y1);
+    @Override
+    public UUID getUniqueId() {
+        return uniqueId;
+    }
 
-		if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
-	}
+    @Override
+    public Class<? extends Removable> getAbstractClass() {
+        return GUI.class;
+    }
 
-	public static GUI getGUI(Player p) {
-		return API.getRemovable(p, GUI.class);
-	}
+    @Override
+    public void destroy() {
+        close();
+    }
 
-	public static Interface getOldGUI(Player p) {
-		for (Interface i : interfaces) {
-			if(i.isUsing(p)) return i;
-		}
+    public abstract void initialize(Player p);
 
-		return null;
-	}
+    public void addListener(GUIListener listener) {
+        this.listeners.add(listener);
+    }
 
-	public static boolean usesGUI(Player p) {
-		return getGUI(p) != null;
-	}
+    public void removeListener(GUIListener listener) {
+        this.listeners.remove(listener);
+    }
 
-	public static boolean usesOldGUI(Player p) {
-		return getOldGUI(p) != null;
-	}
+    public void reinitialize() {
+        clear();
+        initialize(this.player);
+    }
 
-	public SoundData getOpenSound() {
-		return openSound;
-	}
+    public void reinitialize(String title) {
+        this.reinitialize();
+        setTitle(title);
+    }
 
-	public GUI setOpenSound(SoundData openSound) {
-		this.openSound = openSound;
-		return this;
-	}
+    @Deprecated
+    public void onClose(Player p) {
+    }
 
-	public boolean isMoveOwnItems() {
-		return moveOwnItems;
-	}
+    @Deprecated
+    public void onOpen(Player p) {
+    }
 
-	public void setMoveOwnItems(boolean moveOwnItems) {
-		this.moveOwnItems = moveOwnItems;
-	}
+    @Override
+    public void open(Player p) {
+        isClosed = false;
+        closingByButton = false;
+        closingByOperation = false;
+        closingForGUI = false;
+
+        Callback<GUI> run = new Callback<GUI>() {
+            @Override
+            public void accept(GUI old) {
+                if(fallbackGUI == null) fallbackGUI = old;
+                if(GUI.this.openSound != null) GUI.this.openSound.play(p);
+                API.addRemovable(GUI.this);
+                GUI.super.open(p);
+
+                if(old != null) old.closingConfirmed = null;
+            }
+        };
+
+        if(GUI.usesGUI(p)) {
+            GUI gui = GUI.getGUI(p);
+            gui.closingConfirmed = run;
+            gui.close();
+            return;
+        }
+
+        if(GUI.usesOldGUI(p)) {
+            GUI.getOldGUI(p).close(p);
+        }
+
+        run.accept(null);
+    }
+
+    public void open() {
+        this.open(this.player);
+    }
+
+    @Override
+    public void close(Player p, boolean isClosing) {
+        if(isClosed) return;
+        else isClosed = true;
+
+        closingByOperation = !isClosing;
+        super.close(p, isClosing);
+    }
+
+    @Override
+    public void close(Player p) {
+        close(p, false);
+    }
+
+    public void close() {
+        close(this.player);
+    }
+
+    public void confirmClosing() {
+        API.removeRemovable(this);
+        if(this.closingConfirmed != null) {
+            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> closingConfirmed.accept(this), 1L);
+        }
+    }
+
+    public void setEditableSlots(boolean movable, Integer... slots) {
+        setEditableSlots(movable, Arrays.asList(slots));
+    }
+
+    public void setEditableSlots(boolean movable, List<Integer> slots) {
+        if(movable) {
+            for(int slot : slots) {
+                if(this.movableSlots.contains(slot)) continue;
+                this.movableSlots.add(slot);
+            }
+        } else {
+            for(int slot : slots) {
+                this.movableSlots.remove((Object) slot);
+            }
+        }
+
+        Collections.sort(this.movableSlots);
+    }
+
+    public List<Integer> getMovableSlots() {
+        return Collections.unmodifiableList(this.movableSlots);
+    }
+
+    public boolean isMovable(int slot) {
+        return this.movableSlots.contains(slot);
+    }
+
+    @Override
+    public Player getPlayer() {
+        return player;
+    }
+
+    @Override
+    public boolean isUsing(Player player) {
+        return this.player.getName().equals(player.getName());
+    }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+
+    public SoundData getCancelSound() {
+        return cancelSound;
+    }
+
+    public GUI setCancelSound(Sound sound) {
+        this.cancelSound = new SoundData(sound, 1, 1);
+        return this;
+    }
+
+    public GUI setCancelSound(SoundData cancelSound) {
+        this.cancelSound = cancelSound;
+        return this;
+    }
+
+    public boolean isClosingByButton() {
+        return closingByButton;
+    }
+
+    public void setClosingByButton(boolean closingByButton) {
+        this.closingByButton = closingByButton;
+    }
+
+    public void changeGUI(GUI newGui) {
+        if(getSize() == newGui.getSize()) {
+            newGui.setInventory(getInventory());
+            newGui.reinitialize(newGui.getTitle());
+            close(player, true);
+        } else {
+            close();
+            newGui.open();
+        }
+    }
+
+    protected void setInventory(Inventory inv) {
+        this.inventory = inv;
+    }
+
+    public void addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
+        double cX = (double) x0, cY = (double) y0;
+        Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
+
+        do {
+            if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+            cX += v.getX();
+            cY += v.getY();
+        } while((int) cX != x1 || (int) cY != y1);
+
+        if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+    }
+
+    @Override
+    public void addButton(int slot, ItemButton button) {
+        super.addButton(slot, button);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public HashMap<Integer, ItemStack> addItem(ItemStack... arg0) throws IllegalArgumentException {
+        HashMap<Integer, ItemStack> map = super.addItem(arg0);
+        if(!buffering) this.player.updateInventory();
+        return map;
+    }
+
+    @Override
+    public void addButton(ItemButton button) {
+        super.addButton(button);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(ItemStack item, int startSlot, int endSlot) {
+        super.setItem(item, startSlot, endSlot);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setFrame(ItemStack item) {
+        super.setFrame(item);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setBackground(ItemStack background) {
+        super.setBackground(background);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public Interface setDisplayname(int slot, String name) {
+        super.setDisplayname(slot, name);
+        if(!buffering) this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public Interface setLore(int slot, String... lore) {
+        super.setLore(slot, lore);
+        if(!buffering) this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public Interface setAmount(int slot, int amount) {
+        super.setAmount(slot, amount);
+        if(!buffering) this.player.updateInventory();
+        return this;
+    }
+
+    @Override
+    public boolean setSize(int size) {
+        boolean result = super.setSize(size);
+        if(!buffering) this.player.updateInventory();
+        return result;
+    }
+
+    @Override
+    public void setTitle(String title, boolean reopen) {
+        super.setTitle(title, reopen);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setTitle(String title) {
+        super.setTitle(title);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setContents(ItemStack[] arg0) throws IllegalArgumentException {
+        super.setContents(arg0);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(int x, ItemStack item) {
+        super.setItem(x, item);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    @Override
+    public void setItem(int x, int y, ItemStack item) {
+        super.setItem(x, y, item);
+        if(!buffering) this.player.updateInventory();
+    }
+
+    public ItemButton getButtonAt(int x, int y) {
+        return getButtonAt(x + y * 9);
+    }
+
+    public static GUI getGUI(Player p) {
+        return API.getRemovable(p, GUI.class);
+    }
+
+    public static Interface getOldGUI(Player p) {
+        for(Interface i : interfaces) {
+            if(i.isUsing(p)) return i;
+        }
+
+        return null;
+    }
+
+    public static boolean usesGUI(Player p) {
+        return getGUI(p) != null;
+    }
+
+    public static boolean usesOldGUI(Player p) {
+        return getOldGUI(p) != null;
+    }
+
+    public SoundData getOpenSound() {
+        return openSound;
+    }
+
+    public GUI setOpenSound(SoundData openSound) {
+        this.openSound = openSound;
+        return this;
+    }
+
+    public boolean isMoveOwnItems() {
+        return moveOwnItems;
+    }
+
+    public void setMoveOwnItems(boolean moveOwnItems) {
+        this.moveOwnItems = moveOwnItems;
+    }
+
+    public boolean isCanDropItems() {
+        return canDropItems;
+    }
+
+    public void setCanDropItems(boolean canDropItems) {
+        this.canDropItems = canDropItems;
+    }
+
+    public boolean isClosingByOperation() {
+        return closingByOperation;
+    }
+
+    public boolean isClosed() {
+        return isClosed;
+    }
+
+    public boolean isBuffering() {
+        return buffering;
+    }
+
+    public void setBuffering(boolean buffering) {
+        this.buffering = buffering;
+    }
+
+    public void release() {
+        getPlayer().updateInventory();
+    }
+
+    public boolean isUseFallbackGUI() {
+        return useFallbackGUI;
+    }
+
+    public void setUseFallbackGUI(boolean useFallbackGUI) {
+        this.useFallbackGUI = useFallbackGUI;
+    }
+
+    public GUI getFallbackGUI() {
+        return fallbackGUI;
+    }
+
+    public boolean isClosingForGUI() {
+        return closingForGUI;
+    }
+
+    public void setClosingForGUI(boolean closingForGUI) {
+        this.closingForGUI = closingForGUI;
+    }
 }

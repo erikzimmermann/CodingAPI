@@ -3,6 +3,7 @@ package de.codingair.codingapi.server.events;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -10,7 +11,7 @@ public class WalkListener implements Listener {
     public WalkListener() {
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onWalk(PlayerMoveEvent e) {
         Player p = e.getPlayer();
 
@@ -21,7 +22,9 @@ public class WalkListener implements Listener {
         if(Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.05) {
             PlayerWalkEvent event = new PlayerWalkEvent(p, e.getFrom().clone(), e.getTo().clone());
             Bukkit.getPluginManager().callEvent(event);
-            e.setCancelled(event.isCancelled());
+            if(event.isCancelled()) e.setCancelled(event.isCancelled());
+            e.setTo(event.getTo());
+            e.setFrom(event.getFrom());
         }
     }
 

@@ -1,37 +1,30 @@
 package de.codingair.codingapi;
 
-import de.codingair.codingapi.customentity.CustomEntityType;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
-import de.codingair.codingapi.customentity.networkentity.NetworkEntity;
 import de.codingair.codingapi.player.Hologram;
-import de.codingair.codingapi.player.data.PacketReader;
+import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
-import de.codingair.codingapi.player.gui.bossbar.BossBar;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.player.gui.book.BookListener;
+import de.codingair.codingapi.server.commands.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
-import de.codingair.codingapi.server.playerdata.PlayerData;
-import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-//import de.codingair.codingapi.files.TempFile;
+import java.io.File;
+import java.util.*;
 
 public class API {
     private static final List<Removable> REMOVABLES = new ArrayList<>();
@@ -39,56 +32,83 @@ public class API {
 
     private static API instance;
 
-    private Plugin plugin;
-    private List<PlayerData> dataList = new ArrayList<>();
-    private Timer tickerTimer = null;
+    private boolean initialized = false;
 
-    public void onEnable(Plugin plugin) {
-        this.plugin = plugin;
-        GUIListener.register(plugin);
+    private List<JavaPlugin> plugins = new ArrayList<>();
+    private BukkitTask tickerTimer = null;
 
-//        this.dataList = TempFile.loadTempFiles(this.plugin, "/PlayerData/", PlayerData.class, new PlayerDataTypeAdapter(), true);
+    public void onEnable(JavaPlugin plugin) {
+        if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
+        if(initialized) return;
+        initPlugin(plugin);
+    }
 
-        for(Player player : Bukkit.getOnlinePlayers()) {
-            getPlayerData(player).setLoadedSpawnChunk(true);
+    public synchronized void onDisable(JavaPlugin plugin) {
+        if(!initialized || !this.plugins.remove(plugin)) return;
+
+        for(String s : plugin.getDescription().getCommands().keySet()) {
+            PluginCommand command = Bukkit.getPluginCommand(s);
+            if(command == null) continue;
+
+            if(command.getExecutor() instanceof CommandBuilder) {
+                CommandBuilder b = (CommandBuilder) command.getExecutor();
+                b.unregister(plugin);
+            }
         }
 
+        HandlerList.unregisterAll(plugin);
+
+        removePlugin(plugin);
+        if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
+    }
+
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException {
+        List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
+
+        for(JavaPlugin p : plugins) {
+            if(p == plugin) continue;
+            Bukkit.getPluginManager().disablePlugin(p);
+        }
+
+        Bukkit.getPluginManager().disablePlugin(plugin);
+        enablePlugin(plugin.getName());
+
+        for(JavaPlugin p : plugins) {
+            if(p == plugin) continue;
+            enablePlugin(p.getName());
+        }
+
+        plugins.clear();
+    }
+
+    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException {
+        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(new File("plugins", name + ".jar")));
+    }
+
+    private void removePlugin(JavaPlugin plugin) {
+        HandlerList.unregisterAll(plugin);
+        if(this.tickerTimer.getOwner() == plugin) this.tickerTimer.cancel();
+
+        List<Removable> removables = getRemovables(plugin);
+        removables.forEach(Removable::destroy);
+        removables.clear();
+
+        initialized = false;
+    }
+
+    private void initPlugin(JavaPlugin plugin) {
+        initialized = true;
+        GUIListener.register(plugin);
         Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new BookListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
             /** PlayerDataListener - Start */
 
             @EventHandler
-            public void onJoin(PlayerJoinEvent e) {
-                PlayerData data = getPlayerData(e.getPlayer());
-
-                new PacketReader(e.getPlayer(), "PlayerDataListener-" + e.getPlayer().getName()) {
-                    @Override
-                    public boolean readPacket(Object packet) {
-                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInSettings")) {
-                            IReflection.FieldAccessor b = IReflection.getField(PacketUtils.PacketPlayInSettingsClass, "b");
-                            data.setViewDistance((int) b.get(packet));
-                            if(data.loadedSpawnChunk()) this.unInject();
-                        }
-
-                        if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInCustomPayLoad")) {
-                            data.setLoadedSpawnChunk(true);
-                            if(data.getViewDistance() != -999) this.unInject();
-                        }
-                        return false;
-                    }
-
-                    @Override
-                    public boolean writePacket(Object packet) {
-                        return false;
-                    }
-                }.inject();
-            }
-
-            @EventHandler
             public void onQuit(PlayerQuitEvent e) {
-                removePlayerData(e.getPlayer().getName());
                 removeRemovables(e.getPlayer());
             }
 
@@ -113,116 +133,37 @@ public class API {
 
         }, plugin);
 
-        CustomEntityType.registerEntities();
+        runTicker(plugin);
+    }
 
-        new BukkitRunnable() {
-            int quarterSecond = 0;
+    public void runTicker(JavaPlugin plugin) {
+        if(this.tickerTimer != null) return;
+
+        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
             int second = 0;
 
             @Override
             public void run() {
                 API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
-                API.getRemovables(NetworkEntity.class).forEach(NetworkEntity::onTick);
                 GUIListener.onTick();
 
                 if(second >= 20) {
                     second = 0;
-                } else second++;
-
-                if(quarterSecond >= 5) {
-                    quarterSecond = 0;
-
-                    if(!Version.getVersion().isBiggerThan(Version.v1_8)) {
-                        BossBar.onTick();
-                    }
-
-                } else quarterSecond++;
-            }
-        }.runTaskTimer(plugin, 0, 1);
-    }
-
-    public synchronized void onDisable(Plugin plugin) {
-        CustomEntityType.unregisterEntities();
-
-        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
-        API.REMOVABLES.clear();
-        REMOVABLES.forEach(Removable::destroy);
-        REMOVABLES.clear();
-
-        HandlerList.unregisterAll(plugin);
-    }
-
-    @Deprecated
-    public synchronized void onDisable() {
-        CustomEntityType.unregisterEntities();
-
-        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
-
-        API.REMOVABLES.clear();
-        REMOVABLES.forEach(Removable::destroy);
-        REMOVABLES.clear();
-
-//        TempFile.saveTempFiles(this.plugin, "/PlayerData/", PlayerData.class);
-    }
-
-    public void runTicker() {
-        if(this.tickerTimer != null) return;
-
-        this.tickerTimer = new Timer();
-
-        this.tickerTimer.schedule(new TimerTask() {
-            int second = 0;
-
-            @Override
-            public void run() {
-                List<Ticker> tickers = new ArrayList<>(TICKERS);
-
-                if(second == 20) {
-                    second = 0;
-
-                    for(Ticker ticker : tickers) {
+                    for(Ticker ticker : TICKERS) {
                         ticker.onSecond();
                     }
                 } else second++;
 
-                for(Ticker ticker : tickers) {
+                for(Ticker ticker : TICKERS) {
                     ticker.onTick();
                 }
-
-                tickers.clear();
             }
-        }, 50, 50);
+        }, 1, 1);
     }
 
     public static API getInstance() {
         if(instance == null) instance = new API();
         return instance;
-    }
-
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    public PlayerData getPlayerData(Player p) {
-        for(PlayerData data : this.dataList) {
-            if(data.getName().equalsIgnoreCase(p.getName())) return data;
-        }
-
-        PlayerData data = new PlayerData(p);
-        this.dataList.add(data);
-
-        return data;
-    }
-
-    public boolean removePlayerData(String name) {
-        PlayerData playerData = null;
-
-        for(PlayerData data : this.dataList) {
-            if(data.getName().equalsIgnoreCase(name)) playerData = data;
-        }
-
-        if(playerData == null) return false;
-        return this.dataList.remove(playerData);
     }
 
     public static synchronized boolean addRemovable(Removable removable) {
@@ -249,6 +190,44 @@ public class API {
         }
 
         return null;
+    }
+
+    public static synchronized <T extends Removable> T getRemovable(Class<? extends T> clazz, UUID uniqueId) {
+        for(Removable r : REMOVABLES) {
+            if(clazz.isInstance(r)) {
+                if(r.getUniqueId() == uniqueId) return clazz.cast(r);
+            }
+        }
+
+        return null;
+    }
+
+    public static synchronized List<Removable> getRemovables(JavaPlugin plugin) {
+        List<Removable> l = new ArrayList<>();
+
+        if(plugin == null) return l;
+
+        for(Removable r : REMOVABLES) {
+            if(r.getPlugin() == plugin) {
+                l.add(r);
+            }
+        }
+
+        return l;
+    }
+
+    public static synchronized <T extends Removable> List<T> getRemovables(JavaPlugin plugin, Class<? extends T> clazz) {
+        List<T> l = new ArrayList<>();
+
+        if(plugin == null) return l;
+
+        for(Removable r : REMOVABLES) {
+            if(clazz.isInstance(r) && r.getPlugin() == plugin) {
+                l.add(clazz.cast(r));
+            }
+        }
+
+        return l;
     }
 
     public static synchronized <T extends Removable> List<T> getRemovables(Player player, Class<? extends T> clazz) {
@@ -339,7 +318,6 @@ public class API {
 
     public static void addTicker(Ticker ticker) {
         TICKERS.add(ticker);
-        getInstance().runTicker();
     }
 
     public static Ticker removeTicker(Ticker ticker) {
@@ -403,7 +381,24 @@ public class API {
         return contains ? i : -999;
     }
 
-    public Timer getTickerTimer() {
-        return tickerTimer;
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public List<JavaPlugin> getPlugins() {
+        return plugins;
+    }
+
+    public JavaPlugin getMainPlugin() {
+        return this.plugins.isEmpty() ? null : this.plugins.get(0);
+    }
+
+    public static PluginCommand getPluginCommand(String name) {
+        for(JavaPlugin plugin : getInstance().plugins) {
+            PluginCommand command;
+            if((command = plugin.getCommand(name)) != null) return command;
+        }
+
+        return null;
     }
 }

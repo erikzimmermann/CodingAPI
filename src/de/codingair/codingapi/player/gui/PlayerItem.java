@@ -5,18 +5,18 @@ import de.codingair.codingapi.utils.Removable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 import java.util.UUID;
 
 public abstract class PlayerItem extends ItemStack implements Removable {
 	private UUID uniqueId = UUID.randomUUID();
-	private Plugin plugin;
+	private JavaPlugin plugin;
 	private Player player;
 	private boolean freezed = true;
 	
-	public PlayerItem(Plugin plugin, Player player, ItemStack item) {
+	public PlayerItem(JavaPlugin plugin, Player player, ItemStack item) {
 		this.setToItemStack(item);
 		
 		this.plugin = plugin;
@@ -42,7 +42,7 @@ public abstract class PlayerItem extends ItemStack implements Removable {
 		remove();
 	}
 	
-	public Plugin getPlugin() {
+	public JavaPlugin getPlugin() {
 		return plugin;
 	}
 	

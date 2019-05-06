@@ -4,19 +4,19 @@ import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOption;
-import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.server.Sound;
-import de.codingair.codingapi.tools.ItemBuilder;
+import de.codingair.codingapi.tools.Callback;
+import de.codingair.codingapi.tools.items.ItemBuilder;
+import de.codingair.codingapi.tools.items.XMaterial;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class ConfirmGUI extends GUI {
     private String message;
     private String decline;
 
-    public ConfirmGUI(Player p, String title, String accept, String message, String decline, Plugin plugin, Callback<Boolean> callback) {
+    public ConfirmGUI(Player p, String title, String accept, String message, String decline, JavaPlugin plugin, Callback<Boolean> callback) {
         super(p, title, 9, plugin, false);
 
         this.callback = callback;
@@ -39,7 +39,7 @@ public class ConfirmGUI extends GUI {
         initialize(p);
     }
 
-    public ConfirmGUI(Player p, String title, String accept, String message, String decline, Plugin plugin, Callback<Boolean> callback, Runnable close) {
+    public ConfirmGUI(Player p, String title, String accept, String message, String decline, JavaPlugin plugin, Callback<Boolean> callback, Runnable close) {
         super(p, title, 9, plugin, false);
 
         this.callback = callback;
@@ -79,7 +79,7 @@ public class ConfirmGUI extends GUI {
         option.setOnlyLeftClick(true);
         option.setCloseOnClick(true);
 
-        addButton(new ItemButton(2, new ItemBuilder(Material.WOOL).setColor(DyeColor.LIME).setName(accept).getItem()) {
+        addButton(new ItemButton(2, new ItemBuilder(XMaterial.LIME_WOOL).setName(accept).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(true);
@@ -92,7 +92,7 @@ public class ConfirmGUI extends GUI {
 
         setItem(4, new ItemBuilder(Material.NETHER_STAR).setName(lines.remove(0)).setLore(lines).getItem());
 
-        addButton(new ItemButton(6, new ItemBuilder(Material.WOOL).setColor(DyeColor.RED).setName(decline).getItem()) {
+        addButton(new ItemButton(6, new ItemBuilder(XMaterial.RED_WOOL).setName(decline).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(false);

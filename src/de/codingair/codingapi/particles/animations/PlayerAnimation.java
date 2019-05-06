@@ -44,7 +44,7 @@ public abstract class PlayerAnimation extends Animation {
 		if(!whileStanding) loc = onDisplay();
 		else if(isStanding()) loc = onDisplay();
 		
-		if(loc != null) getParticle().send(loc);
+		if(loc != null) getParticle().send(loc, false);
 	}
 	
 	public abstract Location onDisplay();

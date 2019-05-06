@@ -25,15 +25,25 @@ public class FileManager {
         this.configList.add(new ConfigFile(plugin, name, path));
     }
 
+    public void loadFile(String name, String path, String srcPath) {
+        this.configList.add(new ConfigFile(plugin, name, path, srcPath));
+    }
+
     public void reloadAll() {
         for (ConfigFile file : this.configList) {
             file.reloadConfig();
         }
     }
 
+    public void loadAll() {
+        for (ConfigFile file : this.configList) {
+            file.loadConfig();
+        }
+    }
+
     public void saveAll() {
-        for(ConfigFile configFile : this.configList) {
-            configFile.saveConfig();
+        for (ConfigFile file : this.configList) {
+            file.saveConfig();
         }
     }
 }

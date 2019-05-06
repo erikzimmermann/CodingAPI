@@ -1,6 +1,8 @@
 package de.codingair.codingapi.player.data;
 
 import de.codingair.codingapi.tools.Callback;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -37,6 +39,18 @@ public class UUIDFetcher {
 		} catch(Exception e) {
 			callback.accept(null);
 		}
+	}
+
+	/**
+	 * Returns null if the uuid does not exists
+	 *
+	 * @param name : String
+	 * @param callback : Callback
+	 */
+	public static void getUUIDAsync(String name, Plugin plugin, Callback<UUID> callback) {
+		Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+			getUUID(name, callback);
+		});
 	}
 	
 	public static UUID getUUIDFromId(String id) {

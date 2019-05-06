@@ -1,50 +1,109 @@
 package de.codingair.codingapi.files;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.google.common.base.Charsets;
+import de.codingair.codingapi.files.loader.UTFConfig;
 import org.bukkit.plugin.Plugin;
 
 import java.io.*;
 import java.util.logging.Level;
 
 public class ConfigFile {
-    private FileConfiguration config = null;
+    private UTFConfig config = null;
     private File configFile = null;
     private Plugin plugin;
     private String name;
     private String path;
+    private String srcPath;
 
     public ConfigFile(Plugin plugin, String name, String path) {
+        this(plugin, name, path, null);
+    }
+
+    public ConfigFile(Plugin plugin, String name, String path, String srcPath) {
         this.plugin = plugin;
         this.name = name;
         this.path = path;
+        this.srcPath = srcPath;
+        if(this.srcPath != null) {
+            if(this.srcPath.startsWith("/")) this.srcPath = this.srcPath.replaceFirst("/", "");
+            if(!this.srcPath.endsWith("/")) this.srcPath += "/";
+        }
 
         this.loadConfig();
+
+        InputStream in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+        if(in != null) {
+            InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
+
+            BufferedReader input = new BufferedReader(reader);
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+            try {
+                try {
+                    while((line = input.readLine()) != null) {
+                        builder.append(line);
+                        builder.append('\n');
+                    }
+                } finally {
+                    input.close();
+                }
+            } catch(IOException ex) {
+                ex.printStackTrace();
+            }
+
+            this.config.deployExtras(builder.toString());
+            in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+            if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
+        }
+
         this.config.options().copyDefaults(true);
         this.config.options().copyHeader(true);
         this.saveConfig();
     }
 
+    private void mkDir(File file) {
+        if(!file.getParentFile().exists()) mkDir(file.getParentFile());
+        if(!file.exists()) {
+            try {
+                file.mkdir();
+            } catch(SecurityException ex) {
+                throw new IllegalArgumentException("Plugin is not permitted to create a folder!");
+            }
+        }
+    }
+
     public void loadConfig() {
-        File folder = plugin.getDataFolder();
-        if(!folder.exists()) folder.mkdir();
-
-        configFile = new File(this.plugin.getDataFolder(), this.path + this.name + ".yml");
-
         try {
+            File folder = plugin.getDataFolder();
+            if(!folder.exists()) mkDir(folder);
+
+            if(!this.path.startsWith("/")) this.path = "/" + this.path;
+            if(!this.path.endsWith("/")) this.path = this.path + "/";
+
+            folder = new File(this.plugin.getDataFolder() + this.path);
+            if(!this.path.isEmpty() && !this.path.equals("/") && !folder.exists()) mkDir(folder);
+
+            configFile = new File(this.plugin.getDataFolder() + this.path, this.name + ".yml");
+
             if(!configFile.exists()) {
                 configFile.createNewFile();
-                try(InputStream in = plugin.getResource(this.name + ".yml");
+                try(InputStream in = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
                     OutputStream out = new FileOutputStream(configFile)) {
                     copy(in, out);
                 }
             }
+
+            InputStream reader = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
+            if(reader != null) {
+                config = UTFConfig.loadConf(reader);
+                config.load(configFile);
+            } else {
+                config = UTFConfig.loadConf(configFile);
+            }
         } catch(Exception e) {
             e.printStackTrace();
         }
-
-        config = YamlConfiguration.loadConfiguration(configFile);
-        if(plugin.getResource(this.name + ".yml") != null) config.setDefaults(YamlConfiguration.loadConfiguration(plugin.getResource(this.name + ".yml")));
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {
@@ -70,19 +129,27 @@ public class ConfigFile {
         loadConfig();
     }
 
-    public FileConfiguration getConfig() {
+    public UTFConfig getConfig() {
         if(config == null) reloadConfig();
 
         return config;
     }
 
     public void saveConfig() {
+        saveConfig(false);
+    }
+
+    public void destroy() {
+        getConfig().destroy();
+    }
+
+    public void saveConfig(boolean destroy) {
         if(config == null || configFile == null) {
             return;
         }
         try {
             getConfig().save(configFile);
-            this.loadConfig();
+            if(destroy) destroy();
         } catch(IOException ex) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
         }
@@ -108,5 +175,9 @@ public class ConfigFile {
 
     public String getPath() {
         return path;
+    }
+
+    public File getConfigFile() {
+        return configFile;
     }
 }

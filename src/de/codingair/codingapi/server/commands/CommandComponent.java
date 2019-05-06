@@ -24,6 +24,10 @@ public abstract class CommandComponent {
         this.permission = permission;
     }
 
+    public boolean useInTabCompleter(CommandSender sender, String label, String[] args) {
+        return true;
+    }
+
     public abstract boolean runCommand(CommandSender sender, String label, String[] args);
 
     private void setParent(CommandComponent parent) {
@@ -55,7 +59,7 @@ public abstract class CommandComponent {
                 continue;
             }
 
-            if(arg == null) continue;
+            if(arg == null || arg.isEmpty()) continue;
 
             if(c.getArgument().equalsIgnoreCase(arg)) {
                 child = c;
@@ -66,6 +70,19 @@ public abstract class CommandComponent {
         children.clear();
 
         return child == null ? multi : child;
+    }
+
+    public boolean removeChild(CommandComponent child) {
+        if(this.children.remove(child)) {
+            child.setParent(null);
+            return true;
+        } else return false;
+    }
+
+    public boolean removeChild(String arg) {
+        CommandComponent cc = getChild(arg);
+        if(cc == null) return false;
+        else return removeChild(cc);
     }
 
     public String getArgument() {

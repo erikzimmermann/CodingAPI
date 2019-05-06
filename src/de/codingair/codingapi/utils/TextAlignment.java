@@ -161,45 +161,46 @@ public enum TextAlignment {
         String[] words = text.split(" ");
         int cells = 0;
         StringBuilder line = new StringBuilder();
-        StringBuilder lastColor = new StringBuilder();
+        String[] lastColor = new String[]{"", ""};
 
         for(String word : words) {
             boolean isBold = false;
             boolean isColor = false;
-            boolean wasColor = false;
 
             word = word + " ";
+
+            String temp = de.codingair.codingapi.utils.ChatColor.getLastFullColor(word, ChatColor.COLOR_CHAR);
+            lastColor[1] = temp.isEmpty() ? lastColor[1] : temp;
 
             for(char c : word.toCharArray()) {
                 if(c == ChatColor.COLOR_CHAR) {
                     isColor = true;
-                } else if(isColor) {
-                    isColor = false;
-                    isBold = c == 'l' || c == 'L';
-
-                    if(!wasColor) lastColor = new StringBuilder();
-                    lastColor.append("" + ChatColor.COLOR_CHAR + c);
-
-                    wasColor = true;
-                } else {
+                } else if(!isColor) {
                     DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
                     cells += isBold ? dFI.getBoldLength() : dFI.getLength();
-                    wasColor = false;
+                } else {
+                    isColor = false;
                 }
             }
 
             line.append(word);
 
+
+
             if(cells >= length) {
                 line = new StringBuilder(line.toString().substring(0, line.length() - 1));
-
-                lines.add(lastColor + line.toString());
+                lines.add(lastColor[0] + line.toString());
                 line = new StringBuilder();
                 cells = 0;
+
+                lastColor[0] = lastColor[1];
+                lastColor[1] = "";
             }
         }
 
-        if(line.length() > 0) lines.add(lastColor + line.toString());
+        if(line.length() > 0) {
+            lines.add(lastColor[0] + line.toString());
+        }
         return lines;
     }
 

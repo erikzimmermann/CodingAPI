@@ -58,14 +58,6 @@ public class AnvilClickEvent extends Event {
 		this.close = close;
 	}
 	
-	public boolean getWillDestroy() {
-		return destroy;
-	}
-	
-	public void setWillDestroy(boolean destroy) {
-		this.destroy = destroy;
-	}
-	
 	public void setClose(boolean close) {
 		this.destroy = close;
 		this.close = close;

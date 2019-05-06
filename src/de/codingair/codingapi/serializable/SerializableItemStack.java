@@ -1,6 +1,6 @@
 package de.codingair.codingapi.serializable;
 
-import de.codingair.codingapi.tools.ItemBuilder;
+import de.codingair.codingapi.tools.items.ItemBuilder;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.Serializable;
