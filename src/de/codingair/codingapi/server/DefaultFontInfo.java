@@ -97,7 +97,7 @@ public enum DefaultFontInfo {
 	TICK('`', 2),
 	PERIOD('.', 1),
 	COMMA(',', 1),
-	SPACE(' ', 2),
+	SPACE(' ', 1),
 	CHAT('a', 250),
 	DEFAULT('a', 4);
 	

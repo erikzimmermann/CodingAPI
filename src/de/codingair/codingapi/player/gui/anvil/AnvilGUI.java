@@ -120,8 +120,6 @@ public class AnvilGUI implements Removable {
 								inv.clear();
 								p.closeInventory();
 							}
-							
-							if(closeEvent.getPost() != null) closeEvent.getPost().run();
 						}
 					}
 				}

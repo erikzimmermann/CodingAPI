@@ -40,7 +40,7 @@ public abstract class GUI extends Interface implements Removable {
     private List<Integer> movableSlots = new ArrayList<>();
     private List<GUIListener> listeners = new ArrayList<>();
     private boolean canDropItems = false;
-    private boolean isClosed = false;
+    protected boolean isClosed = false;
     private boolean buffering = false;
     private Callback<GUI> closingConfirmed = null;
     private GUI fallbackGUI = null;
@@ -164,6 +164,8 @@ public abstract class GUI extends Interface implements Removable {
         };
 
         if(GUI.usesGUI(p)) {
+            if(GUI.getGUI(p) == this) return;
+
             GUI gui = GUI.getGUI(p);
             gui.closingConfirmed = run;
             gui.close();
@@ -363,15 +365,20 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     @Override
-    public void setTitle(String title, boolean reopen) {
-        super.setTitle(title, reopen);
+    public void setTitle(String title, boolean update) {
+        boolean isOpened = isOpen();
+
+        super.setTitle(title, update && isOpened);
+        if(!isOpened) {
+            rebuildInventory();
+        }
+
         if(!buffering) this.player.updateInventory();
     }
 
     @Override
     public void setTitle(String title) {
-        super.setTitle(title);
-        if(!buffering) this.player.updateInventory();
+        this.setTitle(title, true);
     }
 
     @Override
@@ -398,6 +405,10 @@ public abstract class GUI extends Interface implements Removable {
 
     public static GUI getGUI(Player p) {
         return API.getRemovable(p, GUI.class);
+    }
+
+    public boolean isOpen() {
+        return getGUI(getPlayer()) == this;
     }
 
     public static Interface getOldGUI(Player p) {

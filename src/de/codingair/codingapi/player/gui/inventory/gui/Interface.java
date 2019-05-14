@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Version;
@@ -62,7 +63,7 @@ public class Interface {
     @Deprecated
     public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
         this.title = title;
-        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 32);
+        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 33);
 
         this.inventory = Bukkit.createInventory(owner, size, this.title);
         if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
@@ -275,17 +276,30 @@ public class Interface {
         return true;
     }
 
-    public void setTitle(String title, boolean reopen) {
+    void rebuildInventory() {
+        Inventory inventory = Bukkit.createInventory(getHolder(), getSize(), getTitle());
+        inventory.setContents(this.inventory.getContents());
+        inventory.setStorageContents(this.inventory.getStorageContents());
+        inventory.setMaxStackSize(this.inventory.getMaxStackSize());
+        this.inventory = inventory;
+    }
+
+    public void setTitle(String title, boolean update) {
+        if(title == null) return;
+
         this.title = title;
-        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 32);
-        if(reopen) reopen();
+        if(this.title.length() > 32) this.title = this.title.substring(0, 33);
+
+        if(update) updateTitle();
     }
 
     public void setTitle(String title) {
         setTitle(title, true);
     }
 
-    public void reopen() {
+    public void updateTitle() {
+        if(this instanceof GUI) ((GUI) this).isClosed = false;
+
         this.currentPlayers.forEach(p -> {
             Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
             Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
@@ -381,7 +395,10 @@ public class Interface {
         if(oldUsage) interfaces.remove(this);
 
         if(!isClosing) {
-            Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
+            if(API.getInstance().getMainPlugin().isEnabled())
+                Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
+            else
+                p.closeInventory();
         }
     }
 

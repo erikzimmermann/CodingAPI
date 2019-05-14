@@ -18,9 +18,8 @@ public class AnvilClickEvent extends Event {
 	
 	private ItemStack item;
 	
-	private boolean close = true;
-	private boolean destroy = true;
-	private boolean cancelled = false;
+	private boolean close = false;
+	private boolean cancelled = true;
 	
 	private AnvilGUI anvil;
 	
@@ -59,7 +58,6 @@ public class AnvilClickEvent extends Event {
 	}
 	
 	public void setClose(boolean close) {
-		this.destroy = close;
 		this.close = close;
 	}
 	

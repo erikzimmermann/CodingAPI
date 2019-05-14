@@ -574,7 +574,7 @@ public enum XMaterial {
     ORANGE_STAINED_GLASS(1, "STAINED_GLASS"),
     ORANGE_STAINED_GLASS_PANE(1, "STAINED_GLASS_PANE"),
     ORANGE_TERRACOTTA(1, "STAINED_CLAY"),
-    ORANGE_TULIP(5, "RED_ROSE"),
+    ORANGE_TULIP(5, "RED_ROSE", "RED_TULIP"),
     ORANGE_WALL_BANNER(0, "WALL_BANNER"),
     ORANGE_WOOL(1, "WOOL"),
     OXEYE_DAISY(8, "RED_ROSE"),
@@ -712,7 +712,7 @@ public enum XMaterial {
     REPEATER(0, "DIODE", "DIODE_BLOCK_ON", "DIODE_BLOCK_OFF"),
     REPEATING_COMMAND_BLOCK(0, "COMMAND_REPEATING"),
     ROSE_BUSH(4, "DOUBLE_PLANT"),
-    ROSE_RED(1, "INK_SACK"),
+    ROSE_RED(1, "INK_SACK", "RED_DYE"),
     ROTTEN_FLESH(0, "ROTTEN_FLESH"),
     SADDLE(0, "SADDLE"),
     SALMON(1, "RAW_FISH"),
@@ -1023,15 +1023,28 @@ public enum XMaterial {
         if(mat != null) {
             return mat;
         }
-        return Material.matchMaterial(m[0]);
+
+        for(String s : m) {
+            Material material = Material.matchMaterial(s);
+            if(material != null) return material;
+        }
+
+        return null;
     }
 
     public Material parseMaterial(boolean item) {
         Material mat = Material.matchMaterial(this.toString());
-        if(mat != null) {
-            return mat;
+        if(mat != null) return mat;
+
+        mat = Material.matchMaterial(m[item ? 1 : 0]);
+        if(mat != null) return mat;
+
+        for(String s : m) {
+            Material material = Material.matchMaterial(s);
+            if(material != null) return material;
         }
-        return Material.matchMaterial(m[item ? 1 : 0]);
+
+        return null;
     }
 
     public Material parseMaterialSafely() {
