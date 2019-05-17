@@ -4,6 +4,7 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Sound;
 import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
@@ -302,65 +303,65 @@ public abstract class GUI extends Interface implements Removable {
     @Override
     public void addButton(int slot, ItemButton button) {
         super.addButton(slot, button);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public HashMap<Integer, ItemStack> addItem(ItemStack... arg0) throws IllegalArgumentException {
         HashMap<Integer, ItemStack> map = super.addItem(arg0);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
         return map;
     }
 
     @Override
     public void addButton(ItemButton button) {
         super.addButton(button);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(ItemStack item, int startSlot, int endSlot) {
         super.setItem(item, startSlot, endSlot);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setFrame(ItemStack item) {
         super.setFrame(item);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setBackground(ItemStack background) {
         super.setBackground(background);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public Interface setDisplayname(int slot, String name) {
         super.setDisplayname(slot, name);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public Interface setLore(int slot, String... lore) {
         super.setLore(slot, lore);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public Interface setAmount(int slot, int amount) {
         super.setAmount(slot, amount);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public boolean setSize(int size) {
         boolean result = super.setSize(size);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
         return result;
     }
 
@@ -373,7 +374,7 @@ public abstract class GUI extends Interface implements Removable {
             rebuildInventory();
         }
 
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
@@ -384,19 +385,19 @@ public abstract class GUI extends Interface implements Removable {
     @Override
     public void setContents(ItemStack[] arg0) throws IllegalArgumentException {
         super.setContents(arg0);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(int x, ItemStack item) {
         super.setItem(x, item);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(int x, int y, ItemStack item) {
         super.setItem(x, y, item);
-        if(!buffering) this.player.updateInventory();
+        if(!buffering) updateInventory(this.player);
     }
 
     public ItemButton getButtonAt(int x, int y) {
@@ -469,7 +470,7 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void release() {
-        getPlayer().updateInventory();
+        updateInventory(getPlayer());
     }
 
     public boolean isUseFallbackGUI() {
@@ -490,5 +491,11 @@ public abstract class GUI extends Interface implements Removable {
 
     public void setClosingForGUI(boolean closingForGUI) {
         this.closingForGUI = closingForGUI;
+    }
+
+    public static boolean updateInventory(Player player) {
+        if(Version.getVersion().isBiggerThan(Version.v1_13)) return false;
+        player.updateInventory();
+        return true;
     }
 }

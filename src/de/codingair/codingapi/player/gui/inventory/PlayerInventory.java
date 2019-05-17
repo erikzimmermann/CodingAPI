@@ -1,11 +1,7 @@
 package de.codingair.codingapi.player.gui.inventory;
 
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Removing of this disclaimer is forbidden.

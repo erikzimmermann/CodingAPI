@@ -80,7 +80,7 @@ public class SimpleGUI extends GUI {
     public void changePage(Page page, boolean update) {
         this.current = page;
         if(page.initialize(this)) updateTitle();
-        else if(update) getPlayer().updateInventory();
+        else if(update) GUI.updateInventory(getPlayer());
     }
 
     public Page getMain() {
