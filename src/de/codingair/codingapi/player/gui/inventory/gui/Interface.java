@@ -369,11 +369,15 @@ public class Interface {
     }
 
     public void open(Player p) {
-        this.currentPlayers.add(p);
+        addToPlayerList(p);
         setTitle(this.title, false);
         if(oldUsage) interfaces.add(this);
 
         Bukkit.getScheduler().runTask(plugin, () -> p.openInventory(this.inventory));
+    }
+
+    protected void addToPlayerList(Player player) {
+        this.currentPlayers.add(player);
     }
 
     public void close(Player p) {
@@ -395,7 +399,7 @@ public class Interface {
         if(oldUsage) interfaces.remove(this);
 
         if(!isClosing) {
-            if(API.getInstance().getMainPlugin().isEnabled())
+            if(API.getInstance().getMainPlugin() != null && API.getInstance().getMainPlugin().isEnabled())
                 Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
             else
                 p.closeInventory();

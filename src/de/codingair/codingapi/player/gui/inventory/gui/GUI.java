@@ -25,7 +25,6 @@ import java.util.*;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
  **/
 
 public abstract class GUI extends Interface implements Removable {
@@ -158,6 +157,7 @@ public abstract class GUI extends Interface implements Removable {
                 if(fallbackGUI == null) fallbackGUI = old;
                 if(GUI.this.openSound != null) GUI.this.openSound.play(p);
                 API.addRemovable(GUI.this);
+                GUI.this.reinitialize(getTitle());
                 GUI.super.open(p);
 
                 if(old != null) old.closingConfirmed = null;
@@ -168,8 +168,22 @@ public abstract class GUI extends Interface implements Removable {
             if(GUI.getGUI(p) == this) return;
 
             GUI gui = GUI.getGUI(p);
-            gui.closingConfirmed = run;
-            gui.close();
+
+            if(getSize() == gui.getSize()) {
+                if(!gui.closingByButton && !gui.closingByOperation && !gui.closingForGUI) {
+                    gui.closingConfirmed = run;
+                } else {
+                    gui.isClosed = true;
+                    API.removeRemovable(gui);
+                    this.inventory = gui.inventory;
+                    API.addRemovable(this);
+                    addToPlayerList(p);
+                    this.reinitialize(this.getTitle());
+                }
+            } else {
+                gui.closingConfirmed = run;
+                gui.close();
+            }
             return;
         }
 

@@ -24,6 +24,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 public class API {
@@ -44,7 +45,7 @@ public class API {
     }
 
     public synchronized void onDisable(JavaPlugin plugin) {
-        if(!initialized || !this.plugins.remove(plugin)) return;
+        if(!initialized || !plugins.contains(plugin)) return;
 
         for(String s : plugin.getDescription().getCommands().keySet()) {
             PluginCommand command = Bukkit.getPluginCommand(s);
@@ -59,10 +60,11 @@ public class API {
         HandlerList.unregisterAll(plugin);
 
         removePlugin(plugin);
+        this.plugins.remove(plugin);
         if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
     }
 
-    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException {
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
         List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
 
         for(JavaPlugin p : plugins) {
@@ -81,8 +83,23 @@ public class API {
         plugins.clear();
     }
 
-    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException {
-        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(new File("plugins", name + ".jar")));
+    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+        File pluginFile = new File("plugins", name + ".jar");
+
+        if(!pluginFile.exists()) {
+            File f = new File("plugins");
+
+            for(File file : f.listFiles()) {
+                if(file.getName().toLowerCase().contains(name.toLowerCase())) {
+                    pluginFile = file;
+                    break;
+                }
+            }
+
+            if(pluginFile == null) throw new FileNotFoundException("Could not find any " + name + ".jar!");
+        }
+
+        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
     }
 
     private void removePlugin(JavaPlugin plugin) {
