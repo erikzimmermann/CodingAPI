@@ -7,9 +7,12 @@ import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.tools.items.XMaterial;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -266,17 +269,18 @@ public class Hologram implements Removable {
                     IReflection.FieldAccessor fA = IReflection.getField(packet.getClass(), "a");
                     int clicked = (int) fA.get(packet);
 
-                    Action blockA;
-                    if(action.get(packet).toString().contains("INTERACT"))
-                        blockA = Action.RIGHT_CLICK_AIR;
-                    else
-                        blockA = Action.LEFT_CLICK_AIR;
+                    String aS = action.get(packet).toString();
+                    Action a;
+                    if(aS.equals("INTERACT_AT")) a = Action.RIGHT_CLICK_AIR;
+                    else if(aS.equals("ATTACK")) a = Action.LEFT_CLICK_AIR;
+                    else return false;
 
                     List<Object> armorStands = new ArrayList<>(entities);
                     for(Object entity : armorStands) {
                         int id = PacketUtils.EntityPackets.getId(entity);
                         if(id == clicked) {
-                            Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(player, blockA, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, null)));
+                            System.out.println("MATCH");
+                            Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(player, a, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, null)));
                             break;
                         }
                     }

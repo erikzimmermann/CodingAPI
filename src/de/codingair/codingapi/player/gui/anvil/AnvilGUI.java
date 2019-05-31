@@ -157,6 +157,7 @@ public class AnvilGUI implements Removable {
 	}
 	
 	public AnvilGUI open() {
+		API.addRemovable(this);
 		this.player.closeInventory();
 		
 		Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAnvil");
@@ -234,8 +235,6 @@ public class AnvilGUI implements Removable {
 		addSlotListener.invoke(activeContainer.get(entityPlayer), entityPlayer);
 		
 		updateInventory();
-		
-		API.addRemovable(this);
 		return this;
 	}
 	
