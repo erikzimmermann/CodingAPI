@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class SoundData {
@@ -39,6 +40,10 @@ public class SoundData {
 
     public void play(Player player) {
         this.sound.playSound(player, this.volume, this.pitch);
+    }
+
+    public void play(Player player, Location location) {
+        this.sound.playSound(player, location == null ? player.getLocation() : location, this.volume, this.pitch);
     }
 
     public SoundData clone() {

@@ -3,16 +3,16 @@ package de.codingair.codingapi.player;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.time.Countdown;
-import de.codingair.codingapi.time.CountdownListener;
-import de.codingair.codingapi.time.TimeFetcher;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 
 public class MessageAPI {
-    private static HashMap<String, Countdown> countdowns = new HashMap<>();
+    private static HashMap<String, BukkitRunnable> runnables = new HashMap<>();
 
     public static void sendActionBar(Player p, String message) {
         if(message == null) message = "";
@@ -38,18 +38,18 @@ public class MessageAPI {
     }
 
     public static void stopSendingActionBar(Player p) {
-        Countdown countdown = countdowns.get(p.getName());
-        if(countdown != null) {
-            countdown.end();
+        BukkitRunnable runnable = runnables.get(p.getName());
+        if(runnable != null) {
+            runnable.cancel();
         }
 
         sendActionBar(p, null);
     }
 
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
-        Countdown countdown = countdowns.get(p.getName());
-        if(countdown != null) {
-            countdown.end();
+        BukkitRunnable runnable = runnables.remove(p.getName());
+        if(runnable != null) {
+            runnable.cancel();
         }
 
         if(seconds <= 0) {
@@ -57,31 +57,25 @@ public class MessageAPI {
             return;
         }
 
-        countdown = new Countdown(plugin, TimeFetcher.Time.SECONDS, seconds);
-        countdown.addListener(new CountdownListener() {
+        runnable = new BukkitRunnable() {
+            int ticks = seconds;
+
             @Override
-            protected void CountdownStartEvent() {
+            public void run() {
+                if(ticks == 0) {
+                    sendActionBar(p, null);
+                    this.cancel();
+                    return;
+                }
+
                 sendActionBar(p, message);
+                ticks--;
             }
+        };
 
-            @Override
-            protected void CountdownEndEvent() {
-                countdowns.remove(p.getName());
-            }
+        runnable.runTaskTimer(plugin, 0, 20);
 
-            @Override
-            protected void CountdownCancelEvent() {
-            }
-
-            @Override
-            protected void onTick(int timeLeft) {
-                sendActionBar(p, message);
-            }
-        });
-
-        countdown.start();
-
-        countdowns.put(p.getName(), countdown);
+        runnables.put(p.getName(), runnable);
     }
 
 

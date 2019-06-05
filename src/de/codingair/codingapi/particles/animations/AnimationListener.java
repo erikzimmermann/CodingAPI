@@ -1,6 +1,7 @@
 package de.codingair.codingapi.particles.animations;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,24 +24,12 @@ public class AnimationListener implements Listener {
 	private static boolean initialized = false;
 	
 	@EventHandler
-	public void onMove(PlayerMoveEvent e) {
+	public void onMove(PlayerWalkEvent e) {
 		Player p = e.getPlayer();
-		
-		double x = e.getFrom().getX() - e.getTo().getX();
-		double y = e.getFrom().getY() - e.getTo().getY();
-		double z = e.getFrom().getZ() - e.getTo().getZ();
-		
-		if(x < 0) x *= -1;
-		if(y < 0) y *= -1;
-		if(z < 0) z *= -1;
-		
-		double result = x + y + z;
-		
-		if(result > 0.05){
-			API.getTickers(PlayerAnimation.class).forEach(anim -> {
-				if(anim.getPlayer().getName().equals(p.getName())) anim.setStandingTicks(0);
-			});
-		}
+
+		API.getTickers(PlayerAnimation.class).forEach(anim -> {
+			if(anim.getPlayer().getName().equals(p.getName())) anim.setStandingTicks(0);
+		});
 	}
 	
 	@EventHandler

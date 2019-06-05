@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /**
@@ -235,6 +236,10 @@ public enum Sound {
 
 	public void playSound(Player player, float volume, float pitch) {
 		player.playSound(player.getLocation(), bukkitSound(), volume, pitch);
+	}
+
+	public void playSound(Player player, Location location, float volume, float pitch) {
+		player.playSound(location, bukkitSound(), volume, pitch);
 	}
 
 	public int getId() {

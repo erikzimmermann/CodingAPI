@@ -276,7 +276,6 @@ public class Hologram implements Removable {
                     for(Object entity : armorStands) {
                         int id = PacketUtils.EntityPackets.getId(entity);
                         if(id == clicked) {
-                            System.out.println("MATCH");
                             Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(player, a, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, null)));
                             break;
                         }
