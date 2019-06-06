@@ -7,6 +7,7 @@ import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
 import de.codingair.codingapi.server.commands.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
@@ -20,6 +21,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -69,10 +72,10 @@ public class API {
 
         for(JavaPlugin p : plugins) {
             if(p == plugin) continue;
-            Bukkit.getPluginManager().disablePlugin(p);
+            disablePlugin(p);
         }
 
-        Bukkit.getPluginManager().disablePlugin(plugin);
+        disablePlugin(plugin);
         enablePlugin(plugin.getName());
 
         for(JavaPlugin p : plugins) {
@@ -81,6 +84,22 @@ public class API {
         }
 
         plugins.clear();
+    }
+
+    private void disablePlugin(JavaPlugin plugin) {
+        Bukkit.getPluginManager().disablePlugin(plugin);
+
+        try {
+            IReflection.FieldAccessor lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
+            IReflection.FieldAccessor plugins = IReflection.getField(SimplePluginManager.class, "plugins");
+
+            Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
+            List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
+
+            map.remove(plugin.getDescription().getName());
+            pluginList.remove(plugin);
+        } catch(Exception ignored) {
+        }
     }
 
     private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
