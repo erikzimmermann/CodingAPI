@@ -298,6 +298,16 @@ public class Environment {
         return location.getBlock();
     }
 
+    public static Block getHeighestBlock(Location location, int max, boolean onlySolid) {
+        location.setY(max);
+
+        while((onlySolid || location.getBlock().getType() == Material.AIR) && (!onlySolid || !location.getBlock().getType().isSolid())) {
+            location.setY(location.getY() - 1);
+        }
+
+        return location.getBlock();
+    }
+
     public static Block getNextBottomBlock(Location location, boolean ignoreTransparency) {
         if(!ignoreTransparency) return getNextBottomBlock(location);
 

@@ -1,6 +1,7 @@
 package de.codingair.codingapi;
 
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.particles.animations.customanimations.AnimationType;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
@@ -44,7 +45,7 @@ public class API {
     public void onEnable(JavaPlugin plugin) {
         if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
         if(initialized) return;
-        initPlugin(plugin);
+        if(this.plugins.size() == 1) initPlugin(plugin);
     }
 
     public synchronized void onDisable(JavaPlugin plugin) {
@@ -86,7 +87,7 @@ public class API {
         plugins.clear();
     }
 
-    private void disablePlugin(JavaPlugin plugin) {
+    public void disablePlugin(JavaPlugin plugin) {
         Bukkit.getPluginManager().disablePlugin(plugin);
 
         try {
@@ -102,7 +103,7 @@ public class API {
         }
     }
 
-    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+    public void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
         File pluginFile = new File("plugins", name + ".jar");
 
         if(!pluginFile.exists()) {
@@ -128,6 +129,7 @@ public class API {
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
         removables.clear();
+        AnimationType.clearCache();
 
         initialized = false;
     }

@@ -65,6 +65,12 @@ public class Area {
         return false;
     }
 
+    public static boolean isInArea(Location target, Location mid, int radius, boolean yCords, double puffer) {
+        Location e0 = mid.clone().subtract(radius, radius, radius);
+        Location e1 = mid.clone().add(radius, radius, radius);
+        return isInArea(target, e0, e1, yCords, puffer);
+    }
+
     public static boolean isInArea(Location target, Location edge1, Location edge2, boolean yCords, double puffer) {
         if(!target.getWorld().equals(edge1.getWorld()) || !edge1.getWorld().equals(edge2.getWorld())) return false;
 

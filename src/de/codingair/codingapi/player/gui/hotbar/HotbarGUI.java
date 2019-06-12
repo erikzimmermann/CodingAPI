@@ -26,6 +26,7 @@ public class HotbarGUI implements Removable {
     private SoundData closeSound;
 
     private JavaPlugin plugin;
+    private long lastClick = 0;
 
     public HotbarGUI(Player player, JavaPlugin plugin) {
         this.player = player;
@@ -184,6 +185,14 @@ public class HotbarGUI implements Removable {
 
     public void setCloseSound(SoundData closeSound) {
         this.closeSound = closeSound;
+    }
+
+    public long getLastClick() {
+        return lastClick;
+    }
+
+    public void setLastClick(long lastClick) {
+        this.lastClick = lastClick;
     }
 
     @Override
