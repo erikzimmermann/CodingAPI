@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.hotbar;
 
+import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import org.bukkit.entity.Player;
 
 public interface ItemListener {

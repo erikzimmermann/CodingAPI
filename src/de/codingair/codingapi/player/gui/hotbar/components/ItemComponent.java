@@ -1,5 +1,7 @@
-package de.codingair.codingapi.player.gui.hotbar;
+package de.codingair.codingapi.player.gui.hotbar.components;
 
+import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
+import de.codingair.codingapi.player.gui.hotbar.ItemListener;
 import de.codingair.codingapi.server.SoundData;
 import org.bukkit.inventory.ItemStack;
 

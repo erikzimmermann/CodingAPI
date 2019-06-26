@@ -279,7 +279,7 @@ public class Interface {
     void rebuildInventory() {
         Inventory inventory = Bukkit.createInventory(getHolder(), getSize(), getTitle());
         inventory.setContents(this.inventory.getContents());
-        inventory.setStorageContents(this.inventory.getStorageContents());
+        if(Version.getVersion().isBiggerThan(Version.v1_9)) inventory.setStorageContents(this.inventory.getStorageContents());
         inventory.setMaxStackSize(this.inventory.getMaxStackSize());
         this.inventory = inventory;
     }
@@ -288,7 +288,7 @@ public class Interface {
         if(title == null) return;
 
         this.title = title;
-        if(this.title.length() > 32) this.title = this.title.substring(0, 33);
+        if(this.title.length() > 32) this.title = this.title.substring(0, 32);
 
         if(update) updateTitle();
     }

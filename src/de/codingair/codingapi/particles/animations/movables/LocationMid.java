@@ -17,4 +17,9 @@ public class LocationMid extends MovableMid {
     @Override
     public void onTick() {
     }
+
+    @Override
+    public boolean isStanding() {
+        return true;
+    }
 }

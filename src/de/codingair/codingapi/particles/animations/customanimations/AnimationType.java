@@ -12,11 +12,11 @@ import java.util.List;
 
 public enum AnimationType {
     CIRCLE(0, CircleAnimation.class, "Circle"),
-    PULSING_CIRCLE_ANIMATION(1, PulsingCircleAnimation.class, "Pulsing Circle"),
-    ROTATING_CIRCLE_ANIMATION(2, RotatingCircleAnimation.class, "Rotating Circle"),
-    SINUS_ANIMATION(3, SinusAnimation.class, "Sinus"),
-    VECTOR_ANIMATION(4, VectorAnimation.class, "Vector"),
-    LINE_ANIMATION(5, LineAnimation.class, "Line"),
+    PULSING_CIRCLE(1, PulsingCircleAnimation.class, "Pulsing Circle"),
+    ROTATING_CIRCLE(2, RotatingCircleAnimation.class, "Rotating Circle"),
+    SINUS(3, SinusAnimation.class, "Sinus"),
+    VECTOR(4, VectorAnimation.class, "Vector"),
+    LINE(5, LineAnimation.class, "Line"),
     ;
 
     private int id;
@@ -29,9 +29,9 @@ public enum AnimationType {
         this.displayName = displayName;
     }
 
-    public CustomAnimation build(Particle particle, Player player, double radius, double height, int speed) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public CustomAnimation build(Particle particle, Player player, MovableMid mid, double radius, double height, int speed) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         return clazz.getConstructor(Particle.class, MovableMid.class, double.class, double.class, int.class)
-                .newInstance(particle, new PlayerMid(player), radius, height, speed).setViewer(player);
+                .newInstance(particle, mid, radius, height, speed).setViewer(player);
     }
 
     public int getId() {

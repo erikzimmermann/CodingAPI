@@ -5,6 +5,7 @@ import de.codingair.codingapi.particles.animations.Animation;
 import de.codingair.codingapi.particles.animations.movables.LocationMid;
 import de.codingair.codingapi.particles.animations.movables.MovableMid;
 import de.codingair.codingapi.particles.utils.Color;
+import de.codingair.codingapi.tools.HitBox;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -94,17 +95,25 @@ public abstract class CustomAnimation extends Animation {
             calculateSinCos = false;
         }
 
+        double x, y, z;
+
         //um x achse
-        l.setY(l.getY() * cosX - l.getZ() * sinX);
-        l.setZ(l.getZ() * cosX + l.getY() * sinX);
+        y = l.getY();
+        z = l.getZ();
+        l.setY(y * cosX - z * sinX);
+        l.setZ(z * cosX + y * sinX);
 
         //um z Achse
-        l.setX(l.getX() * cosZ - l.getY() * sinZ);
-        l.setY(l.getY() * cosZ + l.getX() * sinZ);
+        x = l.getX();
+        y = l.getY();
+        l.setX(x * cosZ - y * sinZ);
+        l.setY(y * cosZ + x * sinZ);
 
         //um y achse
-        l.setX(l.getX() * cosY - l.getZ() * sinY);
-        l.setZ(l.getZ() * cosY + l.getX() * sinY);
+        x = l.getX();
+        z = l.getZ();
+        l.setX(x * cosY - z * sinY);
+        l.setZ(z * cosY + x * sinY);
     }
 
     private void adjustLocations(List<Location> locations) {
@@ -193,6 +202,25 @@ public abstract class CustomAnimation extends Animation {
         }
 
         return getAnimCache();
+    }
+
+    public HitBox getHitBox() {
+        List<List<Location>> cache = getCache();
+        HitBox box = null;
+
+        for(List<Location> locations : cache) {
+            List<Location> copy = copy(locations);
+            adjustLocations(copy);
+
+            for(Location l : copy) {
+                if(box == null) box = new HitBox(l.getX(), l.getY(), l.getZ());
+                else box.addProperty(l.getX(), l.getY(), l.getZ());
+            }
+
+            copy.clear();
+        }
+
+        return box;
     }
 
     public double getRadius() {

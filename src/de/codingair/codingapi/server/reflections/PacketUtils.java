@@ -144,6 +144,7 @@ public class PacketUtils {
     }
 
     public static void sendPacket(Player target, Object packet) {
+        if(!target.isOnline()) return;
         Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(target));
         sendPacket.invoke(playerConnection.get(entityPlayer), packet);
     }

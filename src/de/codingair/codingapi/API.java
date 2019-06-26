@@ -68,7 +68,7 @@ public class API {
         if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
     }
 
-    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, FileNotFoundException, InvalidPluginException {
         List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
 
         for(JavaPlugin p : plugins) {
@@ -77,10 +77,9 @@ public class API {
         }
 
         disablePlugin(plugin);
-        enablePlugin(plugin.getName());
+
 
         for(JavaPlugin p : plugins) {
-            if(p == plugin) continue;
             enablePlugin(p.getName());
         }
 

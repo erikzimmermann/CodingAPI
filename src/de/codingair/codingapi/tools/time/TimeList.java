@@ -29,7 +29,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     }
 
     public void addListener(TimeListener e) {
-        this.listeners.add(e);
+        this.listeners.add(0, e);
     }
 
     public void removeListener(TimeListener e) {

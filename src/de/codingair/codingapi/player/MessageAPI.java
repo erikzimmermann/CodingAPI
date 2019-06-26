@@ -3,8 +3,6 @@ package de.codingair.codingapi.player;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -114,16 +112,33 @@ public class MessageAPI {
         if(header == null) header = "";
         if(footer == null) footer = "";
 
-        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
-        IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass, PacketUtils.ChatMessageClass);
-        IReflection.FieldAccessor b = IReflection.getField(packetClass, "b");
+        Object packet;
 
-        Object tabHeader = PacketUtils.getChatMessage(header);
-        Object tabFooter = PacketUtils.getChatMessage(footer);
+        if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass);
 
-        Object packet = constructor.newInstance(tabHeader);
+            packet = constructor.newInstance();
 
-        b.set(packet, tabFooter);
+            IReflection.FieldAccessor headerF = IReflection.getField(packetClass, "header");
+            IReflection.FieldAccessor footerF = IReflection.getField(packetClass, "footer");
+
+            headerF.set(packet, PacketUtils.getChatMessage(header));
+            footerF.set(packet, PacketUtils.getChatMessage(footer));
+        } else {
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass, PacketUtils.ChatMessageClass);
+
+            IReflection.FieldAccessor b = IReflection.getField(packetClass, "b");
+
+            Object tabHeader = PacketUtils.getChatMessage(header);
+            Object tabFooter = PacketUtils.getChatMessage(footer);
+
+            packet = constructor.newInstance(tabHeader);
+
+            b.set(packet, tabFooter);
+        }
+
 
         PacketUtils.sendPacket(p, packet);
     }

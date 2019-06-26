@@ -33,7 +33,7 @@ public class CircleAnimation extends CustomAnimation {
         double r = cached ? CALCULATE_RADIUS : getRadius();
         List<List<Location>> locations = cached ? CACHE : new ArrayList<>();
         clear(CACHE);
-        
+
         double t = 0;
         while(t < 2 * Math.PI) {
             List<Location> l = new ArrayList<>();

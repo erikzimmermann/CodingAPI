@@ -14,6 +14,7 @@ public class PlayerInventory {
     private Player player;
     private ItemStack[] content;
     private ItemStack[] armor;
+    private int heldSlot;
 
     public PlayerInventory(Player player) {
         this.player = player;
@@ -25,6 +26,7 @@ public class PlayerInventory {
         }
 
         armor = player.getInventory().getArmorContents().clone();
+        heldSlot = player.getInventory().getHeldItemSlot();
     }
 
     public Player getPlayer() {
@@ -35,6 +37,7 @@ public class PlayerInventory {
         this.player.getInventory().clear();
         this.player.getInventory().setContents(this.content.clone());
         this.player.getInventory().setArmorContents(this.armor.clone());
+        this.player.getInventory().setHeldItemSlot(heldSlot);
         this.player.updateInventory();
     }
 
