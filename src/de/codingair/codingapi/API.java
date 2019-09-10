@@ -6,7 +6,7 @@ import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
-import de.codingair.codingapi.server.commands.CommandBuilder;
+import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;

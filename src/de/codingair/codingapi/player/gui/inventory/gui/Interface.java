@@ -63,9 +63,9 @@ public class Interface {
     @Deprecated
     public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
         this.title = title;
-        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 33);
+        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
 
-        this.inventory = Bukkit.createInventory(owner, size, this.title);
+        this.inventory = Bukkit.createInventory(owner, size, getTitle());
         if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
         this.plugin = plugin;
     }
@@ -288,7 +288,7 @@ public class Interface {
         if(title == null) return;
 
         this.title = title;
-        if(this.title.length() > 32) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
 
         if(update) updateTitle();
     }

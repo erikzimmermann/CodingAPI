@@ -1,4 +1,4 @@
-package de.codingair.codingapi.server.commands;
+package de.codingair.codingapi.server.commands.builder;
 
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;

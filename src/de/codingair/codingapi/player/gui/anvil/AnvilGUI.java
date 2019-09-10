@@ -13,7 +13,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -51,7 +50,7 @@ public class AnvilGUI implements Removable {
         this.plugin = plugin;
         this.player = player;
         this.listener = listener;
-        this.title = title;
+        this.title = title == null ? "Repair & Name" : title;
 
         registerBukkitListener();
     }
@@ -185,9 +184,9 @@ public class AnvilGUI implements Removable {
         IReflection.ConstructorAccessor blockPositionCon = IReflection.getConstructor(blockPositionClass, Integer.class, Integer.class, Integer.class);
         IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(chatMessageClass, String.class, Object[].class);
 
-        IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, null);
-        IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, null);
-        IReflection.MethodAccessor nextContainerCounter = IReflection.getMethod(entityPlayerClass, "nextContainerCounter", int.class, null);
+        IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
+        IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);
+        IReflection.MethodAccessor nextContainerCounter = IReflection.getMethod(entityPlayerClass, "nextContainerCounter", int.class, (Class<?>[]) null);
         IReflection.MethodAccessor addSlotListener = IReflection.getMethod(containerClass, "addSlotListener", new Class[] {entityPlayerClass});
 
         IReflection.FieldAccessor getInventory = IReflection.getField(entityPlayerClass, "inventory");
@@ -255,8 +254,8 @@ public class AnvilGUI implements Removable {
 
         IReflection.FieldAccessor activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
 
-        IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, null);
-        IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, null);
+        IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
+        IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);
 
         Object entityPlayer = PacketUtils.getEntityPlayer(this.player);
         Object container = activeContainer.get(entityPlayer);
@@ -300,6 +299,6 @@ public class AnvilGUI implements Removable {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        this.title = title == null ? "Repair & Name" : title;
     }
 }

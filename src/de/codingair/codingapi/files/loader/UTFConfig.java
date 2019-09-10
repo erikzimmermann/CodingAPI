@@ -202,8 +202,11 @@ public class UTFConfig extends YamlConfiguration {
         String[] a = contents.split("\n", -1);
 
         for(int i = 0; i < a.length - 1; i++) {
-            if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
+            String s = a[i];
+            while(s.startsWith(" ")) s = s.substring(1);
+            if(s.startsWith("-")) continue;
 
+            if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
             line++;
         }
     }
@@ -221,16 +224,34 @@ public class UTFConfig extends YamlConfiguration {
     private String writeExtras(String contents) {
         List<String> lines = new ArrayList<>(Arrays.asList(contents.split("\n", -1)));
 
-        for(Extra c : this.extras) {
-            if(c.getLine() >= lines.size()) lines.add(c.getText());
-            else lines.add(c.getLine(), c.getText());
+        final int size = lines.size() + this.extras.size();
+        int e = 0;
+        int listItems = 0;
+        for(int i = 0; i < size; i++) {
+            if(this.extras.size() == e) break;
+
+            if(lines.size() == i) {
+                lines.add(this.extras.get(e++).getText());
+                continue;
+            }
+
+            String s = lines.get(i);
+            while(s.startsWith(" ")) s = s.substring(1);
+            if(s.startsWith("-")) {
+                listItems++;
+                continue;
+            }
+
+            if(this.extras.get(e).getLine() == (i - listItems)) {
+                lines.add(i, extras.get(e++).getText());
+            }
         }
 
         StringBuilder builder = new StringBuilder();
 
-        for(int i = 0; i < lines.size(); i++) {
-            builder.append(lines.get(i));
-            if(i < lines.size() - 1) builder.append("\n");
+        for(int j = 0; j < lines.size(); j++) {
+            builder.append(lines.get(j));
+            if(j < lines.size() - 1) builder.append("\n");
         }
 
         return builder.toString();

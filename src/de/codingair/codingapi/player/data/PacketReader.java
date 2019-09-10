@@ -11,6 +11,7 @@ import io.netty.channel.ChannelPromise;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public abstract class PacketReader implements Removable {
@@ -82,8 +83,11 @@ public abstract class PacketReader implements Removable {
 	
 	public void unInject() {
 		if(channel.pipeline().get(name) != null) {
-			channel.pipeline().remove(name);
-			API.removeRemovable(this);
+			try {
+				channel.pipeline().remove(name);
+				API.removeRemovable(this);
+			} catch(NoSuchElementException ex) {
+			}
 		}
 	}
 	
