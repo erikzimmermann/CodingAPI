@@ -292,7 +292,18 @@ public class Environment {
     public static Block getNextTopBlock(Location location, int max) {
         while(location.getBlock() == null || !isBlock(location.getBlock())) {
             location.setY(location.getY() + 1);
-            if(location.getY() >= 255) return null;
+            if(location.getY() >= max) return null;
+        }
+
+        return location.getBlock();
+    }
+
+    public static Block getNextNonSolidBlock(Location location, int max, Vector vector) {
+        vector.normalize();
+
+        for(int i = 0; i < max; i++) {
+            if(location.getBlock().getType().isSolid()) location.add(vector);
+            else break;
         }
 
         return location.getBlock();

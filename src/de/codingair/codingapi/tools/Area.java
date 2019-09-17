@@ -65,7 +65,7 @@ public class Area {
         return false;
     }
 
-    public static boolean isInArea(Location target, Location mid, int radius, boolean yCords, double puffer) {
+    public static boolean isInArea(Location target, Location mid, double radius, boolean yCords, double puffer) {
         Location e0 = mid.clone().subtract(radius, radius, radius);
         Location e1 = mid.clone().add(radius, radius, radius);
         return isInArea(target, e0, e1, yCords, puffer);

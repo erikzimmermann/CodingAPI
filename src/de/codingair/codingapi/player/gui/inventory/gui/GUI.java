@@ -381,6 +381,7 @@ public abstract class GUI extends Interface implements Removable {
 
     @Override
     public void setTitle(String title, boolean update) {
+        if(isOldTitle(title)) return;
         boolean isOpened = isOpen();
 
         super.setTitle(title, update && isOpened);

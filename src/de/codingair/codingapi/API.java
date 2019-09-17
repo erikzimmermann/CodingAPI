@@ -20,16 +20,14 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.InvalidDescriptionException;
-import org.bukkit.plugin.InvalidPluginException;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.SimplePluginManager;
+import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class API {
     private static final List<Removable> REMOVABLES = new ArrayList<>();
@@ -78,7 +76,6 @@ public class API {
 
         disablePlugin(plugin);
 
-
         for(JavaPlugin p : plugins) {
             enablePlugin(p.getName());
         }
@@ -96,7 +93,8 @@ public class API {
             Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
             List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
 
-            map.remove(plugin.getDescription().getName());
+            if(map.remove(plugin.getDescription().getName().toLowerCase()) == null)
+                map.remove(plugin.getDescription().getName());
             pluginList.remove(plugin);
         } catch(Exception ignored) {
         }

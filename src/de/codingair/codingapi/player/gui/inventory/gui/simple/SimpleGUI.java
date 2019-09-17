@@ -22,7 +22,7 @@ public class SimpleGUI extends GUI {
     }
 
     public SimpleGUI(Player p, Layout layout, Page main, JavaPlugin plugin) {
-        this(p, layout,main, plugin, true);
+        this(p, layout, main, plugin, true);
     }
 
     public SimpleGUI(Player p, Layout layout, Page main, JavaPlugin plugin, boolean preInitialize) {

@@ -205,6 +205,8 @@ public class AnvilGUI implements Removable {
         Object container;
         if(Version.getVersion().isBiggerThan(Version.v1_13)) {
             container = anvilContainerCon.newInstance(c, inventory, new ContainerAccess(player, world, blockPosition));
+            IReflection.FieldAccessor title = IReflection.getField(containerClass, "title");
+            title.set(container, PacketUtils.getIChatBaseComponent(this.title));
         } else {
             container = anvilContainerCon.newInstance(inventory, world, blockPosition, entityPlayer);
         }

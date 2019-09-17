@@ -84,7 +84,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             //Create PluginCommand using CustomCommand.class
             main = new CustomCommand(plugin, this.name, this.description).invoke();
 
-            if(command == null || API.getInstance().getPlugins().contains(command.getPlugin())) {
+            if(command == null) {
                 //Register command in SimpleCommandMap.class
                 SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
                 IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
@@ -107,7 +107,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         for(String s : names) {
             command = Bukkit.getPluginCommand(s);
 
-            if(command != null && !API.getInstance().getPlugins().contains(command.getPlugin())) {
+            if(command != null && (!API.getInstance().getPlugins().contains(command.getPlugin()) || (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name)))) {
                 if(command.getExecutor().equals(this)) continue;
 
                 if(highestPriority) {
