@@ -17,6 +17,10 @@ public class JSONObject extends org.json.simple.JSONObject {
     }
 
     public <T> T get(String key) {
+        return get(key, null);
+    }
+
+    public <T> T get(String key, T def) {
         Object o = super.get(key);
 
         if(o instanceof Long) {
@@ -24,6 +28,6 @@ public class JSONObject extends org.json.simple.JSONObject {
             if(l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) return (T) (Object) Math.toIntExact(l);
         }
 
-        return o == null ? null : (T) o;
+        return o == null ? def : (T) o;
     }
 }

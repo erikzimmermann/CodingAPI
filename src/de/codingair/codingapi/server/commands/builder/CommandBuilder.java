@@ -93,7 +93,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
                 if(tabCompleter) main.setTabCompleter(this);
                 main.setExecutor(this);
                 main.setAliases(aliases);
-                main.setPermission(this.baseComponent.getPermission());
+                main.setPermission(null);
 
                 scm.register(plugin.getDescription().getName(), main);
 
@@ -123,7 +123,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
                     command.setTabCompleter(this);
                     command.setDescription(main.getDescription());
                     command.setAliases(main.getAliases());
-                    command.setPermission(main.getPermission());
+                    command.setPermission(null);
                     command.setUsage(main.getUsage());
 
                     try {
