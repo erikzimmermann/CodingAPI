@@ -18,9 +18,10 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class CommandBuilder implements CommandExecutor, TabCompleter {
-    private static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
+    public static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
     private static Listener listener;
     private CommandBackup backup = null;
+    private PluginCommand main;
 
     private static void registerListener(JavaPlugin plugin) {
         if(listener != null) return;
@@ -76,7 +77,6 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         PluginCommand command = Bukkit.getPluginCommand(this.name);
         if(command != null && !command.getName().equalsIgnoreCase(this.name)) command = null;
 
-        PluginCommand main;
         PluginCommand pluginC = plugin.getCommand(this.name);
         if(pluginC != null && !pluginC.getName().equalsIgnoreCase(this.name)) pluginC = null;
 
@@ -97,8 +97,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
                 scm.register(plugin.getDescription().getName(), main);
 
-                CommandDispatcher.addCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + this.name.toLowerCase(Locale.ENGLISH).trim());
-                CommandDispatcher.addCommand(this.name.toLowerCase(Locale.ENGLISH).trim());
+                CommandDispatcher.addCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + this.name.toLowerCase(Locale.ENGLISH).trim(), this);
+                CommandDispatcher.addCommand(this.name.toLowerCase(Locale.ENGLISH).trim(), this);
             }
         } else {
             main = plugin.getCommand(this.name);
@@ -164,7 +164,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             this.backup.restore();
         }
 
-        PluginCommand command = Bukkit.getPluginCommand(this.name);
+        PluginCommand command = main;
         if(command.getExecutor() == command.getPlugin() && API.getInstance().getPlugins().contains(command.getPlugin())) {
             //remove from SimpleCommandMap
             SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
@@ -296,5 +296,9 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     public void setOwnTabCompleter(TabCompleter ownTabCompleter) {
         this.ownTabCompleter = ownTabCompleter;
+    }
+
+    public PluginCommand getMain() {
+        return main;
     }
 }

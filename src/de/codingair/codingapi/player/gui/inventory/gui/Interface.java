@@ -693,7 +693,7 @@ public class Interface {
 
     public void setItem(int x, ItemStack item) {
         ItemStack old;
-        if((old = this.inventory.getItem(x)) != null && old.equals(item)) return;
+        if((old = this.inventory.getItem(x)) != null && old.isSimilar(item)) return;
         this.inventory.setItem(x, item);
     }
 

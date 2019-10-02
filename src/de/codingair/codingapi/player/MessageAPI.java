@@ -90,22 +90,19 @@ public class MessageAPI {
         Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle$EnumTitleAction");
         IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
-        IReflection.MethodAccessor getNames = IReflection.getMethod(enumTitle, "a", String[].class, null);
-        IReflection.MethodAccessor getEnum = IReflection.getMethod(enumTitle, "a", enumTitle, new Class[] {String.class});
+        int i = Version.getVersion().isBiggerThan(Version.v1_10) ? 1 : 0;
 
-        String[] names = (String[]) getNames.invoke(enumTitle);
-
-        Object resetP = constructor.newInstance(getEnum.invoke(enumTitle, names[4]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object clearP = constructor.newInstance(getEnum.invoke(enumTitle, names[3]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object times = constructor.newInstance(getEnum.invoke(enumTitle, names[2]), PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object subTitle = msg2 == null ? null : constructor.newInstance(getEnum.invoke(enumTitle, names[1]), PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
-        Object title = msg1 == null ? null : constructor.newInstance(getEnum.invoke(enumTitle, names[0]), PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
+        Object resetP = !reset ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 4], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object clearP = !clear ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 3], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object times = ignoreTimePacket ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 2], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+        Object subTitle = msg2 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[1], PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
+        Object title = msg1 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[0], PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
 
         if(reset) PacketUtils.sendPacket(p, resetP);
         if(clear) PacketUtils.sendPacket(p, clearP);
-        if(!ignoreTimePacket) PacketUtils.sendPacket(p, times);
-        if(msg2 != null) PacketUtils.sendPacket(p, subTitle);
         if(msg1 != null) PacketUtils.sendPacket(p, title);
+        if(msg2 != null) PacketUtils.sendPacket(p, subTitle);
+        if(!ignoreTimePacket) PacketUtils.sendPacket(p, times);
     }
 
     public static void sendTablist(Player p, String header, String footer) {

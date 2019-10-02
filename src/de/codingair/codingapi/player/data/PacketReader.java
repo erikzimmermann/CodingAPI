@@ -53,10 +53,8 @@ public abstract class PacketReader implements Removable {
 		IReflection.FieldAccessor getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
 		
 		channel = (Channel) getChannel.get(getNetworkManager.get(getPlayerConnection.get(PacketUtils.getEntityPlayer(player))));
-		
-		if(channel.pipeline().get(name) != null) channel.pipeline().remove(name);
 
-		channel.pipeline().addBefore("packet_handler", name, new ChannelDuplexHandler() {
+		ChannelDuplexHandler handler = new ChannelDuplexHandler() {
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
 				try {
@@ -76,7 +74,11 @@ public abstract class PacketReader implements Removable {
 					super.write(ctx, o, promise);
 				}
 			}
-		});
+		};
+
+		if(channel.pipeline().get(name) != null) channel.pipeline().remove(name);
+		if(channel.pipeline().get("packet_handler") != null) channel.pipeline().addBefore("packet_handler", name, handler);
+		else channel.pipeline().addFirst(name, handler);
 		
 		API.addRemovable(this);
 	}

@@ -9,6 +9,7 @@ import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
+import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -430,6 +431,12 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvCloseEvent(InventoryCloseEvent e) {
+        Callback<GUI> confirm = GUI.foreignConfirmations.remove(e.getPlayer());
+        if(confirm != null) {
+            confirm.accept(null);
+            return;
+        }
+
         if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())) || e.getInventory().getType() != InventoryType.CHEST)
             return;
 

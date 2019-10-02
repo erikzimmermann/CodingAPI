@@ -49,15 +49,19 @@ public class API {
     public synchronized void onDisable(JavaPlugin plugin) {
         if(!initialized || !plugins.contains(plugin)) return;
 
-        for(String s : plugin.getDescription().getCommands().keySet()) {
-            PluginCommand command = Bukkit.getPluginCommand(s);
-            if(command == null) continue;
+        List<CommandBuilder> toDisable = new ArrayList<>();
 
-            if(command.getExecutor() instanceof CommandBuilder) {
-                CommandBuilder b = (CommandBuilder) command.getExecutor();
-                b.unregister(plugin);
+        for(Map.Entry<String, CommandBuilder> e : CommandBuilder.REGISTERED.entrySet()) {
+            if(e.getValue().getMain().getPlugin().equals(plugin)) {
+                toDisable.add(e.getValue());
             }
         }
+
+        for(CommandBuilder b : toDisable) {
+            b.unregister(plugin);
+        }
+
+        toDisable.clear();
 
         HandlerList.unregisterAll(plugin);
 
