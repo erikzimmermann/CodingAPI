@@ -32,8 +32,8 @@ public abstract class SyncTriggerButton extends SyncButton {
 
     @Override
     public void onClick(InventoryClickEvent e, Player player) {
-        boolean triggered = lastTrigger == null || trigger.length == 0;
-        if(trigger != null)
+        boolean triggered = trigger == null || trigger.length == 0;
+        if(!triggered)
             for(ClickType clickType : trigger) {
                 if(e.getClick() == clickType) {
                     triggered = true;
@@ -42,9 +42,8 @@ public abstract class SyncTriggerButton extends SyncButton {
                 }
             }
 
-        if(trigger == null || triggered) {
-            onTrigger(e, e.getClick(), player);
-        } else onOtherClick(e);
+        if(triggered) onTrigger(e, e.getClick(), player);
+        else onOtherClick(e);
     }
 
     public abstract void onTrigger(InventoryClickEvent e, ClickType trigger, Player player);
