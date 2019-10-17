@@ -25,6 +25,7 @@ public class ParticlePacket {
     private boolean longDistance = false;
     private Location location;
     private double maxDistance = 0;
+    private int noteId = 0;
 
     public ParticlePacket(Particle particle) {
         this.particle = particle;
@@ -52,8 +53,22 @@ public class ParticlePacket {
             IReflection.MethodAccessor toNMS = IReflection.getMethod(craftParticle, "toNMS", particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
 
             Object data = null;
+            float offsetX = 0, offsetY = 0, offsetZ = 0, extra = 0;
+            int count = 1;
             if(this.color != null) {
-                data = IReflection.getConstructor(dustOptions, org.bukkit.Color.class, float.class).newInstance(org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue()), 1);
+                if(particle == Particle.REDSTONE)
+                    data = IReflection.getConstructor(dustOptions, org.bukkit.Color.class, float.class).newInstance(org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue()), 1);
+                else if(particle == Particle.NOTE) {
+                    count = 0;
+                    offsetX = noteId/24F;
+                    extra = 1F;
+                } else if(particle == Particle.SPELL_MOB || particle == Particle.SPELL_MOB_AMBIENT) {
+                    count = 0;
+                    offsetX = color.getRed() / 255F;
+                    offsetY = color.getGreen() / 255F;
+                    offsetZ = color.getBlue() / 255F;
+                    extra = 1F;
+                }
             }
 
             Object particle;
@@ -67,14 +82,14 @@ public class ParticlePacket {
             packet = packetCon.newInstance();
 
             try {
-                IReflection.setValue(packet, "a", (float) this.location.getX());
-                IReflection.setValue(packet, "b", (float) this.location.getY());
-                IReflection.setValue(packet, "c", (float) this.location.getZ());
-                IReflection.setValue(packet, "d", 0);
-                IReflection.setValue(packet, "e", 0);
-                IReflection.setValue(packet, "f", 0);
-                IReflection.setValue(packet, "g", 0);
-                IReflection.setValue(packet, "h", 1);
+                IReflection.setValue(packet, "a", (float) this.location.getX());      //x
+                IReflection.setValue(packet, "b", (float) this.location.getY());      //y
+                IReflection.setValue(packet, "c", (float) this.location.getZ());      //z
+                IReflection.setValue(packet, "d", offsetX);                           //offset x
+                IReflection.setValue(packet, "e", offsetY);                           //offset y
+                IReflection.setValue(packet, "f", offsetZ);                           //offset z
+                IReflection.setValue(packet, "g", extra);                             //extra
+                IReflection.setValue(packet, "h", count);                             //count
                 IReflection.setValue(packet, "i", this.longDistance);
                 IReflection.setValue(packet, "j", particle);
             } catch(IllegalAccessException | NoSuchFieldException e1) {
@@ -195,5 +210,13 @@ public class ParticlePacket {
 
     public void setMaxDistance(double maxDistance) {
         this.maxDistance = maxDistance;
+    }
+
+    public int getNoteId() {
+        return noteId;
+    }
+
+    public void setNoteId(int noteId) {
+        this.noteId = noteId;
     }
 }
