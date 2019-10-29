@@ -47,12 +47,19 @@ public abstract class PacketReader implements Removable {
 		unInject();
 	}
 	
-	public void inject() {
+	public boolean inject() {
 		IReflection.FieldAccessor getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
 		IReflection.FieldAccessor getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
 		IReflection.FieldAccessor getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
-		
-		channel = (Channel) getChannel.get(getNetworkManager.get(getPlayerConnection.get(PacketUtils.getEntityPlayer(player))));
+
+		Object ep = PacketUtils.getEntityPlayer(player);
+		if(ep == null) return false;
+		Object playerCon = getPlayerConnection.get(ep);
+		if(playerCon == null) return false;
+		Object networkMan = getNetworkManager.get(playerCon);
+		if(networkMan == null) return false;
+		channel = (Channel) getChannel.get(networkMan);
+		if(channel == null) return false;
 
 		ChannelDuplexHandler handler = new ChannelDuplexHandler() {
 			@Override
@@ -81,6 +88,7 @@ public abstract class PacketReader implements Removable {
 		else channel.pipeline().addFirst(name, handler);
 		
 		API.addRemovable(this);
+		return true;
 	}
 	
 	public void unInject() {
