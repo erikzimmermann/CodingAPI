@@ -1,6 +1,5 @@
 package de.codingair.codingapi.particles;
 
-import de.codingair.codingapi.server.Sound;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -294,7 +293,7 @@ public enum Particle {
             Particle p = getById(id);
 
             int last = -1;
-            for(int i = 0; i < Sound.values().length; i++) {
+            for(int i = 0; i < values().length; i++) {
                 if(values()[i] == p) {
                     last = i;
                 } else if(last >= 0 && values()[i].name().charAt(0) != p.name().charAt(0)) {
@@ -333,26 +332,35 @@ public enum Particle {
     }
 
     public static Particle previous(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
+        int foundAt = -1;
+
         if(skipCharacter) {
-            int last = -1;
             Particle p = getById(id);
 
             for(int i = 0; i < values().length; i++) {
-                if(values()[i].name().charAt(0) == p.name().charAt(0)) {
-                    Particle next = last == -1 ? values()[values().length - 1] : values()[last];
+                if(values()[i].name().charAt(0) == p.name().charAt(0) || foundAt >= 0) {
+                    if(foundAt == -1) foundAt = i;
+                    Particle next = i == 0 ? values()[values().length - 1] : values()[foundAt - 1];
                     if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                } else last = i;
+                    else {
+                        foundAt--;
+                        if(foundAt < 0) foundAt = values().length - 1;
+                    }
+                }
             }
 
             throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
         } else {
-            boolean found = false;
-
             for(int i = 0; i < values().length; i++) {
-                if(values()[i].getId() == id || found) {
-                    found = true;
-                    Particle next = i - 1 < 0 ? values()[values().length - 1] : values()[i - 1];
+                if(values()[i].getId() == id || foundAt >= 0) {
+                    if(foundAt == -1) foundAt = i;
+
+                    Particle next = i - 1 < 0 ? values()[values().length - 1] : values()[foundAt - 1];
                     if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
+                    else {
+                        foundAt--;
+                        if(foundAt < 0) foundAt = values().length - 1;
+                    }
                 }
             }
 
