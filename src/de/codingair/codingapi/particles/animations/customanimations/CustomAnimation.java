@@ -116,6 +116,9 @@ public abstract class CustomAnimation extends Animation {
         l.setZ(z * cosY + x * sinY);
     }
 
+    /**
+     * @param locations (Copy of cache)
+     */
     private void adjustLocations(List<Location> locations) {
         boolean rotation = xRotation != 0 || yRotation != 0 || zRotation != 0;
         Location mid = this.mid.getLocation();
@@ -129,6 +132,7 @@ public abstract class CustomAnimation extends Animation {
 
             if(!useOwnCache()) location.multiply(getRadius() / CALCULATE_RADIUS);
             location.add(mid.getX(), mid.getY() + getHeight(), mid.getZ());
+            location.setWorld(mid.getWorld());
         }
     }
 
