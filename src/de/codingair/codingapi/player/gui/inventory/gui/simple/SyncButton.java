@@ -7,7 +7,7 @@ public abstract class SyncButton extends Button {
 
     public SyncButton(int slot) {
         super(slot, null);
-        setItem(craftItem(), false);
+        update(false);
     }
 
     public SyncButton(int x, int y) {

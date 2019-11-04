@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
+import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Version;
@@ -47,6 +48,7 @@ public class Interface {
     private List<Player> currentPlayers = new ArrayList<>();
     private String wrappersName = null;
     private boolean editableItems = true;
+    private String oldTitle;
     private String title;
     boolean oldUsage = true;
     private Plugin plugin;
@@ -62,9 +64,9 @@ public class Interface {
     @Deprecated
     public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
         this.title = title;
-        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
 
-        this.inventory = Bukkit.createInventory(owner, size, this.title);
+        this.inventory = Bukkit.createInventory(owner, size, this.oldTitle = getTitle());
         if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
         this.plugin = plugin;
     }
@@ -275,17 +277,35 @@ public class Interface {
         return true;
     }
 
-    public void setTitle(String title, boolean reopen) {
+    void rebuildInventory() {
+        Inventory inventory = Bukkit.createInventory(getHolder(), getSize(), getTitle());
+        inventory.setContents(this.inventory.getContents());
+        if(Version.getVersion().isBiggerThan(Version.v1_9)) inventory.setStorageContents(this.inventory.getStorageContents());
+        inventory.setMaxStackSize(this.inventory.getMaxStackSize());
+        this.inventory = inventory;
+    }
+
+    public boolean isOldTitle(String title) {
+        return this.oldTitle.equals(title);
+    }
+
+    public void setTitle(String title, boolean update) {
+        if(title == null || title.equals(this.title)) return;
+
         this.title = title;
-        if(this.title != null && this.title.length() > 32) this.title = this.title.substring(0, 32);
-        if(reopen) reopen();
+        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
+
+        if(update) updateTitle();
     }
 
     public void setTitle(String title) {
         setTitle(title, true);
     }
 
-    public void reopen() {
+    public void updateTitle() {
+        if(isOldTitle(this.title)) return;
+        if(this instanceof GUI) ((GUI) this).isClosed = false;
+
         this.currentPlayers.forEach(p -> {
             Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
             Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
@@ -297,20 +317,28 @@ public class Interface {
 
             Object ep = PacketUtils.getEntityPlayer(p);
             Object packet;
+            Object icbcTitle = PacketUtils.getChatMessage(this.title);
 
+            Object active = activeContainer.get(ep);
+            int id = (int) windowId.get(active);
+            
             if(Version.getVersion().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+                IReflection.FieldAccessor title = IReflection.getField(containerClass, "title");
 
+                title.set(active, icbcTitle);
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
-                packet = con.newInstance(windowId.get(activeContainer.get(ep)), getContainerType(getSize()), PacketUtils.getChatMessage(this.title));
+                packet = con.newInstance(id, getContainerType(getSize()), icbcTitle);
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
-                packet = con.newInstance(windowId.get(activeContainer.get(ep)), "minecraft:chest", PacketUtils.getChatMessage(this.title), p.getOpenInventory().getTopInventory().getSize());
+                packet = con.newInstance(id, "minecraft:chest", icbcTitle, p.getOpenInventory().getTopInventory().getSize());
             }
 
             PacketUtils.sendPacket(p, packet);
-            updateInventory.invoke(ep, activeContainer.get(ep));
+            updateInventory.invoke(ep, active);
         });
+
+        this.oldTitle = this.title;
     }
 
     private Object getContainerType(int size) {
@@ -355,11 +383,15 @@ public class Interface {
     }
 
     public void open(Player p) {
-        this.currentPlayers.add(p);
+        addToPlayerList(p);
         setTitle(this.title, false);
         if(oldUsage) interfaces.add(this);
 
         Bukkit.getScheduler().runTask(plugin, () -> p.openInventory(this.inventory));
+    }
+
+    protected void addToPlayerList(Player player) {
+        this.currentPlayers.add(player);
     }
 
     public void close(Player p) {
@@ -381,7 +413,10 @@ public class Interface {
         if(oldUsage) interfaces.remove(this);
 
         if(!isClosing) {
-            Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
+            if(API.getInstance().getMainPlugin() != null && API.getInstance().getMainPlugin().isEnabled())
+                Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
+            else
+                p.closeInventory();
         }
     }
 
@@ -658,7 +693,7 @@ public class Interface {
 
     public void setItem(int x, ItemStack item) {
         ItemStack old;
-        if((old = this.inventory.getItem(x)) != null && old.equals(item)) return;
+        if((old = this.inventory.getItem(x)) != null && old.isSimilar(item)) return;
         this.inventory.setItem(x, item);
     }
 

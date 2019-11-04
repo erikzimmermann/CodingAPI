@@ -24,18 +24,18 @@ public class TimeMap<K, V> extends HashMap<K, V> {
     }
 
     private void initTimeList() {
-        time = new TimeList<K>() {
+        time = new TimeList<>();
+
+        time.addListener(new TimeListener() {
             @Override
-            public boolean setExpire(K k, int expire) {
-                boolean res = super.setExpire(k, expire);
-
-                if(res && !time.contains(k)) {
-                    remove(k);
-                }
-
-                return res;
+            public void onRemove(Object item) {
+                TimeMap.this.remove(item);
             }
-        };
+
+            @Override
+            public void onTick(Object item, int timeLeft) {
+            }
+        });
     }
 
     public V put(K key, V value, int expire) {

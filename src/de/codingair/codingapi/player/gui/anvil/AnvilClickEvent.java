@@ -18,10 +18,11 @@ public class AnvilClickEvent extends Event {
 	
 	private ItemStack item;
 	
-	private boolean close = true;
-	private boolean destroy = true;
-	private boolean cancelled = false;
-	
+	private boolean close = false;
+	private boolean cancelled = true;
+
+	private boolean payExp = false;
+
 	private AnvilGUI anvil;
 	
 	public static HandlerList handlers = new HandlerList();
@@ -59,7 +60,6 @@ public class AnvilClickEvent extends Event {
 	}
 	
 	public void setClose(boolean close) {
-		this.destroy = close;
 		this.close = close;
 	}
 	
@@ -86,5 +86,13 @@ public class AnvilClickEvent extends Event {
 	public String getInput() {
 		if(this.item == null || !this.item.hasItemMeta()) return null;
 		return this.item.getItemMeta().getDisplayName();
+	}
+
+	public boolean isPayExp() {
+		return payExp;
+	}
+
+	public void setPayExp(boolean payExp) {
+		this.payExp = payExp;
 	}
 }

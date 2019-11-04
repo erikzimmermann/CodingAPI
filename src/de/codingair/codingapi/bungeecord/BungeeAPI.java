@@ -17,7 +17,6 @@ public class BungeeAPI {
 
     public void onEnable(Plugin plugin) {
         this.plugin = plugin;
-        System.out.println("ENABLE BUNGEE-ACP");
     }
 
     public void onDisable() {

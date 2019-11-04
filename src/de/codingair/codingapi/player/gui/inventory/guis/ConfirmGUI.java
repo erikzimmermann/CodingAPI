@@ -62,7 +62,7 @@ public class ConfirmGUI extends GUI {
                 if(run) return;
                 run = true;
 
-                Bukkit.getScheduler().runTaskLater(plugin, close, 1L);
+                if(ConfirmGUI.this.close != null) Bukkit.getScheduler().runTaskLater(plugin, ConfirmGUI.this.close, 1L);
             }
 
             @Override
@@ -79,7 +79,7 @@ public class ConfirmGUI extends GUI {
         option.setOnlyLeftClick(true);
         option.setCloseOnClick(true);
 
-        addButton(new ItemButton(2, new ItemBuilder(XMaterial.LIME_WOOL).setName(accept).getItem()) {
+        addButton(new ItemButton(2, new ItemBuilder(XMaterial.LIME_TERRACOTTA).setName(accept).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(true);
@@ -88,11 +88,9 @@ public class ConfirmGUI extends GUI {
 
         List<String> lines = TextAlignment.lineBreak(message, 80);
 
-//        lines = TextAlignment.JUSTIFY.apply(lines);
-
         setItem(4, new ItemBuilder(Material.NETHER_STAR).setName(lines.remove(0)).setLore(lines).getItem());
 
-        addButton(new ItemButton(6, new ItemBuilder(XMaterial.RED_WOOL).setName(decline).getItem()) {
+        addButton(new ItemButton(6, new ItemBuilder(XMaterial.RED_TERRACOTTA).setName(decline).getItem()) {
             @Override
             public void onClick(InventoryClickEvent e) {
                 callback.accept(false);

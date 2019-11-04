@@ -9,6 +9,7 @@ import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
+import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -162,6 +163,8 @@ public class GUIListener implements Listener {
             }
         }
 
+        e.setCancelled(false);
+
         if(e.getClickedInventory() == e.getView().getTopInventory()) {
             for(InterfaceListener l : inv.getListener()) {
                 l.onInvClickEvent(e);
@@ -258,11 +261,10 @@ public class GUIListener implements Listener {
 
             e.setCancelled(!button.isMovable());
 
-            if(
-                    (button.isOnlyLeftClick() && e.isLeftClick())
-                            || (button.isOnlyRightClick() && e.isRightClick())
-                            || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
-                            || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
+            if((button.isOnlyLeftClick() && e.isLeftClick())
+                    || (button.isOnlyRightClick() && e.isRightClick())
+                    || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
+                    || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
                 if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
 
                 if(button.isCloseOnClick()) {
@@ -429,6 +431,12 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvCloseEvent(InventoryCloseEvent e) {
+        Callback<GUI> confirm = GUI.foreignConfirmations.remove(e.getPlayer());
+        if(confirm != null) {
+            confirm.accept(null);
+            return;
+        }
+
         if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getPlayer()) && !GUI.usesOldGUI((Player) e.getPlayer())) || e.getInventory().getType() != InventoryType.CHEST)
             return;
 

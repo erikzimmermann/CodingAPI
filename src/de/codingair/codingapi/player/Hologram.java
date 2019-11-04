@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -254,9 +256,61 @@ public class Hologram implements Removable {
         }
     }
 
+    private void injectPacketReader(Player player) {
+        //Interact event handler
+        new PacketReader(player, "CodingAPI-HologramReader", getPlugin()) {
+            @Override
+            public boolean readPacket(Object packet) {
+                if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {
+                    IReflection.FieldAccessor action = IReflection.getField(packet.getClass(), "action");
+                    IReflection.FieldAccessor fA = IReflection.getField(packet.getClass(), "a");
+                    int clicked = (int) fA.get(packet);
+
+                    String aS = action.get(packet).toString();
+                    Action a;
+                    if(aS.equals("INTERACT_AT")) a = Action.RIGHT_CLICK_AIR;
+                    else if(aS.equals("ATTACK")) a = Action.LEFT_CLICK_AIR;
+                    else return false;
+
+                    List<Object> armorStands = new ArrayList<>(entities);
+                    for(Object entity : armorStands) {
+                        int id = PacketUtils.EntityPackets.getId(entity);
+                        if(id == clicked) {
+                            Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () -> Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(player, a, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, null)));
+                            break;
+                        }
+                    }
+                    armorStands.clear();
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean writePacket(Object packet) {
+                return false;
+            }
+        }.inject();
+    }
+
+    private void uninjectPacketReader(Player player) {
+        //Interact event handler
+        List<PacketReader> l = API.getRemovables(player, PacketReader.class);
+
+        for(PacketReader reader : l) {
+            if(reader.getName().equals("CodingAPI-HologramReader")) {
+                reader.unInject();
+                break;
+            }
+        }
+
+        l.clear();
+    }
+
     private void spawn(Player player) {
         if(isSpawnedFor(player)) return;
 
+        injectPacketReader(player);
         for(Object entity : this.entities) {
             HologramPackets.spawn(player, entity);
         }
@@ -271,6 +325,7 @@ public class Hologram implements Removable {
         for(Object entity : this.entities) {
             HologramPackets.destroy(player, entity);
         }
+        uninjectPacketReader(player);
 
         //remove from spawned list
         this.initedPlayers.remove(player);

@@ -22,6 +22,10 @@ public class SimpleGUI extends GUI {
     }
 
     public SimpleGUI(Player p, Layout layout, Page main, JavaPlugin plugin) {
+        this(p, layout, main, plugin, true);
+    }
+
+    public SimpleGUI(Player p, Layout layout, Page main, JavaPlugin plugin, boolean preInitialize) {
         super(p, main.getTitle(), main.getLayout() == null ? layout.getSize() : main.getLayout().getSize(), plugin, false);
 
         this.layout = layout;
@@ -60,7 +64,7 @@ public class SimpleGUI extends GUI {
             }
         });
 
-        initialize(p);
+        if(preInitialize) initialize(p);
     }
 
     @Override
@@ -75,8 +79,8 @@ public class SimpleGUI extends GUI {
 
     public void changePage(Page page, boolean update) {
         this.current = page;
-        if(page.initialize(this)) reopen();
-        else if(update) getPlayer().updateInventory();
+        if(page.initialize(this)) updateTitle();
+        else if(update) GUI.updateInventory(getPlayer());
     }
 
     public Page getMain() {

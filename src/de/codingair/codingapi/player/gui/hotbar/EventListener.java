@@ -1,20 +1,13 @@
 package de.codingair.codingapi.player.gui.hotbar;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.*;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 public class EventListener implements Listener {
@@ -48,6 +41,10 @@ public class EventListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         HotbarGUI gui;
         if((gui = API.getRemovable(e.getPlayer(), HotbarGUI.class)) != null) {
+            if(System.currentTimeMillis() - gui.getLastClick() <= 50) {
+                return;
+            } else gui.setLastClick(System.currentTimeMillis());
+
             ItemComponent ic = gui.getMenu()[e.getPlayer().getInventory().getHeldItemSlot()];
 
             if(ic == null || ic.getItem() == null) return;
@@ -63,13 +60,19 @@ public class EventListener implements Listener {
             //CLOSE
             if(ic.isCloseOnClick() && ic.getLink() == null) {
                 gui.close(true);
+                if(gui.getOnFinish() != null) gui.getOnFinish().run();
                 return;
             }
 
             //LINK
             if(ic.getLink() != null) {
+                gui.setWaiting(true);
+                gui.setLastTriggeredSlot(e.getPlayer().getInventory().getHeldItemSlot());
                 gui.close(false);
+                ic.getLink().setBackup(gui.getBackup());
                 ic.getLink().open(false);
+                ic.getLink().setLastClick(System.currentTimeMillis());
+                if(ic.getLink().getLastTriggeredSlot() != -1 && ic.getLink().getStartSlot() == -1) e.getPlayer().getInventory().setHeldItemSlot(ic.getLink().getLastTriggeredSlot());
             }
         }
     }
@@ -85,6 +88,14 @@ public class EventListener implements Listener {
     public void onPickup(PlayerPickupItemEvent e) {
         if(API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
             e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onInvClick(InventoryClickEvent e) {
+        HotbarGUI h;
+        if((h = API.getRemovable((Player) e.getWhoClicked(), HotbarGUI.class)) != null) {
+            e.setCancelled(h.getItem(e.getSlot()) != null);
         }
     }
 

@@ -38,8 +38,10 @@ public abstract class Page {
 
         if(this.title != null && !gui.getTitle().equals(this.title)) {
             gui.setTitle(this.title, false);
-            haveToBeReopened = true;
+            haveToBeReopened = gui.isOpen();
         }
+
+        gui.clear();
 
         if(gui.getLayout() != null) {
             if(gui.getLayout().initialize(gui)) haveToBeReopened = true;
@@ -89,6 +91,15 @@ public abstract class Page {
 
     public String getTitle() {
         return title;
+    }
+
+    public void setTitle(String title, boolean reopen) {
+        this.title = title;
+        if(getLast() != null) {
+            if(reopen) {
+                if(initialize(getLast())) getLast().updateTitle();
+            }
+        }
     }
 
     public Layout getLayout() {

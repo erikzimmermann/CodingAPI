@@ -52,14 +52,16 @@ public class ConfigFile {
                 ex.printStackTrace();
             }
 
-            this.config.deployExtras(builder.toString());
-            in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-            if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
-        }
+            if(builder.toString().startsWith("~Config\n")) {
+                this.config.deployExtras(builder.toString());
+                in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+                if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
 
-        this.config.options().copyDefaults(true);
-        this.config.options().copyHeader(true);
-        this.saveConfig();
+                this.config.options().copyDefaults(true);
+                this.config.options().copyHeader(true);
+                this.saveConfig();
+            }
+        }
     }
 
     private void mkDir(File file) {

@@ -48,31 +48,37 @@ public abstract class SignGUI {
                     IReflection.FieldAccessor b = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
                     Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
 
-                    String[] lines = sign == null ? new String[4] : sign.getLines();
+                    String[] lines;
 
-                    Object[] data = (Object[]) b.get(p);
+                    if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+                        String[] commit = (String[]) b.get(p);
+                        lines = commit;
+                    } else {
+                        lines = sign == null ? new String[4] : sign.getLines();
 
-                    IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
-                    IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
+                        Object[] data = (String[]) b.get(p);
 
-                    for(int i = 0; i < 4; i++) {
-                        Object icbc;
+                        IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
+                        IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
 
-                        try {
-                            icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
-                        } catch(Exception ex) {
-                            icbc = PacketUtils.getChatMessage((String) data[i]);
+                        for(int i = 0; i < 4; i++) {
+                            Object icbc;
+
+                            try {
+                                icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
+                            } catch(Exception ex) {
+                                icbc = PacketUtils.getChatMessage((String) data[i]);
+                            }
+
+                            int siblings = ((List) getSiblings.invoke(icbc)).size();
+                            String line = (String) getText.invoke(icbc);
+
+                            if(!line.isEmpty() || siblings == 0) lines[i] = line;
                         }
-
-                        int siblings = ((List) getSiblings.invoke(icbc)).size();
-                        String line = (String) getText.invoke(icbc);
-
-                        if(!line.isEmpty() || siblings == 0) lines[i] = line;
                     }
 
                     onSignChangeEvent(lines);
-
-                    return true;
+                    return sign == null;
                 }
 
                 return false;

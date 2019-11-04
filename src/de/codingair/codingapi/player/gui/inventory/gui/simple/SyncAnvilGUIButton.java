@@ -1,74 +1,66 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
-import de.codingair.codingapi.player.gui.anvil.AnvilClickEvent;
-import de.codingair.codingapi.player.gui.anvil.AnvilCloseEvent;
-import de.codingair.codingapi.player.gui.anvil.AnvilGUI;
-import de.codingair.codingapi.player.gui.anvil.AnvilListener;
+import de.codingair.codingapi.player.gui.anvil.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-public abstract class SyncAnvilGUIButton extends SyncButton {
+public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
     private ItemStack anvilItem;
-    private ClickType trigger;
+    private boolean onlyOutputTrigger = true;
 
     public SyncAnvilGUIButton(int slot) {
         super(slot);
-        this.anvilItem = craftAnvilItem();
     }
 
     public SyncAnvilGUIButton(int x, int y) {
-        this(x + y * 9);
+        this(x + 9 * y);
     }
 
-    public SyncAnvilGUIButton(int slot, ClickType trigger) {
-        super(slot);
-        this.trigger = trigger;
+    public SyncAnvilGUIButton(int slot, ClickType... trigger) {
+        super(slot, trigger);
     }
 
-    public SyncAnvilGUIButton(int x, int y, ClickType trigger) {
-        this(x + y * 9);
-        this.trigger = trigger;
+    public SyncAnvilGUIButton(int x, int y, ClickType... trigger) {
+        this(x + 9 * y, trigger);
     }
 
     @Override
-    public void onClick(InventoryClickEvent e, Player player) {
-        if(interrupt()) return;
+    public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
+        getInterface().setClosingByButton(true);
+        getInterface().setClosingForGUI(true);
 
-        if(trigger == null || e.getClick() == trigger) {
-            getInterface().setClosingByButton(true);
-            getInterface().setClosingForGUI(true);
+        this.anvilItem = craftAnvilItem(trigger);
 
-            AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
-                @Override
-                public void onClick(AnvilClickEvent e) {
-                    e.setCancelled(true);
-                    e.setClose(false);
+        AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
+            @Override
+            public void onClick(AnvilClickEvent e) {
+                e.setCancelled(true);
+                e.setClose(false);
 
-                    SyncAnvilGUIButton.this.onClick(e);
+                if(onlyOutputTrigger && e.getSlot() != AnvilSlot.OUTPUT) return;
+
+                SyncAnvilGUIButton.this.onClick(e);
+                playSound(player);
+            }
+
+            @Override
+            public void onClose(AnvilCloseEvent e) {
+                SyncAnvilGUIButton.this.onClose(e);
+
+                if(e.getPost() == null) {
+                    getInterface().reinitialize();
+                    e.setPost(() -> getInterface().open());
+                    getInterface().setClosingForGUI(false);
                 }
-
-                @Override
-                public void onClose(AnvilCloseEvent e) {
-                    SyncAnvilGUIButton.this.onClose(e);
-
-                    if(e.getPost() == null) {
-                        getInterface().reinitialize();
-                        e.setPost(() -> getInterface().open());
-                        getInterface().setClosingForGUI(false);
-                    }
-                }
-            }, this.anvilItem);
-        } else {
-            onOtherClick(e);
-        }
+            }
+        }, this.anvilItem);
     }
 
     @Override
     public void update(boolean updateGUI) {
         super.update(updateGUI);
-        this.anvilItem = craftAnvilItem();
     }
 
     public boolean interrupt() {
@@ -79,10 +71,15 @@ public abstract class SyncAnvilGUIButton extends SyncButton {
 
     public abstract void onClose(AnvilCloseEvent e);
 
-    public void onOtherClick(InventoryClickEvent e) {
-    }
-
     public abstract ItemStack craftItem();
 
-    public abstract ItemStack craftAnvilItem();
+    public abstract ItemStack craftAnvilItem(ClickType trigger);
+
+    public boolean isOnlyOutputTrigger() {
+        return onlyOutputTrigger;
+    }
+
+    public void setOnlyOutputTrigger(boolean onlyOutputTrigger) {
+        this.onlyOutputTrigger = onlyOutputTrigger;
+    }
 }

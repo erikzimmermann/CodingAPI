@@ -1,12 +1,14 @@
 package de.codingair.codingapi;
 
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.particles.animations.customanimations.AnimationType;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
-import de.codingair.codingapi.server.commands.CommandBuilder;
+import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Bukkit;
@@ -20,11 +22,17 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class API {
     private static final List<Removable> REMOVABLES = new ArrayList<>();
@@ -40,49 +48,84 @@ public class API {
     public void onEnable(JavaPlugin plugin) {
         if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
         if(initialized) return;
-        initPlugin(plugin);
+        if(this.plugins.size() == 1) initPlugin(plugin);
     }
 
     public synchronized void onDisable(JavaPlugin plugin) {
-        if(!initialized || !this.plugins.remove(plugin)) return;
+        if(!initialized || !plugins.contains(plugin)) return;
 
-        for(String s : plugin.getDescription().getCommands().keySet()) {
-            PluginCommand command = Bukkit.getPluginCommand(s);
-            if(command == null) continue;
+        List<CommandBuilder> toDisable = new ArrayList<>();
 
-            if(command.getExecutor() instanceof CommandBuilder) {
-                CommandBuilder b = (CommandBuilder) command.getExecutor();
-                b.unregister(plugin);
+        for(Map.Entry<String, CommandBuilder> e : CommandBuilder.REGISTERED.entrySet()) {
+            if(e.getValue().getMain().getPlugin().equals(plugin)) {
+                toDisable.add(e.getValue());
             }
         }
+
+        for(CommandBuilder b : toDisable) {
+            b.unregister(plugin);
+        }
+
+        toDisable.clear();
 
         HandlerList.unregisterAll(plugin);
 
         removePlugin(plugin);
+        this.plugins.remove(plugin);
         if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
     }
 
-    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, InvalidPluginException {
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, FileNotFoundException, InvalidPluginException {
         List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
 
         for(JavaPlugin p : plugins) {
             if(p == plugin) continue;
-            Bukkit.getPluginManager().disablePlugin(p);
+            disablePlugin(p);
         }
 
-        Bukkit.getPluginManager().disablePlugin(plugin);
-        enablePlugin(plugin.getName());
+        disablePlugin(plugin);
 
         for(JavaPlugin p : plugins) {
-            if(p == plugin) continue;
             enablePlugin(p.getName());
         }
 
         plugins.clear();
     }
 
-    private void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException {
-        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(new File("plugins", name + ".jar")));
+    public void disablePlugin(JavaPlugin plugin) {
+        Bukkit.getPluginManager().disablePlugin(plugin);
+
+        try {
+            IReflection.FieldAccessor lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
+            IReflection.FieldAccessor plugins = IReflection.getField(SimplePluginManager.class, "plugins");
+
+            Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
+            List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
+
+            if(map.remove(plugin.getDescription().getName().toLowerCase()) == null)
+                map.remove(plugin.getDescription().getName());
+            pluginList.remove(plugin);
+        } catch(Exception ignored) {
+        }
+    }
+
+    public void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+        File pluginFile = new File("plugins", name + ".jar");
+
+        if(!pluginFile.exists()) {
+            File f = new File("plugins");
+
+            for(File file : f.listFiles()) {
+                if(file.getName().toLowerCase().contains(name.toLowerCase())) {
+                    pluginFile = file;
+                    break;
+                }
+            }
+
+            if(pluginFile == null) throw new FileNotFoundException("Could not find any " + name + ".jar!");
+        }
+
+        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
     }
 
     private void removePlugin(JavaPlugin plugin) {
@@ -92,6 +135,7 @@ public class API {
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
         removables.clear();
+        AnimationType.clearCache();
 
         initialized = false;
     }

@@ -2,7 +2,8 @@ package de.codingair.codingapi.tools;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.json.simple.JSONObject;
+import org.bukkit.util.Vector;
+import de.codingair.codingapi.tools.JSON.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.text.DecimalFormat;
@@ -20,7 +21,7 @@ public class Location extends org.bukkit.Location {
         this.worldName = location instanceof Location ? ((Location) location).getWorldName() : location.getWorld() == null ? null : location.getWorld().getName();
     }
 
-    public Location(JSONObject json) {
+    public Location(org.json.simple.JSONObject json) {
         super(json.get("World") == null ? null : Bukkit.getWorld((String) json.get("World")),
                 Double.parseDouble(((String) json.get("X")).replace(",", ".")), Double.parseDouble(((String) json.get("Y")).replace(",", ".")), Double.parseDouble(((String) json.get("Z")).replace(",", ".")),
                 json.get("Yaw") == null ? 0F : Float.parseFloat(((String) json.get("Yaw")).replace(",", ".")), json.get("Pitch") == null ? 0F : Float.parseFloat(((String) json.get("Pitch")).replace(",", ".")));
@@ -49,7 +50,7 @@ public class Location extends org.bukkit.Location {
         return json.toJSONString();
     }
 
-    public String toJSONString(int decimalPlaces) {
+    public JSONObject toJSON(int decimalPlaces) {
         StringBuilder s = new StringBuilder("0" + (decimalPlaces > 0 ? "." : ""));
         for(int i = 0; i < decimalPlaces; i++) {
             s.append("0");
@@ -80,7 +81,57 @@ public class Location extends org.bukkit.Location {
             }
         }
 
-        return json.toJSONString();
+        return json;
+    }
+
+    @Override
+    public Location add(org.bukkit.Location vec) {
+        return (Location) super.add(vec);
+    }
+
+    @Override
+    public Location add(Vector vec) {
+        return (Location) super.add(vec);
+    }
+
+    @Override
+    public Location add(double x, double y, double z) {
+        return (Location) super.add(x, y, z);
+    }
+
+    @Override
+    public Location subtract(org.bukkit.Location vec) {
+        return (Location) super.subtract(vec);
+    }
+
+    @Override
+    public Location subtract(Vector vec) {
+        return (Location) super.subtract(vec);
+    }
+
+    @Override
+    public Location subtract(double x, double y, double z) {
+        return (Location) super.subtract(x, y, z);
+    }
+
+    public void trim(int decimalPlaces) {
+        setX(trim(getX(), decimalPlaces));
+        setY(trim(getY(), decimalPlaces));
+        setZ(trim(getZ(), decimalPlaces));
+        setYaw(trim(getYaw(), decimalPlaces));
+        setPitch(trim(getPitch(), decimalPlaces));
+    }
+
+    private double trim(double d, int decimalPlaces) {
+        return ((double) (int) (d * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces);
+    }
+
+    private float trim(float d, int decimalPlaces) {
+        return (float) (((double) (int) (d * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces));
+    }
+
+    public String toJSONString(int decimalPlaces) {
+        return toJSON(decimalPlaces).toJSONString();
     }
 
     @Override
@@ -121,13 +172,12 @@ public class Location extends org.bukkit.Location {
         if(jsonString == null) return null;
 
         try {
-            return new Location((JSONObject) new JSONParser().parse(jsonString));
+            return new Location((org.json.simple.JSONObject) new JSONParser().parse(jsonString));
         } catch(Exception e) {
             e.printStackTrace();
             return null;
         }
     }
-
     public static Location getByLocation(org.bukkit.Location location) {
         if(location == null) return null;
 

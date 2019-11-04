@@ -1,10 +1,12 @@
-package de.codingair.codingapi.player.gui.hotbar;
+package de.codingair.codingapi.player.gui.hotbar.components;
 
+import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
+import de.codingair.codingapi.player.gui.hotbar.ItemListener;
 import de.codingair.codingapi.server.SoundData;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemComponent {
-    private final ItemStack item;
+    private ItemStack item;
     private HotbarGUI link;
     private SoundData clickSound;
     private boolean silent;
@@ -22,6 +24,10 @@ public class ItemComponent {
 
     public ItemStack getItem() {
         return item;
+    }
+
+    public void setItem(ItemStack item) {
+        this.item = item;
     }
 
     public HotbarGUI getLink() {

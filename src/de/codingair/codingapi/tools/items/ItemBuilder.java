@@ -161,6 +161,10 @@ public class ItemBuilder {
             item.setItemMeta(meta);
         }
 
+        if((this.type.name().contains("SKULL") || this.type.name().contains("HEAD")) && this.data == 3) {
+            item = new ItemStack(this.type, 1, (short) 3);
+        }
+
         item.setAmount(this.amount);
 
         ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
@@ -330,7 +334,7 @@ public class ItemBuilder {
                         if(obj == null) break;
 
                         String name = (String) jsonObject.get("Type");
-                        Material material;
+                        Material material = null;
 
                         try {
                             material = Material.valueOf(name);
@@ -339,7 +343,16 @@ public class ItemBuilder {
                                 obj = jsonObject.get("Data");
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(jsonObject.get("Data") + "");
-                                material = XMaterial.requestXMaterial(name, data).parseMaterial();
+
+                                XMaterial mat = XMaterial.requestXMaterial(name, data);
+
+                                if(mat == null && name.equalsIgnoreCase("SKULL_ITEM")) {
+                                    mat = XMaterial.PLAYER_HEAD;
+                                } else if(mat == null) {
+                                    throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
+                                }
+
+                                if(mat != null) material = mat.parseMaterial();
                             } else {
                                 XMaterial xType = XMaterial.valueOf(name);
                                 material = xType.parseMaterial();

@@ -2,10 +2,7 @@ package de.codingair.codingapi.player.chat;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.utils.Removable;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -50,6 +47,7 @@ public class SimpleMessage implements Removable {
     }
 
     public SimpleMessage add(String s) {
+        s = s.replace("\\n", "\n");
         this.components.add(new TextComponent(s));
         return this;
     }
@@ -65,6 +63,7 @@ public class SimpleMessage implements Removable {
     }
 
     public SimpleMessage add(int index, String s) {
+        s = s.replace("\\n", "\n");
         this.components.add(index, new TextComponent(s));
         return this;
     }
@@ -75,6 +74,7 @@ public class SimpleMessage implements Removable {
     }
 
     private SimpleMessage add(int index, Object messageComponent) {
+        if(messageComponent instanceof String) messageComponent = ((String) messageComponent).replace("\\n", "\n");
         this.components.add(index, messageComponent);
         return this;
     }
@@ -85,10 +85,12 @@ public class SimpleMessage implements Removable {
     }
 
     public SimpleMessage addComponent(int index, String message, boolean hover, boolean click) {
+        message = message.replace("\\n", "\n");
         return addComponent(index, new TextComponent(message), hover, click);
     }
 
     public SimpleMessage addComponent(String message, boolean hover, boolean click) {
+        message = message.replace("\\n", "\n");
         return addComponent(new TextComponent(message), hover, click);
     }
 
@@ -109,8 +111,9 @@ public class SimpleMessage implements Removable {
         TextComponent base = null;
 
         for(Object tc : this.components) {
-            if(base == null) base = tc instanceof ChatButton ? ((ChatButton) tc).build() : (TextComponent) tc;
-            else base.addExtra(tc instanceof ChatButton ? ((ChatButton) tc).build() : (TextComponent) tc);
+            TextComponent current = tc instanceof ChatButton ? ((ChatButton) tc).build() : new TextComponent((TextComponent) tc);
+            if(base == null) base = current;
+            else base.addExtra(current);
         }
 
         return base;
@@ -120,13 +123,14 @@ public class SimpleMessage implements Removable {
         player.spigot().sendMessage(getTextComponent());
         sent = true;
 
-        if(timeOut > 0) {
+        if(this.runnable == null && timeOut > 0) {
             this.runnable = new BukkitRunnable() {
                 @Override
                 public void run() {
                     timeOut--;
 
                     if(timeOut == 0) {
+                        onTimeOut();
                         destroy();
                     }
                 }
@@ -252,7 +256,15 @@ public class SimpleMessage implements Removable {
         this.timeOut = timeOut;
     }
 
+    public void onTimeOut() {
+
+    }
+
     public void clearTimeOut() {
         this.sent = false;
+    }
+
+    private class LineSeperator {
+
     }
 }

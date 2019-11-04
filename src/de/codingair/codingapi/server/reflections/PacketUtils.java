@@ -5,6 +5,7 @@ import de.codingair.codingapi.server.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -25,6 +26,7 @@ public class PacketUtils {
     public static final Class<?> CraftEntityClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftEntity");
     public static final Class<?> CraftServerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftServer");
     public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "MinecraftServer");
+    public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DedicatedServer");
     public static final Class<?> CraftWorldClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftWorld");
     public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "World");
     public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "WorldServer");
@@ -105,7 +107,6 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[] {});
     public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, "sendPacket");
     public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
-    public static final IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
 
     public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, "playerConnection");
@@ -144,6 +145,7 @@ public class PacketUtils {
     }
 
     public static void sendPacket(Player target, Object packet) {
+        if(!target.isOnline()) return;
         Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(target));
         sendPacket.invoke(playerConnection.get(entityPlayer), packet);
     }
@@ -205,6 +207,8 @@ public class PacketUtils {
     }
 
     public static Object getMinecraftServer() {
+        IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
+        if(getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
         return getServer.invoke(CraftServerClass.cast(Bukkit.getServer()));
     }
 
