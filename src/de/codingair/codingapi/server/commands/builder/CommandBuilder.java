@@ -20,7 +20,7 @@ import java.util.*;
 public class CommandBuilder implements CommandExecutor, TabCompleter {
     public static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
     private static Listener listener;
-    private CommandBackup backup = null;
+    private List<CommandBackup> backups = new ArrayList<>();
     private PluginCommand main;
 
     private static void registerListener(JavaPlugin plugin) {
@@ -75,43 +75,62 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         names.add(0, this.name);
 
         PluginCommand command = Bukkit.getPluginCommand(this.name);
-        if(command != null && !command.getName().equalsIgnoreCase(this.name)) command = null;
 
-        PluginCommand pluginC = plugin.getCommand(this.name);
-        if(pluginC != null && !pluginC.getName().equalsIgnoreCase(this.name)) pluginC = null;
+        main = plugin.getCommand(this.name);
+        //alias of other command blocks this command > create command and block alias
+        if(main != null && !main.getName().equalsIgnoreCase(this.name)) {
+            if(command != null && command.equals(main)) command = null;
+            main = null;
+        }
 
-        if(pluginC == null) {
-            //Create PluginCommand using CustomCommand.class
-            main = new CustomCommand(plugin, this.name, this.description).invoke();
-
-            if(command == null) {
-                //Register command in SimpleCommandMap.class
+        if(main == null) {
+            //unregister existing command
+            if(command != null) {
+                //remove from SimpleCommandMap
                 SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
                 IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
                 SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
 
-                if(tabCompleter) main.setTabCompleter(this);
-                main.setExecutor(this);
-                main.setAliases(aliases);
-                main.setPermission(null);
+                IReflection.FieldAccessor knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
+                Map<String, Command> commands = (Map<String, Command>) knownCommands.get(scm);
+                commands.remove(command.getName().toLowerCase(Locale.ENGLISH).trim());
+                commands.remove(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
 
-                scm.register(plugin.getDescription().getName(), main);
-
-                CommandDispatcher.addCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + this.name.toLowerCase(Locale.ENGLISH).trim(), this);
-                CommandDispatcher.addCommand(this.name.toLowerCase(Locale.ENGLISH).trim(), this);
+                //Remove from CommandDispatcher
+                CommandDispatcher.removeCommand(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
+                CommandDispatcher.removeCommand(command.getName().toLowerCase(Locale.ENGLISH).trim());
             }
-        } else {
-            main = plugin.getCommand(this.name);
+
+            //Create PluginCommand using CustomCommand.class
+            main = new CustomCommand(plugin, this.name, this.description).invoke();
+
+            //Register command in SimpleCommandMap.class
+            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+            IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
+            SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
+
+            if(tabCompleter) main.setTabCompleter(this);
+            main.setExecutor(this);
+            main.setAliases(aliases);
+            main.setPermission(null);
+
+            scm.register(plugin.getDescription().getName(), main);
+
+            //Add to CommandDispatcher
+            CommandDispatcher.addCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + this.name.toLowerCase(Locale.ENGLISH).trim());
+            CommandDispatcher.addCommand(this.name.toLowerCase(Locale.ENGLISH).trim());
         }
 
         for(String s : names) {
             command = Bukkit.getPluginCommand(s);
 
             if(command != null && (!API.getInstance().getPlugins().contains(command.getPlugin()) || (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name)))) {
+                //alias matches original command > continue
                 if(command.getExecutor().equals(this)) continue;
 
                 if(highestPriority) {
-                    backup = new CommandBackup(command);
+                    //going to overwrite existing command > create backup
+                    backups.add(new CommandBackup(command));
 
                     try {
                         //1.9+
@@ -161,16 +180,20 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         List<String> names = new ArrayList<>(aliases);
         names.add(0, this.name);
 
+        this.backups.forEach(CommandBackup::restore);
+        this.backups.clear();
+
         for(String s : names) {
-            plugin.getCommand(s).setExecutor(null);
-            plugin.getCommand(s).setTabCompleter(null);
+            PluginCommand command = plugin.getCommand(s);
 
-            if(this.backup != null) {
-                this.backup.restore();
-            }
+            //command backup was restored > command is being owned by another plugin
+            if(command == null) continue;
 
-            PluginCommand command = main;
             if(command.getExecutor() == command.getPlugin() && API.getInstance().getPlugins().contains(command.getPlugin())) {
+                //remove executor
+                command.setExecutor(null);
+                command.setTabCompleter(null);
+
                 //remove from SimpleCommandMap
                 SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
                 IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
@@ -189,7 +212,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
                 }
             }
         }
-        
+
         names.clear();
         REGISTERED.remove(this.name.toLowerCase());
     }

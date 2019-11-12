@@ -18,35 +18,8 @@ public class CommandDispatcher {
         } else return true;
     }
 
-    public static boolean addCommand(String command, CommandBuilder builder) {
+    public static boolean addCommand(String command) {
         if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-//            Class<?> ArgumentChatClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ArgumentChat");
-//
-//            dispatcher().getRoot().addChild(RequiredArgumentBuilder.argument(command, (ArgumentType) IReflection.getConstructor(ArgumentChatClass).newInstance())
-//                    .suggests(new SuggestionProvider() {
-//                        @Override
-//                        public CompletableFuture<Suggestions> getSuggestions(CommandContext commandContext, SuggestionsBuilder suggestionsBuilder) throws CommandSyntaxException {
-//                            if(!(commandContext.getSource() instanceof CommandListenerWrapper)) return suggestionsBuilder.buildFuture();
-//
-//                            CommandListenerWrapper l = (CommandListenerWrapper) commandContext.getSource();
-//                            String label = commandContext.getInput().substring(1);
-//                            if(label.contains(" ")) label = label.split(" ")[0];
-//                            String[] args = commandContext.getInput().contains(" ") ? commandContext.getInput().substring(2 + label.length()).split(" ") : new String[0];
-//
-//                            List<String> suggestions = builder.onTabComplete(l.getBukkitSender(), builder.getMain(), label, args);
-//
-//                            System.out.println(suggestions.size());
-//                            if(suggestions == null) return null;
-//                            for(String suggestion : suggestions) {
-//                                System.out.println("adding: '"+suggestion+"'");
-//                                suggestionsBuilder.suggest(suggestion);
-//                            }
-//
-//                            return suggestionsBuilder.buildFuture();
-//                        }
-//                    })
-//                    .build());
-
             return dispatcher().register(LiteralArgumentBuilder.literal(command)) != null;
         } else return true;
     }
