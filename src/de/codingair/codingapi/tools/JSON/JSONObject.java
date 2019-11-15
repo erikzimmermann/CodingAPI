@@ -1,5 +1,7 @@
 package de.codingair.codingapi.tools.JSON;
 
+import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.Map;
 
 public class JSONObject extends org.json.simple.JSONObject {
@@ -15,6 +17,10 @@ public class JSONObject extends org.json.simple.JSONObject {
         if(value == null) return remove(key);
         else {
             if(value.getClass().isEnum()) value = value.toString();
+            else if(value instanceof Number && (((Number) value).intValue() == 0 || ((Number) value).doubleValue() == 0)) return remove(key);
+            else if(value instanceof Boolean && !((Boolean) value)) return remove(key);
+            else if(value.getClass().isArray() && Array.getLength(value) == 0) return remove(key);
+            else if(value instanceof Collection && ((Collection) value).isEmpty()) return remove(key);
             return super.put(key, value);
         }
     }
