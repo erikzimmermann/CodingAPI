@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 public abstract class ChatButton {
+    public static final String PREFIX = "CodingAPI|ChatAPI|Button|";
     private final UUID uniqueId = UUID.randomUUID();
     private String text;
     private String hover;
@@ -26,7 +27,7 @@ public abstract class ChatButton {
         TextComponent component = new TextComponent(this.text);
 
         if(this.hover != null && !this.hover.isEmpty()) component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[] {new TextComponent(hover)}));
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "CodingAPI|ChatAPI|Button|" + this.uniqueId.toString()));
+        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId.toString()));
 
         return component;
     }

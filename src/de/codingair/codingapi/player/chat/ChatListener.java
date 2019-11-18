@@ -14,8 +14,8 @@ public class ChatListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommandPreProcess(AsyncPlayerChatEvent e) {
-        if(e.getMessage() == null || !e.getMessage().startsWith("CodingAPI|ChatAPI|Button|")) return;
-        UUID uniqueId = UUID.fromString(e.getMessage().replace("CodingAPI|ChatAPI|Button|", ""));
+        if(e.getMessage() == null || !e.getMessage().startsWith(ChatButton.PREFIX)) return;
+        UUID uniqueId = UUID.fromString(e.getMessage().replace(ChatButton.PREFIX, ""));
 
         e.setCancelled(true);
         e.setMessage(null);

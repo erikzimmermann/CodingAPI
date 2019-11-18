@@ -1,6 +1,10 @@
 package de.codingair.codingapi.bungeecord;
 
+import de.codingair.codingapi.bungeecord.listeners.ChatButtonListener;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Ticker;
+import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -17,14 +21,16 @@ public class BungeeAPI {
 
     public void onEnable(Plugin plugin) {
         this.plugin = plugin;
+        BungeeCord.getInstance().getPluginManager().registerListener(plugin, (Listener) IReflection.getConstructor(ChatButtonListener.class).newInstance());
     }
 
     public void onDisable() {
         tickerTimer.cancel();
         tickerTimer = null;
+        BungeeCord.getInstance().getPluginManager().unregisterListeners(plugin);
     }
 
-    public void runTicker() {
+    private void runTicker() {
         if(this.tickerTimer != null) return;
 
         this.tickerTimer = new Timer();
