@@ -275,10 +275,10 @@ public class FakePlayer implements Removable {
         }
 
         boolean old = true;
-        IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass, new Class[] {int.class, byte.class, byte.class, byte.class, byte.class, byte.class, boolean.class});
+        IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass, int.class, byte.class, byte.class, byte.class, byte.class, byte.class, boolean.class);
 
         if(con == null) {
-            con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass, new Class[] {int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class});
+            con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass, int.class, long.class, long.class, long.class, byte.class, byte.class, boolean.class);
             old = false;
         }
 
@@ -542,7 +542,7 @@ public class FakePlayer implements Removable {
     public void destroy(Player update) {
         if(!this.isSpawned()) return;
 
-        IReflection.ConstructorAccessor destroyPacket = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, new Class[] {int[].class});
+        IReflection.ConstructorAccessor destroyPacket = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
         Object destroy = destroyPacket.newInstance(new int[] {getEntityId()});
         Object tabRemove = PacketUtils.getPlayerInfoPacket(4, player);
 
@@ -567,10 +567,10 @@ public class FakePlayer implements Removable {
                 setEquipment(EquipmentType.ALL, OldItemBuilder.getItem(Material.AIR));
             }
 
-            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityStatusClass, new Class[] {PacketUtils.EntityClass, byte.class}).newInstance(this.player, (byte) type.getId());
+            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityStatusClass, PacketUtils.EntityClass, byte.class).newInstance(this.player, (byte) type.getId());
             sendPacket(packet);
         } else {
-            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutAnimationClass, new Class[] {PacketUtils.EntityClass, int.class}).newInstance(this.player, type.getId());
+            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutAnimationClass, PacketUtils.EntityClass, int.class).newInstance(this.player, type.getId());
             sendPacket(packet);
         }
     }
@@ -585,10 +585,10 @@ public class FakePlayer implements Removable {
         }
 
         boolean old = true;
-        IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityEquipmentClass, new Class[] {int.class, int.class, PacketUtils.ItemStackClass});
+        IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityEquipmentClass, int.class, int.class, PacketUtils.ItemStackClass);
 
         if(con == null) {
-            con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityEquipmentClass, new Class[] {int.class, PacketUtils.EnumItemSlotClass, PacketUtils.ItemStackClass});
+            con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityEquipmentClass, int.class, PacketUtils.EnumItemSlotClass, PacketUtils.ItemStackClass);
             old = false;
         }
 
@@ -820,10 +820,8 @@ public class FakePlayer implements Removable {
     }
 
     private byte changeMask(byte bitMask, int bit, boolean state) {
-        if(state)
-            return bitMask |= 1 << bit;
-        else
-            return bitMask &= ~(1 << bit);
+        if(state) return bitMask |= 1 << bit;
+        else return bitMask &= ~(1 << bit);
     }
 
     public void chat(String message) {
@@ -880,7 +878,6 @@ public class FakePlayer implements Removable {
     private boolean isReady(Player p) {
         IReflection.FieldAccessor joining = IReflection.getField(PacketUtils.EntityPlayerClass, "joining");
         return !(boolean) joining.get(PacketUtils.getEntityPlayer(p))/* || API.getInstance().getPlayerData(p).loadedSpawnChunk()*/;
-//        return true;
     }
 
     public boolean isInRange(Location location) {

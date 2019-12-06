@@ -320,7 +320,8 @@ public class API {
         List<Removable> removables = getRemovables(player, Removable.class);
 
         for(Removable r : removables) {
-            REMOVABLES.remove(getID(r));
+            int id = getID(r);
+            if(id >= 0) REMOVABLES.remove(id);
             r.destroy();
         }
 

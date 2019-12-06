@@ -24,6 +24,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.potion.Potion;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import java.util.*;
 
@@ -51,6 +52,7 @@ public class ItemBuilder {
     private boolean hideStandardLore = false;
     private boolean hideEnchantments = false;
     private boolean hideName = false;
+    private boolean unbreakable = false;
 
     public ItemBuilder() {
     }
@@ -78,6 +80,10 @@ public class ItemBuilder {
         if(item.hasItemMeta()) {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
+
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
+                this.unbreakable = preMeta.isUnbreakable();
+            }
 
             if(enchantments == null) enchantments = new HashMap<>();
             enchantments.putAll(item.getItemMeta().getEnchants());
@@ -205,6 +211,10 @@ public class ItemBuilder {
                 profile.set(meta, GameProfileUtils.createBySkinId(skullId));
             }
 
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
+                meta.setUnbreakable(this.unbreakable);
+            }
+
             item.setItemMeta(meta);
         }
 
@@ -247,6 +257,7 @@ public class ItemBuilder {
             jsonObject.put("Enchantments", enchantments.isEmpty() ? null : enchantments.toJSONString());
         jsonObject.put("HideStandardLore", this.hideStandardLore);
         jsonObject.put("HideEnchantments", this.hideEnchantments);
+        jsonObject.put("Unbreakable", this.unbreakable);
         jsonObject.put("HideName", this.hideName);
         jsonObject.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
 
@@ -255,24 +266,31 @@ public class ItemBuilder {
         return jsonObject.toJSONString();
     }
 
-    public static ItemBuilder getFromJSON(String code) {
-        if(code == null) return new ItemBuilder(Material.AIR);
+    public static ItemBuilder getFromJSON(String data) {
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject jsonObject = new JSONObject((org.json.simple.JSONObject) parser.parse(data));
+            return getFromJSON(jsonObject);
+        } catch(ParseException e) {
+            e.printStackTrace();
+            return new ItemBuilder(Material.AIR);
+        }
+    }
+
+    public static ItemBuilder getFromJSON(JSONObject jsonObject) {
+        if(jsonObject == null) return new ItemBuilder(Material.AIR);
 
         try {
             ItemBuilder item = new ItemBuilder();
-            JSONParser parser = new JSONParser();
-            JSONObject jsonObject = new JSONObject((org.json.simple.JSONObject) parser.parse(code));
 
             for(Object key : jsonObject.keySet()) {
                 String keyName = (String) key;
 
                 switch(keyName) {
                     case "Lore": {
-                        Object obj = jsonObject.get("Lore");
-                        if(obj == null) break;
+                        JSONArray jsonLore = jsonObject.get("Lore");
+                        if(jsonLore == null) break;
 
-                        String loreCode = jsonObject.get("Lore");
-                        JSONArray jsonLore = (JSONArray) parser.parse(loreCode);
                         List<String> lore = new ArrayList<>();
 
                         for(Object value : jsonLore) {
@@ -285,11 +303,9 @@ public class ItemBuilder {
                     }
 
                     case "Color": {
-                        Object obj = jsonObject.get("Color");
-                        if(obj == null) break;
+                        JSONObject jsonColor = jsonObject.get("Color");
+                        if(jsonColor == null) break;
 
-                        String loreCode = jsonObject.get("Color");
-                        JSONObject jsonColor = (JSONObject) parser.parse(loreCode);
                         int red = Integer.parseInt(jsonColor.get("Red") + "");
                         int green = Integer.parseInt(jsonColor.get("Green") + "");
                         int blue = Integer.parseInt(jsonColor.get("Blue") + "");
@@ -299,11 +315,8 @@ public class ItemBuilder {
                     }
 
                     case "Enchantments": {
-                        Object obj = jsonObject.get("Enchantments");
-                        if(obj == null) break;
-
-                        String enchantmentCode = (String) obj;
-                        JSONObject jsonEnchantments = (JSONObject) parser.parse(enchantmentCode);
+                        JSONObject jsonEnchantments = jsonObject.get("Enchantments");
+                        if(jsonEnchantments == null) break;
 
                         for(Object keySet : jsonEnchantments.keySet()) {
                             String name = (String) keySet;
@@ -316,15 +329,15 @@ public class ItemBuilder {
                     }
 
                     case "Name": {
-                        Object obj = jsonObject.get("Name");
-                        if(obj == null) break;
+                        String name = jsonObject.get("Name");
+                        if(name == null) break;
 
-                        item.setName(((String) jsonObject.get("Name")).replace("&", "§"));
+                        item.setName(name.replace("&", "§"));
                         break;
                     }
 
                     case "PotionData": {
-                        Object obj = jsonObject.get("PotionData");
+                        Object obj = jsonObject.getRaw("PotionData");
                         if(obj == null) break;
 
                         PotionData data = PotionData.fromJSONString((String) obj);
@@ -392,10 +405,10 @@ public class ItemBuilder {
                     }
 
                     case "Amount": {
-                        Object obj = jsonObject.get("Amount");
-                        if(obj == null) break;
+                        Integer amount = jsonObject.get("Amount");
+                        if(amount == null) break;
 
-                        item.setAmount(Integer.parseInt(jsonObject.get("Amount") + ""));
+                        item.setAmount(amount);
                         break;
                     }
 
@@ -415,6 +428,14 @@ public class ItemBuilder {
                         break;
                     }
 
+                    case "Unbreakable": {
+                        Object obj = jsonObject.get("Unbreakable");
+                        if(obj == null) break;
+
+                        item.setUnbreakable(jsonObject.get("Unbreakable"));
+                        break;
+                    }
+
                     case "HideName": {
                         Object obj = jsonObject.get("HideName");
                         if(obj == null) break;
@@ -424,7 +445,8 @@ public class ItemBuilder {
                     }
 
                     case "SkullOwner": {
-                        String data = jsonObject.get("SkullOwner");
+                        String data = jsonObject.getRaw("SkullOwner");
+                        if(data == null) break;
 
                         if(data.contains("Property_Signature")) {
                             //old
@@ -771,6 +793,15 @@ public class ItemBuilder {
 
     public ItemBuilder setSkullId(String skullId) {
         this.skullId = skullId;
+        return this;
+    }
+
+    public boolean isUnbreakable() {
+        return this.unbreakable;
+    }
+
+    public ItemBuilder setUnbreakable(boolean unbreakable) {
+        this.unbreakable = unbreakable;
         return this;
     }
 
