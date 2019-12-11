@@ -74,9 +74,9 @@ public abstract class SyncSignGUIButton extends SyncButton {
                         Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign((Sign) sign.getLocation().getBlock().getState(), lines));
                     }
 
-                    close();
                     SyncSignGUIButton.this.onSignChangeEvent(lines);
                     getInterface().reinitialize();
+                    close();
 
                     Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                         getInterface().open();

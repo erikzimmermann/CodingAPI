@@ -5,6 +5,7 @@ import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.tools.JSON.JSONObject;
 import de.codingair.codingapi.tools.OldItemBuilder;
@@ -46,6 +47,8 @@ public class ItemBuilder {
     private PotionData potionData = null;
 
     private NBTTagCompound nbt = null;
+    private int customModel = 0;
+
     private String skullId = null;
     private List<String> lore = null;
     private HashMap<Enchantment, Integer> enchantments = null;
@@ -81,8 +84,9 @@ public class ItemBuilder {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
-                this.unbreakable = preMeta.isUnbreakable();
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
+            if(Version.getVersion().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
+                this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
             }
 
             if(enchantments == null) enchantments = new HashMap<>();
@@ -113,7 +117,7 @@ public class ItemBuilder {
 
         try {
             ItemMeta meta = item.getItemMeta();
-            IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+            IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
             this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
         } catch(Exception ignored) {
         }
@@ -185,7 +189,7 @@ public class ItemBuilder {
                     LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) meta;
                     leatherArmorMeta.setColor(this.color.getColor());
                 } else {
-                    if(this.type.equals(Material.INK_SACK)) this.data = this.color.getDyeData();
+                    if(this.type.name().equals("INK_SACK")) this.data = this.color.getDyeData();
                     else this.data = this.color.getWoolData();
 
                     item.setDurability(this.data);
@@ -207,13 +211,12 @@ public class ItemBuilder {
             }
 
             if(this.skullId != null) {
-                IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
+                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
                 profile.set(meta, GameProfileUtils.createBySkinId(skullId));
             }
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
-                meta.setUnbreakable(this.unbreakable);
-            }
+            if(Version.getVersion().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
+            if(Version.getVersion().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
             item.setItemMeta(meta);
         }
@@ -262,6 +265,7 @@ public class ItemBuilder {
         jsonObject.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
 
         jsonObject.put("SkullOwner", this.skullId);
+        jsonObject.put("CustomModel", this.customModel);
 
         return jsonObject.toJSONString();
     }
@@ -452,6 +456,11 @@ public class ItemBuilder {
                             //old
                             item.setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
                         } else item.setSkullId(jsonObject.get("SkullOwner"));
+                        break;
+                    }
+
+                    case "CustomModel": {
+                        item.setCustomModel(jsonObject.getInteger("CustomModel"));
                         break;
                     }
                 }
@@ -803,6 +812,14 @@ public class ItemBuilder {
     public ItemBuilder setUnbreakable(boolean unbreakable) {
         this.unbreakable = unbreakable;
         return this;
+    }
+
+    public int getCustomModel() {
+        return customModel;
+    }
+
+    public void setCustomModel(int customModel) {
+        this.customModel = customModel;
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {

@@ -92,7 +92,7 @@ public class Environment {
     }
 
     public static boolean isBlock(Block block) {
-        return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().equals(Material.SIGN) && !block.getType().equals(Material.AIR);
+        return block != null && !block.getType().isTransparent() && block.getType().isSolid() && !block.getType().name().contains("SIGN") && !block.getType().equals(Material.AIR);
     }
 
     public static List<Chunk> getChunks(Location mid, int chunkRadius) {
@@ -120,47 +120,13 @@ public class Environment {
     public static boolean isSlab(Block block) {
         if(block == null) return false;
 
-        switch(block.getType()) {
-            case STONE_SLAB2:
-                return true;
-            case DOUBLE_STONE_SLAB2:
-                return true;
-            case STEP:
-                return true;
-            case DOUBLE_STEP:
-                return true;
-            case WOOD_DOUBLE_STEP:
-                return true;
-            case WOOD_STEP:
-                return true;
-            case PURPUR_SLAB:
-                return true;
-            default:
-                return false;
-        }
+        return block.getType().name().contains("SLAB") || block.getType().name().contains("STEP");
     }
 
     public static double getBlockHeight(Block block) {
         if(block == null) return 0;
 
-        switch(block.getType()) {
-            case STONE_SLAB2:
-                return 0.5;
-            case DOUBLE_STONE_SLAB2:
-                return 0.5;
-            case STEP:
-                return 0.5;
-            case DOUBLE_STEP:
-                return 0.5;
-            case WOOD_DOUBLE_STEP:
-                return 0.5;
-            case WOOD_STEP:
-                return 0.5;
-            case PURPUR_SLAB:
-                return 0.5;
-            default:
-                return 1;
-        }
+        return block.getType().name().contains("SLAB") || block.getType().name().contains("STEP") ? 0.5 : 1;
     }
 
     public static void interact(Block b) {

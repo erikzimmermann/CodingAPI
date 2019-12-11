@@ -189,11 +189,11 @@ public class AnvilGUI implements Removable {
         IReflection.MethodAccessor nextContainerCounter = IReflection.getMethod(entityPlayerClass, "nextContainerCounter", int.class, (Class<?>[]) null);
         IReflection.MethodAccessor addSlotListener = IReflection.getMethod(containerClass, "addSlotListener", new Class[] {entityPlayerClass});
 
-        IReflection.FieldAccessor getInventory = IReflection.getField(entityPlayerClass, "inventory");
-        IReflection.FieldAccessor getWorld = IReflection.getField(entityPlayerClass, "world");
-        IReflection.FieldAccessor reachable = IReflection.getField(containerAnvilClass, "checkReachable");
-        IReflection.FieldAccessor activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
-        IReflection.FieldAccessor windowId = IReflection.getField(containerClass, "windowId");
+        IReflection.FieldAccessor<?> getInventory = IReflection.getField(entityPlayerClass, "inventory");
+        IReflection.FieldAccessor<?> getWorld = IReflection.getField(entityPlayerClass, "world");
+        IReflection.FieldAccessor<?> reachable = IReflection.getField(containerAnvilClass, "checkReachable");
+        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
+        IReflection.FieldAccessor<?> windowId = IReflection.getField(containerClass, "windowId");
 
         Object entityPlayer = PacketUtils.getEntityPlayer(this.player);
         Object inventory = getInventory.get(entityPlayer);
@@ -204,8 +204,11 @@ public class AnvilGUI implements Removable {
 
         Object container;
         if(Version.getVersion().isBiggerThan(Version.v1_13)) {
-            container = anvilContainerCon.newInstance(c, inventory, new ContainerAccess(player, world, blockPosition));
-            IReflection.FieldAccessor title = IReflection.getField(containerClass, "title");
+            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
+            IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, "at", containerAccessClass, new Class[]{worldClass, blockPositionClass});
+
+            container = anvilContainerCon.newInstance(c, inventory, at.invoke(null, world, blockPosition));
+            IReflection.FieldAccessor<?> title = IReflection.getField(containerClass, "title");
             title.set(container, PacketUtils.getIChatBaseComponent(this.title));
         } else {
             container = anvilContainerCon.newInstance(inventory, world, blockPosition, entityPlayer);
@@ -221,7 +224,7 @@ public class AnvilGUI implements Removable {
         try {
             if(Version.getVersion().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-                IReflection.FieldAccessor generic = IReflection.getField(containersClass, "ANVIL");
+                IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "ANVIL");
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
 
                 Object packet = packetPlayOutOpenWindowCon.newInstance(c, generic.get(null), PacketUtils.getChatMessage(title));
@@ -254,7 +257,7 @@ public class AnvilGUI implements Removable {
         Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAnvil");
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftInventoryView");
 
-        IReflection.FieldAccessor activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
+        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
 
         IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
         IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);

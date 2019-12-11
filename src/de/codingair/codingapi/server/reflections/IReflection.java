@@ -204,7 +204,7 @@ public class IReflection {
 		if (target.getSuperclass() != null)
 			return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
 		
-		throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, parameterTypes));
+		return null;
 	}
 	
 	public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
@@ -319,7 +319,6 @@ public class IReflection {
 	}
 	
 	public enum ServerPacket {
-		
 		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
 		MOJANG_AUTHLIB("com.mojang.authlib"),
 		CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),

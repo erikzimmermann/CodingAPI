@@ -262,9 +262,9 @@ public class Hologram implements Removable {
             @Override
             public boolean readPacket(Object packet) {
                 if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {
-                    IReflection.FieldAccessor action = IReflection.getField(packet.getClass(), "action");
-                    IReflection.FieldAccessor fA = IReflection.getField(packet.getClass(), "a");
-                    int clicked = (int) fA.get(packet);
+                    IReflection.FieldAccessor<?> action = IReflection.getField(packet.getClass(), "action");
+                    IReflection.FieldAccessor<Integer> fA = IReflection.getField(packet.getClass(), "a");
+                    int clicked = fA.get(packet);
 
                     String aS = action.get(packet).toString();
                     Action a;
@@ -556,11 +556,14 @@ public class Hologram implements Removable {
         }
 
         public static void update(Player player, Object armorStand, String text) {
+            setCustomName(armorStand, text);
+            sendDataWatcher(player, armorStand);
+        }
+
+        public static void sendDataWatcher(Player player, Object armorStand) {
             IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, "getDataWatcher", PacketUtils.DataWatcherClass, new Class[] {});
 
-            setCustomName(armorStand, text);
-
-            Packet packet = player == null ? new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player) : new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
+            Packet packet = new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
             packet.initialize(new Class[] {int.class, PacketUtils.DataWatcherClass, boolean.class}, PacketUtils.EntityPackets.getId(armorStand), getDataWatcher.invoke(armorStand), true);
             packet.send();
         }
@@ -578,11 +581,13 @@ public class Hologram implements Removable {
         public static void spawn(Player player, Object armorStand) {
             Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
+
+            if(Version.getVersion().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {
             IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, "setPosition", new Class[] {double.class, double.class, double.class});
-            IReflection.FieldAccessor world = IReflection.getField(PacketUtils.EntityClass, "world");
+            IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, "world");
 
             world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));
             setPosition.invoke(armorStand, location.getX(), location.getY(), location.getZ());

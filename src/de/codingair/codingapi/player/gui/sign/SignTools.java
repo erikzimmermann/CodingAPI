@@ -21,25 +21,11 @@ public class SignTools {
         }
 
         switch(Version.getVersion()) {
-            case v1_14:
-            case v1_13:
-            case v1_12:
-            case v1_11:
-            case v1_9:
-            case v1_8: {
-                for(int i = 0; i < 4; i++) {
-                    sign.setLine(i, text[i]);
-                }
-
-                sign.update(true);
-                break;
-            }
-
             case v1_10: {
                 Object tileEntitySign = PacketUtils.getTileEntity(sign.getLocation());
 
                 Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");
-                IReflection.FieldAccessor lines = IReflection.getField(PacketUtils.TileEntitySignClass, "lines");
+                IReflection.FieldAccessor<?> lines = IReflection.getField(PacketUtils.TileEntitySignClass, "lines");
                 IReflection.MethodAccessor getUpdatePacket = IReflection.getMethod(PacketUtils.TileEntitySignClass, "getUpdatePacket", packet, new Class[] {});
 
                 Object[] array = (Object[]) lines.get(tileEntitySign);
@@ -51,6 +37,15 @@ public class SignTools {
                 PacketUtils.sendPacketToAll(getUpdatePacket.invoke(tileEntitySign));
                 break;
             }
+
+            default: {
+                for(int i = 0; i < 4; i++) {
+                    sign.setLine(i, text[i]);
+                }
+
+                sign.update(true);
+                break;
+            }
         }
     }
 
@@ -58,14 +53,14 @@ public class SignTools {
         Object tileEntity;
 
         try {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "sign");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "sign");
             tileEntity = field.get(sign);
         } catch(Exception ex) {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "tileEntity");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "tileEntity");
             tileEntity = field.get(sign);
         }
 
-        IReflection.FieldAccessor editableField = IReflection.getField(tileEntity.getClass(), "isEditable");
+        IReflection.FieldAccessor<?> editableField = IReflection.getField(tileEntity.getClass(), "isEditable");
         editableField.set(tileEntity, editable);
     }
 
@@ -73,29 +68,29 @@ public class SignTools {
         Object tileEntity;
 
         try {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "sign");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "sign");
             tileEntity = field.get(sign);
         } catch(Exception ex) {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "tileEntity");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "tileEntity");
             tileEntity = field.get(sign);
         }
 
-        IReflection.FieldAccessor editableField = IReflection.getField(tileEntity.getClass(), "isEditable");
-        return (boolean) editableField.get(tileEntity);
+        IReflection.FieldAccessor<Boolean> editableField = IReflection.getField(tileEntity.getClass(), "isEditable");
+        return editableField.get(tileEntity);
     }
 
     public static void setOwner(Sign sign, Player player) {
         Object tileEntity;
 
         try {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "sign");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "sign");
             tileEntity = field.get(sign);
         } catch(Exception ex) {
-            IReflection.FieldAccessor field = IReflection.getField(sign.getClass(), "tileEntity");
+            IReflection.FieldAccessor<?> field = IReflection.getField(sign.getClass(), "tileEntity");
             tileEntity = field.get(sign);
         }
 
-        IReflection.FieldAccessor owner = IReflection.getField(tileEntity.getClass(), "h");
+        IReflection.FieldAccessor<?> owner = IReflection.getField(tileEntity.getClass(), "h");
         owner.set(tileEntity, PacketUtils.getEntityPlayer(player));
     }
 

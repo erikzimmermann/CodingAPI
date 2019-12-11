@@ -88,10 +88,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             if(command != null) {
                 //remove from SimpleCommandMap
                 SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-                IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
+                IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
                 SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
 
-                IReflection.FieldAccessor knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
+                IReflection.FieldAccessor<?> knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
                 Map<String, Command> commands = (Map<String, Command>) knownCommands.get(scm);
                 commands.remove(command.getName().toLowerCase(Locale.ENGLISH).trim());
                 commands.remove(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
@@ -106,7 +106,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
             //Register command in SimpleCommandMap.class
             SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-            IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
+            IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
             SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
 
             if(tabCompleter) main.setTabCompleter(this);
@@ -189,27 +189,25 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             //command backup was restored > command is being owned by another plugin
             if(command == null) continue;
 
-            if(command.getExecutor() == command.getPlugin() && API.getInstance().getPlugins().contains(command.getPlugin())) {
-                //remove executor
-                command.setExecutor(null);
-                command.setTabCompleter(null);
+            //remove executor
+            command.setExecutor(null);
+            command.setTabCompleter(null);
 
-                //remove from SimpleCommandMap
-                SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-                IReflection.FieldAccessor commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
-                SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
+            //remove from SimpleCommandMap
+            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+            IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
+            SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
 
-                IReflection.FieldAccessor knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
-                Map<String, Command> commands = (Map<String, Command>) knownCommands.get(scm);
-                commands.remove(s.toLowerCase(Locale.ENGLISH).trim());
-                commands.remove(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
+            IReflection.FieldAccessor<Map<String, Command>> knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
+            Map<String, Command> commands = knownCommands.get(scm);
+            commands.remove(s.toLowerCase(Locale.ENGLISH).trim());
+            commands.remove(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
 
-                //1.13+
-                //Remove from CommandDispatcher
-                if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-                    CommandDispatcher.removeCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
-                    CommandDispatcher.removeCommand(s.toLowerCase(Locale.ENGLISH).trim());
-                }
+            //1.13+
+            //Remove from CommandDispatcher
+            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                CommandDispatcher.removeCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
+                CommandDispatcher.removeCommand(s.toLowerCase(Locale.ENGLISH).trim());
             }
         }
 
