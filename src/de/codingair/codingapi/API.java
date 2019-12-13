@@ -116,7 +116,7 @@ public class API {
             File f = new File("plugins");
 
             for(File file : f.listFiles()) {
-                if(file.getName().toLowerCase().contains(name.toLowerCase())) {
+                if(!file.isDirectory() && file.getName().toLowerCase().contains(name.toLowerCase()) && file.getName().endsWith(".jar")) {
                     pluginFile = file;
                     break;
                 }
