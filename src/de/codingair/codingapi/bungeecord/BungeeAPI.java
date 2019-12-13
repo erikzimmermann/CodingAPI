@@ -25,8 +25,11 @@ public class BungeeAPI {
     }
 
     public void onDisable() {
-        tickerTimer.cancel();
-        tickerTimer = null;
+        if(tickerTimer != null) {
+            tickerTimer.cancel();
+            tickerTimer = null;
+        }
+
         BungeeCord.getInstance().getPluginManager().unregisterListeners(plugin);
     }
 
