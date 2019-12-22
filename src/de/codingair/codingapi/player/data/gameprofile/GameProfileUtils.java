@@ -12,8 +12,8 @@ import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v
 import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_9;
 import de.codingair.codingapi.player.data.Skin;
 import de.codingair.codingapi.server.Version;
-import de.codingair.codingapi.tools.JSON.JSONObject;
-import de.codingair.codingapi.tools.JSON.JSONParser;
+import de.codingair.codingapi.tools.io.JSON.JSON;
+import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -67,13 +67,13 @@ public class GameProfileUtils {
                 uc.addRequestProperty("Pragma", "no-cache");
 
                 String json = new Scanner(uc.getInputStream(), "UTF-8").useDelimiter("\\A").next();
-                JSONObject data = (JSONObject) new JSONParser().parse(json);
+                JSON data = (JSON) new JSONParser().parse(json);
                 JSONArray properties = data.get("properties");
                 String name = data.get("name");
 
                 for(int i = 0; i < properties.size(); i++) {
                     try {
-                        JSONObject property = (JSONObject) properties.get(i);
+                        JSON property = (JSON) properties.get(i);
                         String propertyName = property.get("name");
                         String value = property.get("value");
                         String signature = property.containsKey("signature") ? (String) property.get("signature") : null;
@@ -94,6 +94,10 @@ public class GameProfileUtils {
         } catch(Exception e) {
             callback.accept(null);
         }
+    }
+
+    public static String extractSkinId(Player p) {
+        return extractSkinId(getGameProfile(p));
     }
 
     public static String extractSkinId(GameProfile gameProfile) {
@@ -129,7 +133,7 @@ public class GameProfileUtils {
         String pValue = property == null ? null : property.getValue();
         String pSignature = property == null ? null : property.getSignature();
 
-        JSONObject json = new JSONObject();
+        JSON json = new JSON();
         json.put("ID", uniqueId);
         json.put("Name", name);
         json.put("Property_Name", pName);
@@ -143,7 +147,7 @@ public class GameProfileUtils {
         if(code == null) return null;
 
         try {
-            JSONObject json = (JSONObject) new JSONParser().parse(code);
+            JSON json = (JSON) new JSONParser().parse(code);
 
             UUID uniqueId = UUID.fromString(json.get("ID"));
             String name = json.get("Name");

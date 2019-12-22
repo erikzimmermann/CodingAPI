@@ -25,4 +25,15 @@ public abstract class BaseComponent extends CommandComponent {
     public BaseComponent setOnlyConsole(boolean onlyConsole) {
         return (BaseComponent) super.setOnlyConsole(onlyConsole);
     }
+
+    public com.mojang.brigadier.builder.LiteralArgumentBuilder buildLiteralArgument(String argument) {
+        com.mojang.brigadier.builder.LiteralArgumentBuilder l = com.mojang.brigadier.builder.LiteralArgumentBuilder.literal(argument);
+
+        for(CommandComponent child : getChildren()) {
+            if(child instanceof MultiCommandComponent) continue;
+            l.then(child.buildLiteralArgument());
+        }
+
+        return l;
+    }
 }

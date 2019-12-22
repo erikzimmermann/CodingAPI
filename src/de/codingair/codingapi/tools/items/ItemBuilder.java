@@ -7,8 +7,11 @@ import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
-import de.codingair.codingapi.tools.JSON.JSONObject;
+import de.codingair.codingapi.tools.io.DataWriter;
+import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.OldItemBuilder;
+import de.codingair.codingapi.tools.io.Serializable;
+import de.codingair.codingapi.tools.io.yml.ConfigWriter;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -36,7 +39,7 @@ import java.util.*;
  * @verions: 1.0.0
  **/
 
-public class ItemBuilder {
+public class ItemBuilder implements Serializable {
     private String name = "";
     private Material type;
     private byte data = 0;
@@ -211,8 +214,11 @@ public class ItemBuilder {
             }
 
             if(this.skullId != null) {
-                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-                profile.set(meta, GameProfileUtils.createBySkinId(skullId));
+                try {
+                    IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
+                    profile.set(meta, GameProfileUtils.createBySkinId(skullId));
+                } catch(IllegalStateException ignored) {
+                }
             }
 
             if(Version.getVersion().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
@@ -227,10 +233,199 @@ public class ItemBuilder {
         else return item;
     }
 
-    public String toJSONString() {
-        JSONObject jsonObject = new JSONObject();
-        JSONObject color = new JSONObject();
-        JSONObject enchantments = new JSONObject();
+    @Override
+    public boolean read(DataWriter d) throws Exception {
+        try {
+            for(Object key : d.keySet()) {
+                String keyName = (String) key;
+
+                switch(keyName) {
+                    case "Lore": {
+                        JSONArray jsonLore = d.get("Lore");
+                        if(jsonLore == null) break;
+
+                        List<String> lore = new ArrayList<>();
+
+                        for(Object value : jsonLore) {
+                            String v = (String) value;
+                            lore.add(v);
+                        }
+
+                        setLore(lore);
+                        break;
+                    }
+
+                    case "Color": {
+                        JSON jsonColor = d.get("Color");
+                        if(jsonColor == null) break;
+
+                        int red = Integer.parseInt(jsonColor.get("Red") + "");
+                        int green = Integer.parseInt(jsonColor.get("Green") + "");
+                        int blue = Integer.parseInt(jsonColor.get("Blue") + "");
+
+                        setColor(DyeColor.getByColor(Color.fromRGB(red, green, blue)));
+                        break;
+                    }
+
+                    case "Enchantments": {
+                        JSON jsonEnchantments = d.get("Enchantments");
+                        if(jsonEnchantments == null) break;
+
+                        for(Object keySet : jsonEnchantments.keySet()) {
+                            String name = (String) keySet;
+                            Enchantment enchantment = Enchantment.getByName(name);
+                            int level = Integer.parseInt(jsonEnchantments.get(name) + "");
+
+                            addEnchantment(enchantment, level);
+                        }
+                        break;
+                    }
+
+                    case "Name": {
+                        String name = d.get("Name");
+                        if(name == null) break;
+
+                        setName(name.replace("&", "§"));
+                        break;
+                    }
+
+                    case "PotionData": {
+                        Object obj = d.getRaw("PotionData");
+                        if(obj == null) break;
+
+                        PotionData data = PotionData.fromJSONString((String) obj);
+                        setPotionData(data);
+                        break;
+                    }
+
+                    case "Type": {
+                        Object obj = d.get("Type");
+                        if(obj == null) break;
+
+                        String name = d.get("Type");
+                        Material material = null;
+
+                        try {
+                            material = Material.valueOf(name);
+                        } catch(IllegalArgumentException ex) {
+                            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                                obj = d.get("Data");
+                                byte data = 0;
+                                if(obj != null) data = Byte.parseByte(d.get("Data") + "");
+
+                                XMaterial mat = XMaterial.requestXMaterial(name, data);
+
+                                if(mat == null && name.equalsIgnoreCase("SKULL_ITEM")) {
+                                    mat = XMaterial.PLAYER_HEAD;
+                                } else if(mat == null) {
+                                    throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
+                                }
+
+                                if(mat != null) material = mat.parseMaterial();
+                            } else {
+                                XMaterial xType = XMaterial.valueOf(name);
+                                material = xType.parseMaterial();
+                                setData((byte) xType.data);
+                            }
+
+                            try {
+                                material = Material.valueOf(name);
+                            } catch(IllegalArgumentException ex2) {
+                                if(name.toUpperCase().equals("SPLASH_POTION")) {
+                                    material = Material.POTION;
+                                }
+                            }
+                        }
+
+                        setType(material);
+                        break;
+                    }
+
+                    case "Data": {
+                        Object obj = d.get("Data");
+                        if(obj == null || getData() == 0) break;
+
+                        setData(Byte.parseByte(d.get("Data") + ""));
+                        break;
+                    }
+
+                    case "Durability": {
+                        Object obj = d.get("Durability");
+                        if(obj == null) break;
+
+                        setDurability(Short.parseShort(d.get("Durability") + ""));
+                        break;
+                    }
+
+                    case "Amount": {
+                        Integer amount = d.get("Amount");
+                        if(amount == null) break;
+
+                        setAmount(amount);
+                        break;
+                    }
+
+                    case "HideStandardLore": {
+                        Object obj = d.get("HideStandardLore");
+                        if(obj == null) break;
+
+                        setHideStandardLore(d.get("HideStandardLore"));
+                        break;
+                    }
+
+                    case "HideEnchantments": {
+                        Object obj = d.get("HideEnchantments");
+                        if(obj == null) break;
+
+                        setHideEnchantments(d.get("HideEnchantments"));
+                        break;
+                    }
+
+                    case "Unbreakable": {
+                        Object obj = d.get("Unbreakable");
+                        if(obj == null) break;
+
+                        setUnbreakable(d.get("Unbreakable"));
+                        break;
+                    }
+
+                    case "HideName": {
+                        Object obj = d.get("HideName");
+                        if(obj == null) break;
+
+                        setHideName(d.get("HideName"));
+                        break;
+                    }
+
+                    case "SkullOwner": {
+                        String data = d.getRaw("SkullOwner");
+                        if(data == null) break;
+
+                        if(data.contains("Property_Signature")) {
+                            //old
+                            setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
+                        } else setSkullId((String) d.get("SkullOwner"));
+                        break;
+                    }
+
+                    case "CustomModel": {
+                        setCustomModel(d.getInteger("CustomModel"));
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        } catch(Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public void write(DataWriter d) {
+        JSON color = new JSON();
+        JSON enchantments = new JSON();
         JSONArray lore = new JSONArray();
 
         if(this.enchantments != null) {
@@ -249,31 +444,41 @@ public class ItemBuilder {
             color.put("Blue", this.color.getColor().getBlue());
         }
 
-        if(this.name != null) jsonObject.put("Name", this.name.replace("§", "&"));
-        if(this.type != null) jsonObject.put("Type", this.type.name());
-        jsonObject.put("Data", this.data);
-        jsonObject.put("Durability", this.durability);
-        jsonObject.put("Amount", this.amount);
-        if(this.lore != null) jsonObject.put("Lore", lore.isEmpty() ? null : lore);
-        if(this.color != null) jsonObject.put("Color", color.isEmpty() ? null : color.toJSONString());
+        if(this.name != null) d.put("Name", this.name.replace("§", "&"));
+        if(this.type != null) d.put("Type", this.type.name());
+        d.put("Data", this.data);
+        d.put("Durability", this.durability);
+        d.put("Amount", this.amount);
+        if(this.lore != null) d.put("Lore", lore.isEmpty() ? null : lore);
+        if(this.color != null) d.put("Color", color.isEmpty() ? null : color.toJSONString());
         if(this.enchantments != null)
-            jsonObject.put("Enchantments", enchantments.isEmpty() ? null : enchantments.toJSONString());
-        jsonObject.put("HideStandardLore", this.hideStandardLore);
-        jsonObject.put("HideEnchantments", this.hideEnchantments);
-        jsonObject.put("Unbreakable", this.unbreakable);
-        jsonObject.put("HideName", this.hideName);
-        jsonObject.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
+            d.put("Enchantments", enchantments.isEmpty() ? null : enchantments.toJSONString());
+        d.put("HideStandardLore", this.hideStandardLore);
+        d.put("HideEnchantments", this.hideEnchantments);
+        d.put("Unbreakable", this.unbreakable);
+        d.put("HideName", this.hideName);
+        d.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
 
-        jsonObject.put("SkullOwner", this.skullId);
-        jsonObject.put("CustomModel", this.customModel);
+        d.put("SkullOwner", this.skullId);
+        d.put("CustomModel", this.customModel);
+    }
 
+    @Override
+    public void destroy() {
+
+    }
+
+    public String toJSONString() {
+        JSON jsonObject = new JSON();
+        write(jsonObject);
         return jsonObject.toJSONString();
     }
 
     public static ItemBuilder getFromJSON(String data) {
         JSONParser parser = new JSONParser();
         try {
-            JSONObject jsonObject = new JSONObject((org.json.simple.JSONObject) parser.parse(data));
+            JSON jsonObject = new JSON((org.json.simple.JSONObject) parser.parse(data));
+
             return getFromJSON(jsonObject);
         } catch(ParseException e) {
             e.printStackTrace();
@@ -281,195 +486,16 @@ public class ItemBuilder {
         }
     }
 
-    public static ItemBuilder getFromJSON(JSONObject jsonObject) {
+    public static ItemBuilder getFromJSON(JSON jsonObject) {
         if(jsonObject == null) return new ItemBuilder(Material.AIR);
 
+        ItemBuilder builder = new ItemBuilder();
         try {
-            ItemBuilder item = new ItemBuilder();
-
-            for(Object key : jsonObject.keySet()) {
-                String keyName = (String) key;
-
-                switch(keyName) {
-                    case "Lore": {
-                        JSONArray jsonLore = jsonObject.get("Lore");
-                        if(jsonLore == null) break;
-
-                        List<String> lore = new ArrayList<>();
-
-                        for(Object value : jsonLore) {
-                            String v = (String) value;
-                            lore.add(v);
-                        }
-
-                        item.setLore(lore);
-                        break;
-                    }
-
-                    case "Color": {
-                        JSONObject jsonColor = jsonObject.get("Color");
-                        if(jsonColor == null) break;
-
-                        int red = Integer.parseInt(jsonColor.get("Red") + "");
-                        int green = Integer.parseInt(jsonColor.get("Green") + "");
-                        int blue = Integer.parseInt(jsonColor.get("Blue") + "");
-
-                        item.setColor(DyeColor.getByColor(Color.fromRGB(red, green, blue)));
-                        break;
-                    }
-
-                    case "Enchantments": {
-                        JSONObject jsonEnchantments = jsonObject.get("Enchantments");
-                        if(jsonEnchantments == null) break;
-
-                        for(Object keySet : jsonEnchantments.keySet()) {
-                            String name = (String) keySet;
-                            Enchantment enchantment = Enchantment.getByName(name);
-                            int level = Integer.parseInt(jsonEnchantments.get(name) + "");
-
-                            item.addEnchantment(enchantment, level);
-                        }
-                        break;
-                    }
-
-                    case "Name": {
-                        String name = jsonObject.get("Name");
-                        if(name == null) break;
-
-                        item.setName(name.replace("&", "§"));
-                        break;
-                    }
-
-                    case "PotionData": {
-                        Object obj = jsonObject.getRaw("PotionData");
-                        if(obj == null) break;
-
-                        PotionData data = PotionData.fromJSONString((String) obj);
-                        item.setPotionData(data);
-                        break;
-                    }
-
-                    case "Type": {
-                        Object obj = jsonObject.get("Type");
-                        if(obj == null) break;
-
-                        String name = jsonObject.get("Type");
-                        Material material = null;
-
-                        try {
-                            material = Material.valueOf(name);
-                        } catch(IllegalArgumentException ex) {
-                            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-                                obj = jsonObject.get("Data");
-                                byte data = 0;
-                                if(obj != null) data = Byte.parseByte(jsonObject.get("Data") + "");
-
-                                XMaterial mat = XMaterial.requestXMaterial(name, data);
-
-                                if(mat == null && name.equalsIgnoreCase("SKULL_ITEM")) {
-                                    mat = XMaterial.PLAYER_HEAD;
-                                } else if(mat == null) {
-                                    throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
-                                }
-
-                                if(mat != null) material = mat.parseMaterial();
-                            } else {
-                                XMaterial xType = XMaterial.valueOf(name);
-                                material = xType.parseMaterial();
-                                item.setData((byte) xType.data);
-                            }
-
-                            try {
-                                material = Material.valueOf(name);
-                            } catch(IllegalArgumentException ex2) {
-                                if(name.toUpperCase().equals("SPLASH_POTION")) {
-                                    material = Material.POTION;
-                                }
-                            }
-                        }
-
-                        item.setType(material);
-                        break;
-                    }
-
-                    case "Data": {
-                        Object obj = jsonObject.get("Data");
-                        if(obj == null || item.getData() == 0) break;
-
-                        item.setData(Byte.parseByte(jsonObject.get("Data") + ""));
-                        break;
-                    }
-
-                    case "Durability": {
-                        Object obj = jsonObject.get("Durability");
-                        if(obj == null) break;
-
-                        item.setDurability(Short.parseShort(jsonObject.get("Durability") + ""));
-                        break;
-                    }
-
-                    case "Amount": {
-                        Integer amount = jsonObject.get("Amount");
-                        if(amount == null) break;
-
-                        item.setAmount(amount);
-                        break;
-                    }
-
-                    case "HideStandardLore": {
-                        Object obj = jsonObject.get("HideStandardLore");
-                        if(obj == null) break;
-
-                        item.setHideStandardLore(jsonObject.get("HideStandardLore"));
-                        break;
-                    }
-
-                    case "HideEnchantments": {
-                        Object obj = jsonObject.get("HideEnchantments");
-                        if(obj == null) break;
-
-                        item.setHideEnchantments(jsonObject.get("HideEnchantments"));
-                        break;
-                    }
-
-                    case "Unbreakable": {
-                        Object obj = jsonObject.get("Unbreakable");
-                        if(obj == null) break;
-
-                        item.setUnbreakable(jsonObject.get("Unbreakable"));
-                        break;
-                    }
-
-                    case "HideName": {
-                        Object obj = jsonObject.get("HideName");
-                        if(obj == null) break;
-
-                        item.setHideName(jsonObject.get("HideName"));
-                        break;
-                    }
-
-                    case "SkullOwner": {
-                        String data = jsonObject.getRaw("SkullOwner");
-                        if(data == null) break;
-
-                        if(data.contains("Property_Signature")) {
-                            //old
-                            item.setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
-                        } else item.setSkullId(jsonObject.get("SkullOwner"));
-                        break;
-                    }
-
-                    case "CustomModel": {
-                        item.setCustomModel(jsonObject.getInteger("CustomModel"));
-                        break;
-                    }
-                }
-            }
-
-            return item;
-        } catch(Exception ex) {
-            ex.printStackTrace();
-            return new ItemBuilder(Material.AIR);
+            builder.read(jsonObject);
+            return builder;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return new ItemBuilder(XMaterial.AIR);
         }
     }
 
@@ -627,6 +653,10 @@ public class ItemBuilder {
 
     public Material getType() {
         return type;
+    }
+
+    public ItemBuilder setType(XMaterial type) {
+        return setType(type.parseMaterial());
     }
 
     public ItemBuilder setType(Material type) {
@@ -802,6 +832,11 @@ public class ItemBuilder {
 
     public ItemBuilder setSkullId(String skullId) {
         this.skullId = skullId;
+        return this;
+    }
+
+    public ItemBuilder setSkullId(Player player) {
+        this.skullId = GameProfileUtils.extractSkinId(GameProfileUtils.getGameProfile(player));
         return this;
     }
 

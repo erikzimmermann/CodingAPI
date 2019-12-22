@@ -1,14 +1,14 @@
 package de.codingair.codingapi.tools;
 
+import de.codingair.codingapi.tools.io.DataWriter;
+import de.codingair.codingapi.tools.io.JSON.JSON;
+import de.codingair.codingapi.tools.io.JSON.JSONParser;
+import de.codingair.codingapi.tools.io.Serializable;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
-import de.codingair.codingapi.tools.JSON.JSONObject;
-import org.json.simple.parser.JSONParser;
 
-import java.text.DecimalFormat;
-
-public class Location extends org.bukkit.Location {
+public class Location extends org.bukkit.Location implements Serializable {
     private String worldName;
 
     public Location(String worldName, double x, double y, double z, float yaw, float pitch) {
@@ -21,11 +21,15 @@ public class Location extends org.bukkit.Location {
         this.worldName = location instanceof Location ? ((Location) location).getWorldName() : location.getWorld() == null ? null : location.getWorld().getName();
     }
 
-    public Location(org.json.simple.JSONObject json) {
+    public Location(JSON json) {
         super(json.get("World") == null ? null : Bukkit.getWorld((String) json.get("World")),
-                Double.parseDouble(((String) json.get("X")).replace(",", ".")), Double.parseDouble(((String) json.get("Y")).replace(",", ".")), Double.parseDouble(((String) json.get("Z")).replace(",", ".")),
-                json.get("Yaw") == null ? 0F : Float.parseFloat(((String) json.get("Yaw")).replace(",", ".")), json.get("Pitch") == null ? 0F : Float.parseFloat(((String) json.get("Pitch")).replace(",", ".")));
-        this.worldName = json.get("World") == null ? null : (String) json.get("World");
+                json.getDouble("X"), json.getDouble("Y"), json.getDouble("Z"),
+                json.getFloat("Yaw"), json.getFloat("Pitch"));
+        this.worldName = json.get("World");
+    }
+
+    public Location() {
+        super(null, 0, 0, 0);
     }
 
     public boolean hasOnlyCoords() {
@@ -33,55 +37,47 @@ public class Location extends org.bukkit.Location {
     }
 
     public String toJSONString() {
-        DecimalFormat format = new DecimalFormat("0.00");
-
-        JSONObject json = new JSONObject();
-
-        json.put("World", this.worldName);
-        json.put("X", format.format(this.getX()).replace(",", "."));
-        json.put("Y", format.format(this.getY()).replace(",", "."));
-        json.put("Z", format.format(this.getZ()).replace(",", "."));
-
-        if(!hasOnlyCoords()) {
-            json.put("Yaw", format.format(this.getYaw()).replace(",", "."));
-            json.put("Pitch", format.format(this.getPitch()).replace(",", "."));
-        }
-
-        return json.toJSONString();
+        return toJSON(2).toJSONString();
     }
 
-    public JSONObject toJSON(int decimalPlaces) {
-        StringBuilder s = new StringBuilder("0" + (decimalPlaces > 0 ? "." : ""));
-        for(int i = 0; i < decimalPlaces; i++) {
-            s.append("0");
-        }
-        DecimalFormat format = new DecimalFormat(s.toString());
+    public JSON toJSON(int decimalPlaces) {
+        JSON json = new JSON();
 
-        JSONObject json = new JSONObject();
-
-        if(decimalPlaces > 0) {
-            json.put("World", this.worldName);
-            json.put("X", format.format(this.getX()).replace(",", "."));
-            json.put("Y", format.format(this.getY()).replace(",", "."));
-            json.put("Z", format.format(this.getZ()).replace(",", "."));
-
-            if(!hasOnlyCoords()) {
-                json.put("Yaw", format.format(this.getYaw()).replace(",", "."));
-                json.put("Pitch", format.format(this.getPitch()).replace(",", "."));
-            }
-        } else {
-            json.put("World", this.worldName);
-            json.put("X", (this.getX() + "").replace(",", "."));
-            json.put("Y", (this.getY() + "").replace(",", "."));
-            json.put("Z", (this.getZ() + "").replace(",", "."));
-
-            if(!hasOnlyCoords()) {
-                json.put("Yaw", (this.getYaw() + "").replace(",", "."));
-                json.put("Pitch", (this.getPitch() + "").replace(",", "."));
-            }
-        }
+        json.put("World", this.worldName);
+        json.put("X", trim(getX(), decimalPlaces));
+        json.put("Y", trim(getY(), decimalPlaces));
+        json.put("Z", trim(getZ(), decimalPlaces));
+        json.put("Yaw", trim(getYaw(), decimalPlaces));
+        json.put("Pitch", trim(getPitch(), decimalPlaces));
 
         return json;
+    }
+
+    @Override
+    public boolean read(DataWriter d) throws Exception {
+        this.worldName = d.get("World");
+        setWorld(this.worldName == null ? null : Bukkit.getWorld(this.worldName));
+        setX(d.getDouble("X"));
+        setY(d.getDouble("Y"));
+        setZ(d.getDouble("Z"));
+        setYaw(d.getFloat("Yaw"));
+        setPitch(d.getFloat("Pitch"));
+
+        return true;
+    }
+
+    @Override
+    public void write(DataWriter json) {
+        json.put("World", getWorld() == null ? this.worldName : getWorld().getName());
+        json.put("X", trim(getX(), 4));
+        json.put("Y", trim(getY(), 4));
+        json.put("Z", trim(getZ(), 4));
+        json.put("Yaw", trim(getYaw(), 4));
+        json.put("Pitch", trim(getPitch(), 4));
+    }
+
+    @Override
+    public void destroy() {
     }
 
     @Override
@@ -141,26 +137,30 @@ public class Location extends org.bukkit.Location {
     }
 
     public boolean equals(Object obj) {
-        if (obj == null) {
+        if(obj == null) {
             return false;
-        } else if (!(obj instanceof org.bukkit.Location)) {
+        } else if(!(obj instanceof org.bukkit.Location)) {
             return false;
         } else {
-            org.bukkit.Location other = (org.bukkit.Location)obj;
-            if (this.getWorld() != other.getWorld() && (this.getWorld() == null || !this.getWorld().equals(other.getWorld()))) {
+            org.bukkit.Location other = (org.bukkit.Location) obj;
+            if(this.getWorld() != other.getWorld() && (this.getWorld() == null || !this.getWorld().equals(other.getWorld()))) {
                 return false;
-            } else if (Double.doubleToLongBits(this.getX()) != Double.doubleToLongBits(other.getX())) {
+            } else if(Double.doubleToLongBits(this.getX()) != Double.doubleToLongBits(other.getX())) {
                 return false;
-            } else if (Double.doubleToLongBits(this.getY()) != Double.doubleToLongBits(other.getY())) {
+            } else if(Double.doubleToLongBits(this.getY()) != Double.doubleToLongBits(other.getY())) {
                 return false;
-            } else if (Double.doubleToLongBits(this.getZ()) != Double.doubleToLongBits(other.getZ())) {
+            } else if(Double.doubleToLongBits(this.getZ()) != Double.doubleToLongBits(other.getZ())) {
                 return false;
-            } else if (Float.floatToIntBits(this.getPitch()) != Float.floatToIntBits(other.getPitch())) {
+            } else if(Float.floatToIntBits(this.getPitch()) != Float.floatToIntBits(other.getPitch())) {
                 return false;
             } else {
                 return Float.floatToIntBits(this.getYaw()) == Float.floatToIntBits(other.getYaw());
             }
         }
+    }
+
+    public boolean isEmpty() {
+        return worldName == null && getWorld() == null && getX() == 0 && getY() == 0 && getZ() == 0 && getYaw() == 0 && getPitch() == 0;
     }
 
     @Override
@@ -172,12 +172,13 @@ public class Location extends org.bukkit.Location {
         if(jsonString == null) return null;
 
         try {
-            return new Location((org.json.simple.JSONObject) new JSONParser().parse(jsonString));
+            return new Location((JSON) new JSONParser().parse(jsonString));
         } catch(Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
     public static Location getByLocation(org.bukkit.Location location) {
         if(location == null) return null;
 

@@ -48,6 +48,18 @@ public abstract class CommandComponent {
         this.children.add(child);
     }
 
+    public com.mojang.brigadier.builder.LiteralArgumentBuilder buildLiteralArgument() {
+        if(this.argument == null) throw new IllegalStateException("LiteralArgument cannot be initialized by component without argument");
+        com.mojang.brigadier.builder.LiteralArgumentBuilder l = com.mojang.brigadier.builder.LiteralArgumentBuilder.literal(this.argument);
+
+        for(CommandComponent child : this.children) {
+            if(child instanceof MultiCommandComponent) continue;
+            l.then(child.buildLiteralArgument());
+        }
+
+        return l;
+    }
+
     public CommandComponent getChild(String arg) {
         List<CommandComponent> children = new ArrayList<>(this.children);
         CommandComponent child = null;

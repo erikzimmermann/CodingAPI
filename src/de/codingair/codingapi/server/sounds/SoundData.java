@@ -1,5 +1,6 @@
-package de.codingair.codingapi.server;
+package de.codingair.codingapi.server.sounds;
 
+import de.codingair.codingapi.API;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -39,7 +40,7 @@ public class SoundData {
     }
 
     public void play(Player player) {
-        this.sound.playSound(player, this.volume, this.pitch);
+        play(player, null);
     }
 
     public void play(Player player, Location location) {

@@ -1,4 +1,4 @@
-package de.codingair.codingapi.server;
+package de.codingair.codingapi.server.sounds;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

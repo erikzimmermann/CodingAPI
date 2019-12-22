@@ -3,7 +3,7 @@ package de.codingair.codingapi.player.gui.hotbar;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import de.codingair.codingapi.player.gui.inventory.PlayerInventory;
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

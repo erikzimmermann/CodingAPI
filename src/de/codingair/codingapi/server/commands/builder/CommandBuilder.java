@@ -2,7 +2,7 @@ package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.Version;
-import de.codingair.codingapi.server.commands.CommandDispatcher;
+import de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
@@ -22,6 +22,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     private static Listener listener;
     private List<CommandBackup> backups = new ArrayList<>();
     private PluginCommand main;
+    private boolean temp = false; //must be 'true' if command will be created after JavaPlugin#onEnable()
 
     private static void registerListener(JavaPlugin plugin) {
         if(listener != null) return;
@@ -97,8 +98,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
                 commands.remove(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
 
                 //Remove from CommandDispatcher
-                CommandDispatcher.removeCommand(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
-                CommandDispatcher.removeCommand(command.getName().toLowerCase(Locale.ENGLISH).trim());
+                if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.removeCommand(this);
             }
 
             //Create PluginCommand using CustomCommand.class
@@ -117,8 +117,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             scm.register(plugin.getDescription().getName(), main);
 
             //Add to CommandDispatcher
-            CommandDispatcher.addCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + this.name.toLowerCase(Locale.ENGLISH).trim());
-            CommandDispatcher.addCommand(this.name.toLowerCase(Locale.ENGLISH).trim());
+            if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.addCommand(this);
         }
 
         for(String s : names) {
@@ -205,10 +204,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
             //1.13+
             //Remove from CommandDispatcher
-            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-                CommandDispatcher.removeCommand(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
-                CommandDispatcher.removeCommand(s.toLowerCase(Locale.ENGLISH).trim());
-            }
+            if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.removeCommand(this);
         }
 
         names.clear();
@@ -328,5 +324,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     public PluginCommand getMain() {
         return main;
+    }
+
+    public boolean isTemp() {
+        return temp;
+    }
+
+    public void setTemporarily(boolean temp) {
+        this.temp = temp;
     }
 }
