@@ -12,6 +12,7 @@ import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.tools.io.Serializable;
 import de.codingair.codingapi.tools.io.yml.ConfigWriter;
+import de.codingair.codingapi.utils.ChatColor;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
@@ -241,14 +242,14 @@ public class ItemBuilder implements Serializable {
 
                 switch(keyName) {
                     case "Lore": {
-                        JSONArray jsonLore = d.get("Lore");
+                        JSONArray jsonLore = d.getList("Lore");
                         if(jsonLore == null) break;
 
                         List<String> lore = new ArrayList<>();
 
                         for(Object value : jsonLore) {
                             String v = (String) value;
-                            lore.add(v);
+                            lore.add(v == null ? null : ChatColor.translateAlternateColorCodes('&', v));
                         }
 
                         setLore(lore);
@@ -285,7 +286,7 @@ public class ItemBuilder implements Serializable {
                         String name = d.get("Name");
                         if(name == null) break;
 
-                        setName(name.replace("&", "§"));
+                        setName(ChatColor.translateAlternateColorCodes('&', name));
                         break;
                     }
 
@@ -435,7 +436,9 @@ public class ItemBuilder implements Serializable {
         }
 
         if(this.lore != null) {
-            lore.addAll(this.lore);
+            for(String s : this.lore) {
+                lore.add(s.replace("§", "&"));
+            }
         }
 
         if(this.color != null) {
@@ -823,7 +826,27 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder clone() {
-        return new ItemBuilder(getItem(), getItem().getItemMeta());
+        ItemBuilder clone = new ItemBuilder();
+
+        clone.name = name;
+        clone.type = type;
+        clone.data = data;
+        clone.durability = durability;
+        clone.amount = amount;
+        clone.color = color;
+        clone.preMeta = preMeta;
+        clone.potionData = potionData;
+        clone.nbt = nbt;
+        clone.customModel = customModel;
+        clone.skullId = skullId;
+        clone.lore = lore == null ? null : new ArrayList<>(lore);
+        clone.enchantments = enchantments == null ? null : new HashMap<>(enchantments);
+        clone.hideStandardLore = hideStandardLore;
+        clone.hideEnchantments = hideEnchantments;
+        clone.hideName = hideName;
+        clone.unbreakable = unbreakable;
+
+        return clone;
     }
 
     public String getSkullId() {
@@ -853,8 +876,9 @@ public class ItemBuilder implements Serializable {
         return customModel;
     }
 
-    public void setCustomModel(int customModel) {
+    public ItemBuilder setCustomModel(int customModel) {
         this.customModel = customModel;
+        return this;
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {

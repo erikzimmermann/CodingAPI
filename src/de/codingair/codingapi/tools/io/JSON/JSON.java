@@ -70,6 +70,20 @@ public class JSON extends org.json.simple.JSONObject implements DataWriter {
         return data;
     }
 
+    public Set<?> keySet(boolean depth) {
+        if(depth) return keySet();
+
+        Collection<String> o = keySet("", this);
+        Set<String> data = new HashSet<>();
+
+        for(String s : o) {
+            if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
+            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+        }
+
+        return data;
+    }
+
     @Override
     public Object finalCommit(String key, Object value) {
         if(value instanceof Serializable) {

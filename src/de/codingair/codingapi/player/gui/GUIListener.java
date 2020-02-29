@@ -261,17 +261,18 @@ public class GUIListener implements Listener {
 
             e.setCancelled(!button.isMovable());
 
-            if((button.isOnlyLeftClick() && e.isLeftClick())
-                    || (button.isOnlyRightClick() && e.isRightClick())
-                    || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
-                    || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
+            if(button.canClick(e.getClick()) &&
+                    (button.isOnlyLeftClick() && e.isLeftClick()
+                            || (button.isOnlyRightClick() && e.isRightClick())
+                            || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
+                            || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY)))) {
                 if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
 
                 if(button.isCloseOnClick()) {
                     if(inv instanceof GUI) ((GUI) inv).setClosingByButton(true);
                     e.getWhoClicked().closeInventory();
                 }
-                button.playSound((Player) e.getWhoClicked());
+                button.playSound(e.getClick(), (Player) e.getWhoClicked());
                 Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);
             }
         } else {

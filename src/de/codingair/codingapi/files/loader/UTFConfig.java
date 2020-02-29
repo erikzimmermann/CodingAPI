@@ -10,7 +10,6 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
@@ -51,13 +50,13 @@ public class UTFConfig extends YamlConfiguration {
     @Override
     public String saveToString() {
         try {
-            IReflection.FieldAccessor fy = IReflection.getField(getClass(), "yamlOptions");
-            IReflection.FieldAccessor fr = IReflection.getField(getClass(), "yamlRepresenter");
-            IReflection.FieldAccessor fYaml = IReflection.getField(getClass(), "yaml");
+            IReflection.FieldAccessor<DumperOptions> fy = IReflection.getField(getClass(), "yamlOptions");
+            IReflection.FieldAccessor<Representer> fr = IReflection.getField(getClass(), "yamlRepresenter");
+            IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), "yaml");
 
-            DumperOptions yamlOptions = (DumperOptions) fy.get(this);
-            Representer yamlRepresenter = (Representer) fr.get(this);
-            Yaml yaml = (Yaml) fYaml.get(this);
+            DumperOptions yamlOptions = fy.get(this);
+            Representer yamlRepresenter = fr.get(this);
+            Yaml yaml = fYaml.get(this);
             DumperOptions.FlowStyle fs = DumperOptions.FlowStyle.BLOCK;
 
             yamlOptions.setIndent(this.options().indent());
@@ -159,14 +158,12 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public void convertMapsToSections(Map<?, ?> input, ConfigurationSection section) {
-        Iterator var3 = input.entrySet().iterator();
-
-        while(var3.hasNext()) {
-            Map.Entry<?, ?> entry = (Map.Entry) var3.next();
+        for(Map.Entry<?, ?> entry : input.entrySet()) {
             String key = entry.getKey().toString();
             Object value = entry.getValue();
+
             if(value instanceof Map) {
-                this.convertMapsToSections((Map) value, section.getConfigurationSection(key) == null ? section.createSection(key) : section.getConfigurationSection(key));
+                this.convertMapsToSections((Map<?, ?>) value, section.getConfigurationSection(key) == null ? section.createSection(key) : section.getConfigurationSection(key));
             } else {
                 section.set(key, value);
             }
@@ -177,12 +174,19 @@ public class UTFConfig extends YamlConfiguration {
         List<String> toRemove = new ArrayList<>();
 
         for(String key : getKeys(true)) {
-            if(!origin.contains(key)) toRemove.add(key);
+            if(!origin.contains(key)/* || isSameType(key, origin)*/) toRemove.add(key);
         }
 
         for(String key : toRemove) {
             set(key, null);
         }
+    }
+
+    public boolean isSameType(String key, UTFConfig origin) {
+        Object obj = get(key);
+        Object objOrigin = origin.get(key);
+
+        return obj == null || objOrigin == null || obj.getClass().equals(objOrigin.getClass());
     }
 
     public void deployExtras(String contents) {
@@ -201,10 +205,25 @@ public class UTFConfig extends YamlConfiguration {
 
         String[] a = contents.split("\n", -1);
 
+        int list = -1;
         for(int i = 0; i < a.length - 1; i++) {
             String s = a[i];
-            while(s.startsWith(" ")) s = s.substring(1);
-            if(s.startsWith("-")) continue;
+
+            int empty = 0;
+            while(s.startsWith(" ")) {
+                s = s.substring(1);
+                empty++;
+            }
+
+            if(list > -1) {
+                list = list < empty ? list : -1;
+                if(list > -1) continue;
+            }
+
+            if(s.startsWith("-")) {
+                list = empty;
+                continue;
+            }
 
             if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
             line++;
@@ -227,6 +246,7 @@ public class UTFConfig extends YamlConfiguration {
         final int size = lines.size() + this.extras.size();
         int e = 0;
         int listItems = 0;
+        int list = -1;
         for(int i = 0; i < size; i++) {
             if(this.extras.size() == e) break;
 
@@ -236,9 +256,23 @@ public class UTFConfig extends YamlConfiguration {
             }
 
             String s = lines.get(i);
-            while(s.startsWith(" ")) s = s.substring(1);
+            int empty = 0;
+            while(s.startsWith(" ")) {
+                s = s.substring(1);
+                empty++;
+            }
+
+            if(list > -1) {
+                list = list < empty ? list : -1;
+                if(list > -1) {
+                    listItems++;
+                    continue;
+                }
+            }
+
             if(s.startsWith("-")) {
                 listItems++;
+                list = empty;
                 continue;
             }
 

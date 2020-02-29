@@ -3,6 +3,7 @@ package de.codingair.codingapi.player.gui.anvil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.regex.Matcher;
@@ -16,23 +17,25 @@ import java.util.regex.Pattern;
  **/
 
 public class AnvilClickEvent extends Event {
-    private Player player;
-    private AnvilSlot slot;
+    private final Player player;
+    private final AnvilSlot slot;
+    private final ClickType clickType;
 
-    private ItemStack item;
+    private final ItemStack item;
 
     private boolean close = false;
     private boolean cancelled = true;
 
     private boolean payExp = false;
 
-    private AnvilGUI anvil;
+    private final AnvilGUI anvil;
 
     public static HandlerList handlers = new HandlerList();
 
-    public AnvilClickEvent(Player player, AnvilSlot slot, ItemStack item, AnvilGUI anvil) {
+    public AnvilClickEvent(Player player, ClickType clickType, AnvilSlot slot, ItemStack item, AnvilGUI anvil) {
         this.anvil = anvil;
         this.player = player;
+        this.clickType = clickType;
         this.slot = slot;
         this.item = item;
     }
@@ -105,5 +108,9 @@ public class AnvilClickEvent extends Event {
 
     public void setPayExp(boolean payExp) {
         this.payExp = payExp;
+    }
+
+    public ClickType getClickType() {
+        return clickType;
     }
 }

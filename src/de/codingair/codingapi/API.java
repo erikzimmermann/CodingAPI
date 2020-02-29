@@ -44,6 +44,7 @@ public class API {
 
     private List<JavaPlugin> plugins = new ArrayList<>();
     private BukkitTask tickerTimer = null;
+    private BukkitTask tickerSecondTimer = null;
 
     public void onEnable(JavaPlugin plugin) {
         if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
@@ -131,6 +132,7 @@ public class API {
     private void removePlugin(JavaPlugin plugin) {
         HandlerList.unregisterAll(plugin);
         if(this.tickerTimer.getOwner() == plugin) this.tickerTimer.cancel();
+        if(this.tickerSecondTimer.getOwner() == plugin) this.tickerSecondTimer.cancel();
 
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
@@ -183,26 +185,20 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if(this.tickerTimer != null) return;
 
-        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
-            int second = 0;
-
-            @Override
-            public void run() {
-                API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
-                GUIListener.onTick();
-
-                if(second >= 20) {
-                    second = 0;
-                    for(Ticker ticker : TICKERS) {
-                        ticker.onSecond();
-                    }
-                } else second++;
-
-                for(Ticker ticker : TICKERS) {
-                    ticker.onTick();
-                }
+        this.tickerSecondTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for(Ticker ticker : TICKERS) {
+                ticker.onSecond();
             }
-        }, 1, 1);
+        }, 0, 20);
+
+        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
+            GUIListener.onTick();
+
+            for(Ticker ticker : TICKERS) {
+                ticker.onTick();
+            }
+        }, 0, 1);
     }
 
     public static API getInstance() {
@@ -369,14 +365,7 @@ public class API {
         int index = getTickerIndex(ticker);
         if(index == -999) return null;
 
-        Ticker t = TICKERS.remove(index);
-
-        if(TICKERS.size() == 0) {
-            getInstance().tickerTimer.cancel();
-            getInstance().tickerTimer = null;
-        }
-
-        return t;
+        return TICKERS.remove(index);
     }
 
     public static Ticker getTicker(Object instance) {

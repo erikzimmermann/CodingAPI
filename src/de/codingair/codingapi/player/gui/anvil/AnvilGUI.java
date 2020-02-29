@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
@@ -38,6 +39,7 @@ public class AnvilGUI implements Removable {
 
     private String submittedText = null;
     private boolean submitted = false;
+    private boolean keepSubmittedText = true;
 
     private AnvilCloseEvent closeEvent = null;
     private Listener bukkitListener;
@@ -82,7 +84,11 @@ public class AnvilGUI implements Removable {
     @Override
     public void destroy() {
         remove();
-        Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
+        try {
+            this.player.closeInventory();
+        } catch(Throwable ex) {
+            Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
+        }
     }
 
     private void registerBukkitListener() {
@@ -98,7 +104,7 @@ public class AnvilGUI implements Removable {
                         ItemStack item = e.getCurrentItem();
                         int slot = e.getRawSlot();
 
-                        AnvilClickEvent clickEvent = new AnvilClickEvent(p, AnvilSlot.bySlot(slot), item, AnvilGUI.this);
+                        AnvilClickEvent clickEvent = new AnvilClickEvent(p, e.getClick(), AnvilSlot.bySlot(slot), item, AnvilGUI.this);
 
                         if(listener != null) listener.onClick(clickEvent);
                         Bukkit.getPluginManager().callEvent(clickEvent);
@@ -110,6 +116,14 @@ public class AnvilGUI implements Removable {
 
                         e.setCancelled(clickEvent.isCancelled());
                         e.setCancelled(true);
+
+                        if(keepSubmittedText && item.hasItemMeta()) {
+                            ItemMeta meta = item.getItemMeta();
+                            meta.setDisplayName(submittedText);
+                            item.setItemMeta(meta);
+                            inv.setItem(AnvilSlot.INPUT_LEFT.getSlot(), item);
+                            p.updateInventory();
+                        }
 
                         if(clickEvent.getWillClose()) {
                             closeEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
@@ -205,7 +219,7 @@ public class AnvilGUI implements Removable {
         Object container;
         if(Version.getVersion().isBiggerThan(Version.v1_13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
-            IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, "at", containerAccessClass, new Class[]{worldClass, blockPositionClass});
+            IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, "at", containerAccessClass, new Class[] {worldClass, blockPositionClass});
 
             container = anvilContainerCon.newInstance(c, inventory, at.invoke(null, world, blockPosition));
             IReflection.FieldAccessor<?> title = IReflection.getField(containerClass, "title");
@@ -305,5 +319,13 @@ public class AnvilGUI implements Removable {
 
     public void setTitle(String title) {
         this.title = title == null ? "Repair & Name" : title;
+    }
+
+    public boolean isKeepSubmittedText() {
+        return keepSubmittedText;
+    }
+
+    public void setKeepSubmittedText(boolean keepSubmittedText) {
+        this.keepSubmittedText = keepSubmittedText;
     }
 }
