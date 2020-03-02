@@ -269,8 +269,13 @@ public class GUIListener implements Listener {
                 if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
 
                 if(button.isCloseOnClick()) {
-                    if(inv instanceof GUI) ((GUI) inv).setClosingByButton(true);
-                    e.getWhoClicked().closeInventory();
+                    if(inv instanceof GUI) {
+                        GUI g = (GUI) inv;
+                        g.setClosingByButton(true);
+                        if(g.getFallbackGUI() != null) {
+                            g.fallBack();
+                        } else e.getWhoClicked().closeInventory();
+                    } else e.getWhoClicked().closeInventory();
                 }
                 button.playSound(e.getClick(), (Player) e.getWhoClicked());
                 Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);

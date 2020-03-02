@@ -112,6 +112,10 @@ public abstract class Page {
         }
     }
 
+    public List<Button> getButtons() {
+        return buttons;
+    }
+
     public void onExitByPlayer() {
     }
 

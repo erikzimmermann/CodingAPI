@@ -64,6 +64,11 @@ public class ItemBuilder implements Serializable {
     public ItemBuilder() {
     }
 
+    public ItemBuilder(String skullId) {
+        this(XMaterial.PLAYER_HEAD);
+        setSkullId(skullId);
+    }
+
     public ItemBuilder(XMaterial xMaterial) {
         this(xMaterial.parseItem());
     }
