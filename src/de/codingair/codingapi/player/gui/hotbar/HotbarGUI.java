@@ -159,7 +159,7 @@ public abstract class HotbarGUI implements Removable {
     }
 
     public ItemComponent getItem(int slot) {
-        if(this.menu.length <= slot) return null;
+        if(this.menu.length <= slot || slot < 0) return null;
         return this.menu[slot];
     }
 

@@ -268,17 +268,18 @@ public class GUIListener implements Listener {
                             || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY)))) {
                 if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
 
+                button.playSound(e.getClick(), (Player) e.getWhoClicked());
+                button.onClick(e);
+
                 if(button.isCloseOnClick()) {
                     if(inv instanceof GUI) {
                         GUI g = (GUI) inv;
                         g.setClosingByButton(true);
-                        if(g.getFallbackGUI() != null) {
+                        if(g.useFallbackGUI() && g.getFallbackGUI() != null) {
                             g.fallBack();
                         } else e.getWhoClicked().closeInventory();
                     } else e.getWhoClicked().closeInventory();
                 }
-                button.playSound(e.getClick(), (Player) e.getWhoClicked());
-                Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);
             }
         } else {
             if(inv instanceof GUI) {

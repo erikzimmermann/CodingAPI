@@ -73,8 +73,10 @@ public abstract class GUI extends Interface implements Removable {
                 listeners.forEach(l -> l.onInvCloseEvent(e));
 
                 if(useFallbackGUI && fallbackGUI != null) {
-                    fallbackGUI.reinitialize();
-                    Bukkit.getScheduler().runTaskLater(getPlugin(), () -> fallbackGUI.open(), 1);
+                    GUI fb = fallbackGUI;
+                    fallbackGUI = null;
+                    fb.reinitialize();
+                    Bukkit.getScheduler().runTaskLater(getPlugin(), fb::open, 1);
                 }
             }
 
@@ -165,7 +167,6 @@ public abstract class GUI extends Interface implements Removable {
                     if(old.getSize() == getSize()) {
                         isClosed = old.isClosed; //transfer status
                         old.isClosed = true; //cancel closing inventory
-                        old.closingConfirmed = null;
 
                         inventory = old.getInventory();
                         reinitialize(); //initialize new items/buttons
@@ -175,6 +176,9 @@ public abstract class GUI extends Interface implements Removable {
                             updateTitle(true);
                         }
                     }
+
+                    //remove confirmation runnable
+                    old.closingConfirmed = null;
 
                     //unregister/close old GUI if 'isClosed' is false
                     API.removeRemovable(old);
@@ -305,6 +309,12 @@ public abstract class GUI extends Interface implements Removable {
 
     public void changeGUI(GUI newGui) {
         closingForGUI = true;
+        newGui.open();
+    }
+
+    public void changeGUI(GUI newGui, boolean fallback) {
+        closingForGUI = true;
+        newGui.setUseFallbackGUI(fallback);
         newGui.open();
     }
 
@@ -499,7 +509,7 @@ public abstract class GUI extends Interface implements Removable {
         updateInventory(getPlayer());
     }
 
-    public boolean isUseFallbackGUI() {
+    public boolean useFallbackGUI() {
         return useFallbackGUI;
     }
 
@@ -514,7 +524,7 @@ public abstract class GUI extends Interface implements Removable {
 
     public boolean fallBack() {
         if(fallbackGUI == null) return false;
-
+        useFallbackGUI = false;
         fallbackGUI.reinitialize();
         changeGUI(fallbackGUI);
         return true;

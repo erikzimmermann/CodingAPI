@@ -117,7 +117,7 @@ public class AnvilGUI implements Removable {
                         e.setCancelled(clickEvent.isCancelled());
                         e.setCancelled(true);
 
-                        if(keepSubmittedText && item.hasItemMeta()) {
+                        if(keepSubmittedText && item != null && item.hasItemMeta()) {
                             ItemMeta meta = item.getItemMeta();
                             meta.setDisplayName(submittedText);
                             item.setItemMeta(meta);
