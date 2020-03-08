@@ -59,6 +59,15 @@ public class IReflection {
 			throw e;
 		}
 	}
+
+	public static Class<?> getClass(String name){
+		try {
+			return Class.forName(name);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	public static Class<?> getClass(ServerPacket packet, String name) {
 		try {

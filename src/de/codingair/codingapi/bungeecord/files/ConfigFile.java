@@ -115,4 +115,10 @@ public class ConfigFile {
         }
         return config;
     }
+
+    public void clearConfig() {
+        for(String key : getConfig().getKeys()) {
+            getConfig().set(key, null);
+        }
+    }
 }

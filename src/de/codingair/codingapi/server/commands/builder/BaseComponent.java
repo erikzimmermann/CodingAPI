@@ -1,11 +1,16 @@
 package de.codingair.codingapi.server.commands.builder;
 
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.command.CommandSender;
+
+import java.util.Map;
 
 public abstract class BaseComponent extends CommandComponent {
     public BaseComponent() {
         super(null);
     }
+
     public BaseComponent(String permission) {
         super(null, permission);
     }
@@ -26,14 +31,24 @@ public abstract class BaseComponent extends CommandComponent {
         return (BaseComponent) super.setOnlyConsole(onlyConsole);
     }
 
-    public com.mojang.brigadier.builder.LiteralArgumentBuilder buildLiteralArgument(String argument) {
-        com.mojang.brigadier.builder.LiteralArgumentBuilder l = com.mojang.brigadier.builder.LiteralArgumentBuilder.literal(argument);
+    public Object buildLiteralArgument(String argument) {
+        try {
+            Class<?> lArgBuilder = Class.forName("com.mojang.brigadier.builder.LiteralArgumentBuilder");
+            Class<?> argBuilder = Class.forName("com.mojang.brigadier.builder.ArgumentBuilder");
+            IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[] {String.class});
+            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[] {argBuilder});
 
-        for(CommandComponent child : getChildren()) {
-            if(child instanceof MultiCommandComponent) continue;
-            l.then(child.buildLiteralArgument());
+            Object l = literal.invoke(null, argument);
+
+            for(CommandComponent child : getChildren()) {
+                if(child instanceof MultiCommandComponent) continue;
+                then.invoke(l, child.buildLiteralArgument());
+            }
+
+            return l;
+        } catch(ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
         }
-
-        return l;
     }
 }

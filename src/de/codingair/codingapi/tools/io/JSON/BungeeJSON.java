@@ -1,27 +1,29 @@
 package de.codingair.codingapi.tools.io.JSON;
 
-import de.codingair.codingapi.tools.io.lib.*;
+import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
+import de.codingair.codingapi.tools.io.lib.ParseException;
+import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
-import de.codingair.codingapi.tools.io.utils.SpigotDataWriter;
 
 import java.util.*;
 
-public class JSON extends JSONObject implements SpigotDataWriter {
+public class BungeeJSON extends JSONObject implements DataWriter {
     private String prefix;
 
-    public JSON() {
+    public BungeeJSON() {
         this((String) null);
     }
 
-    public JSON(String prefix) {
+    public BungeeJSON(String prefix) {
         this.prefix = prefix == null ? "" : prefix;
     }
 
-    public JSON(Map map) {
+    public BungeeJSON(Map map) {
         this(map, null);
     }
 
-    public JSON(Map map, String prefix) {
+    public BungeeJSON(Map map, String prefix) {
         super(map);
         this.prefix = prefix == null ? "" : prefix;
     }
@@ -90,7 +92,7 @@ public class JSON extends JSONObject implements SpigotDataWriter {
             return null;
         }
 
-        JSON section = getOrCreateSection(k(key));
+        BungeeJSON section = getOrCreateSection(k(key));
 
         if(section == this) {
             return super.put(key, value);
@@ -111,23 +113,23 @@ public class JSON extends JSONObject implements SpigotDataWriter {
             if(o == null) return null;
 
             if(!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
-            return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
+            return BungeeJSON.getSection((Map<?, ?>) o, key.substring(i + 1));
         }
 
         if(!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
-        return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
+        return BungeeJSON.getSection((Map<?, ?>) o, key.substring(i + 1));
     }
 
-    private JSON getOrCreateSection(String key) {
+    private BungeeJSON getOrCreateSection(String key) {
         int i = key.indexOf(".");
         if(i == -1) return this;
 
         String first = key.substring(0, i);
 
         Object o = super.get(first);
-        if(o == null) super.put(first, o = new JSON());
+        if(o == null) super.put(first, o = new BungeeJSON());
 
-        return ((JSON) o).getOrCreateSection(key.substring(i + 1));
+        return ((BungeeJSON) o).getOrCreateSection(key.substring(i + 1));
     }
 
     public void write(Serializable s, String key) {
@@ -232,8 +234,8 @@ public class JSON extends JSONObject implements SpigotDataWriter {
                 }
             }
 
-            if(o instanceof JSON) {
-                o = ((JSON) o).get((Object) key);
+            if(o instanceof BungeeJSON) {
+                o = ((BungeeJSON) o).get((Object) key);
             }
         }
 
@@ -251,7 +253,7 @@ public class JSON extends JSONObject implements SpigotDataWriter {
                 }
             }
 
-            if(o instanceof org.json.simple.JSONObject) return (T) new JSON((org.json.simple.JSONObject) o);
+            if(o instanceof JSONObject) return (T) new BungeeJSON((JSONObject) o);
         }
 
         return o == null ? def : (T) o;

@@ -1,13 +1,12 @@
 package de.codingair.codingapi.player.gui.anvil;
 
+import com.google.common.base.CharMatcher;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -91,9 +90,8 @@ public class AnvilClickEvent extends Event {
 
     public String getInput() {
         if(this.item == null || !this.item.hasItemMeta()) return null;
-
         String input = this.item.getItemMeta().getDisplayName();
-        return input == null ? null : input.trim();
+        return input == null ? null : ChatColor.stripColor(CharMatcher.WHITESPACE.trimFrom(input));
     }
 
     public String getRawInput() {

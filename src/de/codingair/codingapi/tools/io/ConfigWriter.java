@@ -1,20 +1,20 @@
-package de.codingair.codingapi.tools.io.yml;
+package de.codingair.codingapi.tools.io;
 
 import de.codingair.codingapi.files.ConfigFile;
-import de.codingair.codingapi.tools.Location;
-import de.codingair.codingapi.tools.io.DataWriter;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
-import de.codingair.codingapi.tools.io.Serializable;
-import de.codingair.codingapi.tools.items.ItemBuilder;
+import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.ParseException;
+import de.codingair.codingapi.tools.io.utils.Serializable;
+import de.codingair.codingapi.tools.io.utils.SpigotDataWriter;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.inventory.ItemStack;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.ParseException;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class ConfigWriter implements DataWriter {
+public class ConfigWriter implements SpigotDataWriter {
     private String prefix;
     private ConfigFile file;
 
@@ -167,20 +167,5 @@ public class ConfigWriter implements DataWriter {
         }
 
         return o == null ? def : (T) o;
-    }
-
-    @Override
-    public <T extends Enum<T>> T get(String key, Class<T> def) {
-        Object o = c().get(k(key));
-
-        if(o == null) return null;
-        if(!(o instanceof String)) throw new IllegalArgumentException("Value isn't a String. Can't search for a enum!");
-        String name = (String) o;
-
-        for(T e : def.getEnumConstants()) {
-            if(e.name().equals(name)) return e;
-        }
-
-        return null;
     }
 }

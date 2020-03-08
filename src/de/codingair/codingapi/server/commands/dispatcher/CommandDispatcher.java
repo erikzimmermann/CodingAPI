@@ -1,6 +1,5 @@
 package de.codingair.codingapi.server.commands.dispatcher;
 
-import com.mojang.brigadier.tree.CommandNode;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -18,23 +17,43 @@ public class CommandDispatcher {
 
     private static boolean removeCommand(String command) {
         if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-            IReflection.FieldAccessor<Map<String, CommandNode<?>>> children = IReflection.getField(CommandNode.class, "children");
-            Map<String, CommandNode<?>> childrenMap = children.get(dispatcher().getRoot());
-            return childrenMap.remove(command) != null;
+            try {
+                Class<?> commandNode = Class.forName("com.mojang.brigadier.tree.CommandNode");
+                Class<?> rootCommandNodeClass = IReflection.getClass("com.mojang.brigadier.tree.RootCommandNode");
+                Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+                IReflection.MethodAccessor getRoot = IReflection.getMethod(commandDispatcherBrigadierClass, "getRoot", rootCommandNodeClass, new Class[] {});
+
+
+                IReflection.FieldAccessor<Map<String, ?>> children = IReflection.getField(commandNode, "children");
+                Map<String, ?> childrenMap = children.get(getRoot.invoke(dispatcher()));
+                return childrenMap.remove(command) != null;
+            } catch(ClassNotFoundException e) {
+                e.printStackTrace();
+                return true;
+            }
         } else return true;
     }
 
     public static boolean addCommand(CommandBuilder command) {
         if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-            return dispatcher().register(command.getBaseComponent().buildLiteralArgument(command.getMain().getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim())) != null
-                    & dispatcher().register(command.getBaseComponent().buildLiteralArgument(command.getName().toLowerCase(Locale.ENGLISH).trim())) != null;
+            Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+            Object dispatcher = dispatcher();
+            Class<?> lArgBuilder = IReflection.getClass("com.mojang.brigadier.builder.LiteralArgumentBuilder");
+            Class<?> lCommandNode = IReflection.getClass("com.mojang.brigadier.tree.LiteralCommandNode");
+
+            IReflection.MethodAccessor register = IReflection.getMethod(commandDispatcherBrigadierClass, "register", lCommandNode, new Class[] {lArgBuilder});
+
+            return register.invoke(dispatcher, command.getBaseComponent().buildLiteralArgument(command.getMain().getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim())) != null
+                    && register.invoke(dispatcher, command.getBaseComponent().buildLiteralArgument(command.getName().toLowerCase(Locale.ENGLISH).trim())) != null;
         } else return true;
     }
 
-    private static com.mojang.brigadier.CommandDispatcher<?> dispatcher() {
+    private static Object dispatcher() {
         IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
         Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "CommandDispatcher");
-        IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", com.mojang.brigadier.CommandDispatcher.class, new Class[] {});
-        return (com.mojang.brigadier.CommandDispatcher<?>) a.invoke(getCommandDispatcher.invoke(PacketUtils.getMinecraftServer()));
+        Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+
+        IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", commandDispatcherBrigadierClass, new Class[] {});
+        return a.invoke(getCommandDispatcher.invoke(PacketUtils.getMinecraftServer()));
     }
 }
