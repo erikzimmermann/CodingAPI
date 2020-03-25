@@ -920,7 +920,10 @@ public enum XMaterial {
         if(cachedSearch.containsKey(name.toUpperCase() + "," + data)) {
             return cachedSearch.get(name.toUpperCase() + "," + data);
         }
+
         for(XMaterial mat : XMaterial.values()) {
+            if(mat.name().equalsIgnoreCase(name)) return mat;
+
             for(String test : mat.m) {
                 if(name.toUpperCase().equals(test) && ((byte) mat.data) == data) {
                     cachedSearch.put(test + "," + data, mat);
@@ -928,6 +931,7 @@ public enum XMaterial {
                 }
             }
         }
+
         return null;
     }
 

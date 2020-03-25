@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
     private ItemStack anvilItem;
     private boolean onlyOutputTrigger = true;
+    private AnvilGUI gui;
 
     public SyncAnvilGUIButton(int slot) {
         super(slot);
@@ -28,6 +29,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     @Override
     public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
+        System.out.println("trigger");
         if(!canTrigger(e, trigger, player)) return;
 
         getInterface().setClosingByButton(true);
@@ -35,7 +37,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
         this.anvilItem = craftAnvilItem(trigger);
 
-        AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
+        gui = AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
             @Override
             public void onClick(AnvilClickEvent e) {
                 e.setCancelled(true);
@@ -87,5 +89,9 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     public void setOnlyOutputTrigger(boolean onlyOutputTrigger) {
         this.onlyOutputTrigger = onlyOutputTrigger;
+    }
+
+    public AnvilGUI getAnvilGUI() {
+        return gui;
     }
 }

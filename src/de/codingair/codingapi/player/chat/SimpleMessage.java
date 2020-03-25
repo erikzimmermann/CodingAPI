@@ -6,7 +6,6 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -123,7 +122,7 @@ public class SimpleMessage implements Removable {
         return base;
     }
 
-    public void send(CommandSender sender) {
+    public void send(Player sender) {
         sender.spigot().sendMessage(getTextComponent());
         sent = true;
 

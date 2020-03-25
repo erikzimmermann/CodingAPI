@@ -212,8 +212,8 @@ public class JSON extends JSONObject implements SpigotDataWriter {
     }
 
     public Float getFloat(String key) {
-        Double d = getDouble(key);
-        return d.floatValue();
+        Number d = get(key);
+        return d == null ? 0F : d.floatValue();
     }
 
     public <T> T get(String key, T def, boolean raw) {

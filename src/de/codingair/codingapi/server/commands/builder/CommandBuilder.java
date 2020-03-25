@@ -62,11 +62,16 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     }
 
     public CommandBuilder(String name, String description, BaseComponent baseComponent, boolean tabCompleter, String... aliases) {
-        this.name = name;
+        this.name = name.toLowerCase();
         this.description = description;
         this.baseComponent = baseComponent;
         this.tabCompleter = tabCompleter;
-        this.aliases = aliases == null ? new ArrayList<>() : Arrays.asList(aliases);
+
+        this.aliases = new ArrayList<>();
+        if(aliases != null)
+            for(String alias : aliases) {
+                this.aliases.add(alias.toLowerCase());
+            }
     }
 
     public void register(JavaPlugin plugin) {
@@ -242,12 +247,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if(this.ownTabCompleter != null) return this.ownTabCompleter.onTabComplete(sender, command, label, args);
 
-        List<String> sub = new ArrayList<>();
+        HashMap<CommandComponent, List<String>> sub = new HashMap<>();
         List<String> sug = new ArrayList<>();
 
         if(args.length == 0) return sug;
 
         String lastArg = args[args.length - 1];
+        if(lastArg == null) lastArg = "";
         args[args.length - 1] = "";
         CommandComponent component = getComponent(args);
 
@@ -255,19 +261,38 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         for(CommandComponent child : component.getChildren()) {
             if(child.hasPermission(sender)) {
-                if(child instanceof MultiCommandComponent && child.useInTabCompleter(sender, label, args)) ((MultiCommandComponent) child).addArguments(sender, args, sub);
-                else if(child.useInTabCompleter(sender, label, args)) sub.add(child.getArgument());
+                if(child.useInTabCompleter(sender, label, args)) {
+                    List<String> suggestion = new ArrayList<>();
+
+                    if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
+                    else suggestion.add(child.getArgument());
+
+                    if(!suggestion.isEmpty()) sub.put(child, suggestion);
+                }
             }
         }
 
-        for(String subCommand : sub) {
-            if(subCommand.toLowerCase().startsWith(lastArg.toLowerCase())) {
-                sug.add(subCommand);
+        for(CommandComponent c : sub.keySet()) {
+            List<String> suggestions = sub.get(c);
+
+            for(String subCommand : suggestions) {
+                if(sug.contains(subCommand)) continue;
+
+                if(c.matchTabComplete(sender, subCommand, lastArg.toLowerCase())) {
+                    sug.add(subCommand);
+                    continue;
+                }
+
+                if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg.toLowerCase())) {
+                    sug.add(subCommand);
+                }
             }
+
+            suggestions.clear();
         }
 
-        if(sug.isEmpty()) return sub;
-        else sub.clear();
+        sub.clear();
+        sug.sort(Comparator.naturalOrder());
         return sug;
     }
 

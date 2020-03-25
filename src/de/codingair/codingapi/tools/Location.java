@@ -25,7 +25,7 @@ public class Location extends org.bukkit.Location implements Serializable {
         super(json.get("World") == null ? null : Bukkit.getWorld((String) json.get("World")),
                 json.getDouble("X"), json.getDouble("Y"), json.getDouble("Z"),
                 json.getFloat("Yaw"), json.getFloat("Pitch"));
-        this.worldName = json.get("World");
+        this.worldName = json.getString("World");
     }
 
     public Location() {
@@ -55,7 +55,7 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     @Override
     public boolean read(DataWriter d) throws Exception {
-        this.worldName = d.get("World");
+        this.worldName = d.getString("World");
         setWorld(this.worldName == null ? null : Bukkit.getWorld(this.worldName));
         setX(d.getDouble("X"));
         setY(d.getDouble("Y"));
@@ -118,6 +118,16 @@ public class Location extends org.bukkit.Location implements Serializable {
         setPitch(trim(getPitch(), decimalPlaces));
     }
 
+    public void apply(org.bukkit.Location l) {
+        setWorld(l.getWorld());
+        if(l instanceof Location) setWorldName(((Location) l).getWorldName());
+        setX(l.getX());
+        setY(l.getY());
+        setZ(l.getZ());
+        setYaw(l.getYaw());
+        setPitch(l.getPitch());
+    }
+
     private double trim(double d, int decimalPlaces) {
         return ((double) (int) (d * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces);
     }
@@ -133,7 +143,7 @@ public class Location extends org.bukkit.Location implements Serializable {
     @Override
     public void setWorld(World world) {
         super.setWorld(world);
-        this.worldName = world == null ? null : world.getName();
+        if(world != null) this.worldName = world.getName();
     }
 
     public boolean equals(Object obj) {
@@ -186,6 +196,12 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     public String getWorldName() {
+        if(worldName == null && getWorld() != null) worldName = getWorld().getName();
         return worldName;
+    }
+
+    public void setWorldName(String worldName) {
+        this.worldName = worldName;
+        setWorld(Bukkit.getWorld(worldName));
     }
 }

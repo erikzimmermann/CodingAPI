@@ -46,6 +46,11 @@ public interface DataWriter {
 
     Integer getInteger(String key);
 
+    default Byte getByte(String key) {
+        Number n = getInteger(key);
+        return n == null ? 0 : n.byteValue();
+    }
+
     JSONArray getList(String key);
 
     Long getLong(String key);
@@ -55,6 +60,11 @@ public interface DataWriter {
     Double getDouble(String key);
 
     Float getFloat(String key);
+
+    default String getString(String key) {
+        Object o = get(key);
+        return o == null ? null : o + "";
+    }
 
     <T extends Serializable> T getSerializable(String key, Serializable serializable);
 

@@ -89,9 +89,17 @@ public class AnvilClickEvent extends Event {
     }
 
     public String getInput() {
+        return getInput(true);
+    }
+
+    public String getInput(boolean colors) {
         if(this.item == null || !this.item.hasItemMeta()) return null;
         String input = this.item.getItemMeta().getDisplayName();
-        return input == null ? null : ChatColor.stripColor(CharMatcher.WHITESPACE.trimFrom(input));
+
+        if(colors) input = input.replace("§", "&");
+        else input = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', input));
+
+        return input == null ? null : CharMatcher.WHITESPACE.trimFrom(input);
     }
 
     public String getRawInput() {

@@ -25,6 +25,11 @@ public class FileManager {
         this.configList.add(new ConfigFile(plugin, name, path));
     }
 
+    public void unloadFile(ConfigFile file) {
+        this.configList.remove(file);
+        file.destroy();
+    }
+
     public void loadFile(String name, String path, String srcPath) {
         this.configList.add(new ConfigFile(plugin, name, path, srcPath));
     }

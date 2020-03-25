@@ -214,8 +214,8 @@ public class BungeeJSON extends JSONObject implements DataWriter {
     }
 
     public Float getFloat(String key) {
-        Double d = getDouble(key);
-        return d.floatValue();
+        Number d = get(key);
+        return d == null ? 0F : d.floatValue();
     }
 
     public <T> T get(String key, T def, boolean raw) {

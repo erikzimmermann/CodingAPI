@@ -7,6 +7,7 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -39,6 +40,7 @@ public class AnvilGUI implements Removable {
 
     private String submittedText = null;
     private boolean submitted = false;
+    private boolean onlyWithChanges = true; //Triggers the AnvilClickEvent only if the output is filled
     private boolean keepSubmittedText = true;
 
     private AnvilCloseEvent closeEvent = null;
@@ -104,6 +106,8 @@ public class AnvilGUI implements Removable {
                         ItemStack item = e.getCurrentItem();
                         int slot = e.getRawSlot();
 
+                        if(AnvilSlot.bySlot(slot) == AnvilSlot.OUTPUT && (item == null || item.getType() == Material.AIR) && onlyWithChanges) return;
+
                         AnvilClickEvent clickEvent = new AnvilClickEvent(p, e.getClick(), AnvilSlot.bySlot(slot), item, AnvilGUI.this);
 
                         if(listener != null) listener.onClick(clickEvent);
@@ -126,15 +130,7 @@ public class AnvilGUI implements Removable {
                         }
 
                         if(clickEvent.getWillClose()) {
-                            closeEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
-
-                            Bukkit.getPluginManager().callEvent(closeEvent);
-                            if(listener != null) listener.onClose(closeEvent);
-
-                            if(!closeEvent.isCancelled()) {
-                                inv.clear();
-                                p.closeInventory();
-                            }
+                            close();
                         }
 
                         if(clickEvent.getSlot() == AnvilSlot.OUTPUT && !clickEvent.isPayExp())
@@ -261,6 +257,18 @@ public class AnvilGUI implements Removable {
         return this;
     }
 
+    public void close() {
+        closeEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
+
+        Bukkit.getPluginManager().callEvent(closeEvent);
+        if(listener != null) listener.onClose(closeEvent);
+
+        if(!closeEvent.isCancelled()) {
+            inv.clear();
+            getPlayer().closeInventory();
+        }
+    }
+
     public void clearInventory() {
         items = new HashMap<>();
         this.updateInventory();
@@ -327,5 +335,13 @@ public class AnvilGUI implements Removable {
 
     public void setKeepSubmittedText(boolean keepSubmittedText) {
         this.keepSubmittedText = keepSubmittedText;
+    }
+
+    public boolean isOnlyWithChanges() {
+        return onlyWithChanges;
+    }
+
+    public void setOnlyWithChanges(boolean onlyWithChanges) {
+        this.onlyWithChanges = onlyWithChanges;
     }
 }

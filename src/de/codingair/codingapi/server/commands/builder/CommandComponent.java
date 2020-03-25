@@ -29,6 +29,10 @@ public abstract class CommandComponent {
         return true;
     }
 
+    public boolean matchTabComplete(CommandSender sender, String suggestion, String argument) {
+        return false;
+    }
+
     public abstract boolean runCommand(CommandSender sender, String label, String[] args);
 
     private void setParent(CommandComponent parent) {

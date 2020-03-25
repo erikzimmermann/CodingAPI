@@ -8,6 +8,7 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.tools.OldItemBuilder;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 import de.codingair.codingapi.tools.io.JSON.JSON;
@@ -471,6 +472,35 @@ public class ItemBuilder implements Serializable {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        ItemBuilder builder = (ItemBuilder) o;
+        return data == builder.data &&
+                durability == builder.durability &&
+                amount == builder.amount &&
+                customModel == builder.customModel &&
+                hideStandardLore == builder.hideStandardLore &&
+                hideEnchantments == builder.hideEnchantments &&
+                hideName == builder.hideName &&
+                unbreakable == builder.unbreakable &&
+                Objects.equals(name, builder.name) &&
+                type == builder.type &&
+                color == builder.color &&
+                Objects.equals(preMeta, builder.preMeta) &&
+                Objects.equals(potionData, builder.potionData) &&
+                Objects.equals(nbt, builder.nbt) &&
+                Objects.equals(skullId, builder.skullId) &&
+                Objects.equals(lore, builder.lore) &&
+                Objects.equals(enchantments, builder.enchantments);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, type, data, durability, amount, color, preMeta, potionData, nbt, customModel, skullId, lore, enchantments, hideStandardLore, hideEnchantments, hideName, unbreakable);
+    }
+
+    @Override
     public void destroy() {
 
     }
@@ -484,7 +514,7 @@ public class ItemBuilder implements Serializable {
     public static ItemBuilder getFromJSON(String data) {
         JSONParser parser = new JSONParser();
         try {
-            JSON jsonObject = new JSON((org.json.simple.JSONObject) parser.parse(data));
+            JSON jsonObject = new JSON((JSONObject) parser.parse(data));
 
             return getFromJSON(jsonObject);
         } catch(ParseException e) {
@@ -819,6 +849,11 @@ public class ItemBuilder implements Serializable {
 
     public ItemMeta getPreMeta() {
         return preMeta;
+    }
+
+    public ItemBuilder setPreMeta(ItemMeta preMeta) {
+        this.preMeta = preMeta;
+        return this;
     }
 
     public PotionData getPotionData() {
