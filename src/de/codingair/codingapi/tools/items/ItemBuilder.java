@@ -321,9 +321,7 @@ public class ItemBuilder implements Serializable {
 
                                 XMaterial mat = XMaterial.requestXMaterial(name, data);
 
-                                if(mat == null && name.equalsIgnoreCase("SKULL_ITEM")) {
-                                    mat = XMaterial.PLAYER_HEAD;
-                                } else if(mat == null) {
+                                if(mat == null) {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
 

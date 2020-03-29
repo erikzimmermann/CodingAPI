@@ -899,19 +899,14 @@ public enum XMaterial {
     }
 
     public ItemStack parseItem() {
-        Material mat = parseMaterial();
-        if(isNewVersion()) {
-            return new ItemStack(mat);
-        }
+        Material mat = parseMaterial(true);
+        if(isNewVersion()) return new ItemStack(mat);
         return new ItemStack(mat, 1, (byte) data);
     }
 
     public static boolean isNewVersion() {
         Material mat = Material.getMaterial("RED_WOOL");
-        if(mat != null) {
-            return true;
-        }
-        return false;
+        return mat != null;
     }
 
     private static HashMap<String, XMaterial> cachedSearch = new HashMap<>();
@@ -924,11 +919,24 @@ public enum XMaterial {
         for(XMaterial mat : XMaterial.values()) {
             if(mat.name().equalsIgnoreCase(name)) return mat;
 
+            XMaterial typeOnly = null;
+            String typeOnlyName = null;
+
             for(String test : mat.m) {
-                if(name.toUpperCase().equals(test) && ((byte) mat.data) == data) {
-                    cachedSearch.put(test + "," + data, mat);
-                    return mat;
+                if(name.toUpperCase().equals(test)) {
+                    if(((byte) mat.data) == data) {
+                        cachedSearch.put(test + "," + data, mat);
+                        return mat;
+                    } else {
+                        typeOnly = mat;
+                        typeOnlyName = test;
+                    }
                 }
+            }
+
+            if(typeOnly != null) {
+                cachedSearch.put(typeOnlyName + "," + data, mat);
+                return typeOnly;
             }
         }
 
@@ -990,31 +998,18 @@ public enum XMaterial {
         int length = split.length;
         switch(split[length - 1]) {
             case "HELMET":
-                return true;
             case "CHESTPLATE":
-                return true;
             case "LEGGINGS":
-                return true;
             case "BOOTS":
-                return true;
             case "SWORD":
-                return true;
             case "AXE":
-                return true;
             case "PICKAXE":
-                return true;
             case "SHOVEL":
-                return true;
             case "HOE":
-                return true;
             case "ELYTRA":
-                return true;
             case "TURTLE_HELMET":
-                return true;
             case "TRIDENT":
-                return true;
             case "HORSE_ARMOR":
-                return true;
             case "SHEARS":
                 return true;
             default:
@@ -1023,25 +1018,23 @@ public enum XMaterial {
     }
 
     public Material parseMaterial() {
-        Material mat = Material.matchMaterial(this.toString());
-        if(mat != null) {
-            return mat;
-        }
-
-        for(String s : m) {
-            Material material = Material.matchMaterial(s);
-            if(material != null) return material;
-        }
-
-        return null;
+        return parseMaterial(false);
     }
 
     public Material parseMaterial(boolean item) {
-        Material mat = Material.matchMaterial(this.toString());
-        if(mat != null) return mat;
+        if(isNewVersion()) {
+            Material mat = Material.matchMaterial(this.toString());
+            if(mat != null) return mat;
+        }
 
-        mat = Material.matchMaterial(m[item ? 1 : 0]);
-        if(mat != null) return mat;
+        if(item) {
+            for(String s : m) {
+                if(!s.endsWith("_ITEM")) continue;
+
+                Material material = Material.matchMaterial(s);
+                if(material != null) return material;
+            }
+        }
 
         for(String s : m) {
             Material material = Material.matchMaterial(s);
@@ -1059,4 +1052,7 @@ public enum XMaterial {
         }
     }
 
+    public int getData() {
+        return data;
+    }
 }

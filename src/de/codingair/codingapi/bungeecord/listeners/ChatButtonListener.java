@@ -10,12 +10,12 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class ChatButtonListener implements Listener {
-    private HashMap<Connection, UUID> ids = new HashMap<>();
+    private HashMap<Connection, String> ids = new HashMap<>();
 
     @EventHandler(priority = -64)
     public void beforeChat(ChatEvent e) {
         if(e.getMessage() == null || !e.getMessage().startsWith(ChatButton.PREFIX)) return;
-        UUID id = UUID.fromString(e.getMessage().replace(ChatButton.PREFIX, ""));
+        String id = e.getMessage().replace(ChatButton.PREFIX, "");
         ids.put(e.getSender(), id);
 
         e.setCancelled(true);
@@ -24,10 +24,10 @@ public class ChatButtonListener implements Listener {
 
     @EventHandler(priority = 64)
     public void afterChat(ChatEvent e) {
-        UUID id = ids.remove(e.getSender());
+        String id = ids.remove(e.getSender());
         if(id != null)  {
             e.setCancelled(false);
-            e.setMessage(ChatButton.PREFIX + id.toString());
+            e.setMessage(ChatButton.PREFIX + id);
         }
     }
 

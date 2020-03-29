@@ -12,8 +12,28 @@ public class Location extends org.bukkit.Location implements Serializable {
     private String worldName;
 
     public Location(String worldName, double x, double y, double z, float yaw, float pitch) {
-        super(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
+        super(worldName == null ? null : Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
         this.worldName = worldName;
+    }
+
+    public Location(String worldName, double x, double y, double z) {
+        super(worldName == null ? null : Bukkit.getWorld(worldName), x, y, z, 0, 0);
+        this.worldName = worldName;
+    }
+
+    public Location(World world, double x, double y, double z, float yaw, float pitch) {
+        super(world, x, y, z, yaw, pitch);
+        this.worldName = world == null ? null : world.getName();
+    }
+
+    public Location(World world, double x, double y, double z) {
+        super(world, x, y, z, 0, 0);
+        this.worldName = world == null ? null : world.getName();
+    }
+
+    public Location(Location location) {
+        this();
+        apply(location);
     }
 
     public Location(org.bukkit.Location location) {
