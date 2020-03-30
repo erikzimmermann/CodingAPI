@@ -88,7 +88,11 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     @Override
     public void write(DataWriter json) {
-        json.put("World", getWorld() == null ? this.worldName : getWorld().getName());
+        try {
+            json.put("World", getWorld() == null ? this.worldName : getWorld().getName());
+        } catch(Throwable t) {
+            json.put("World", this.worldName);
+        }
         json.put("X", trim(getX(), 4));
         json.put("Y", trim(getY(), 4));
         json.put("Z", trim(getZ(), 4));
