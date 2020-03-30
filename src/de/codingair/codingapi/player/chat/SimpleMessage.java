@@ -266,8 +266,4 @@ public class SimpleMessage implements Removable {
     public void clearTimeOut() {
         this.sent = false;
     }
-
-    private class LineSeperator {
-
-    }
 }

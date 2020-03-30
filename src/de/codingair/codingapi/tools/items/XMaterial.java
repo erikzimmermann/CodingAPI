@@ -916,28 +916,28 @@ public enum XMaterial {
             return cachedSearch.get(name.toUpperCase() + "," + data);
         }
 
+        XMaterial typeOnly = null;
+        String typeOnlyName = null;
+
         for(XMaterial mat : XMaterial.values()) {
             if(mat.name().equalsIgnoreCase(name)) return mat;
-
-            XMaterial typeOnly = null;
-            String typeOnlyName = null;
 
             for(String test : mat.m) {
                 if(name.toUpperCase().equals(test)) {
                     if(((byte) mat.data) == data) {
                         cachedSearch.put(test + "," + data, mat);
                         return mat;
-                    } else {
+                    } else if(typeOnly == null) {
                         typeOnly = mat;
                         typeOnlyName = test;
                     }
                 }
             }
+        }
 
-            if(typeOnly != null) {
-                cachedSearch.put(typeOnlyName + "," + data, mat);
-                return typeOnly;
-            }
+        if(typeOnly != null) {
+            cachedSearch.put(typeOnlyName + "," + data, typeOnly);
+            return typeOnly;
         }
 
         return null;

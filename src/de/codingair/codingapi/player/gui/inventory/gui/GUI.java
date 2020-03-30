@@ -517,8 +517,9 @@ public abstract class GUI extends Interface implements Removable {
         return this;
     }
 
-    public void setFallbackGUI(GUI fallbackGUI) {
+    public GUI setFallbackGUI(GUI fallbackGUI) {
         this.fallbackGUI = fallbackGUI;
+        return this;
     }
 
     public GUI getFallbackGUI() {
