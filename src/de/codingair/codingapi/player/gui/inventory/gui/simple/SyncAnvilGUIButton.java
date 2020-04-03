@@ -29,7 +29,6 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     @Override
     public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
-        System.out.println("trigger");
         if(!canTrigger(e, trigger, player)) return;
 
         getInterface().setClosingByButton(true);
