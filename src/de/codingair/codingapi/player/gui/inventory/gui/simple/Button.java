@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
+import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOption;
 import de.codingair.codingapi.server.sounds.SoundData;
@@ -23,7 +24,7 @@ public abstract class Button extends ItemButton {
     public void onClick(InventoryClickEvent e) {
         onClick(e, (Player) e.getWhoClicked());
 
-        if(this.link != null) getInterface().changePage(this.link);
+        if(this.link != null) getGUI().changePage(this.link);
     }
 
     public abstract void onClick(InventoryClickEvent e, Player player);
@@ -37,7 +38,11 @@ public abstract class Button extends ItemButton {
     }
 
     @Override
-    public SimpleGUI getInterface() {
+    public GUI getInterface() {
+        return (GUI) super.getInterface();
+    }
+
+    public SimpleGUI getGUI() {
         return (SimpleGUI) super.getInterface();
     }
 
