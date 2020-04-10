@@ -1,10 +1,7 @@
 package de.codingair.codingapi.server.commands.builder;
 
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.command.CommandSender;
-
-import java.util.Map;
 
 public abstract class BaseComponent extends CommandComponent {
     public BaseComponent() {
