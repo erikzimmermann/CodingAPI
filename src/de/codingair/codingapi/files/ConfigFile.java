@@ -16,10 +16,18 @@ public class ConfigFile {
     private String srcPath;
 
     public ConfigFile(Plugin plugin, String name, String path) {
-        this(plugin, name, path, null);
+        this(plugin, name, path, true);
+    }
+
+    public ConfigFile(Plugin plugin, String name, String path, boolean removeUnused) {
+        this(plugin, name, path, null, removeUnused);
     }
 
     public ConfigFile(Plugin plugin, String name, String path, String srcPath) {
+        this(plugin, name, path, srcPath, true);
+    }
+
+    public ConfigFile(Plugin plugin, String name, String path, String srcPath, boolean removeUnused) {
         this.plugin = plugin;
         this.name = name;
         this.path = path;
@@ -54,8 +62,11 @@ public class ConfigFile {
 
             if(builder.toString().startsWith("~Config\n")) {
                 this.config.deployExtras(builder.toString());
-                in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-                if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
+
+                if(removeUnused) {
+                    in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+                    if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
+                }
 
                 this.config.options().copyDefaults(true);
                 this.config.options().copyHeader(true);

@@ -38,6 +38,22 @@ public class UTFConfig extends YamlConfiguration {
             data = writeExtras(CONFIG_TAG + data);
         }
 
+        BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
+        StringBuilder builder = new StringBuilder();
+
+        String line;
+        try {
+            while((line = input.readLine()) != null) {
+                builder.append(line);
+                builder.append('\n');
+            }
+        } finally {
+            input.close();
+        }
+
+        String old = builder.toString();
+        if(data.equals(old)) return;
+
         Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
 
         try {
