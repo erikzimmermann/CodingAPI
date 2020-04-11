@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.book;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.tools.items.ItemBuilder;
@@ -73,12 +74,21 @@ public class Book implements Removable {
 
     private void callOpenPacket() {
         //open
-        Class<?> PacketDataSerializerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketDataSerializer");
-        IReflection.ConstructorAccessor dataSCon = IReflection.getConstructor(PacketDataSerializerClass, ByteBuf.class);
+        if(!Version.getVersion().isBiggerThan(Version.v1_13)) {
+            Class<?> PacketDataSerializerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketDataSerializer");
+            IReflection.ConstructorAccessor dataSCon = IReflection.getConstructor(PacketDataSerializerClass, ByteBuf.class);
 
-        Packet packet = new Packet(IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutCustomPayload"), this.player);
-        packet.initialize(new Class[]{String.class, PacketDataSerializerClass}, "MC|BOpen", dataSCon.newInstance(Unpooled.buffer()));
-        packet.send();
+            Packet packet = new Packet(IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutCustomPayload"), this.player);
+            packet.initialize(new Class[]{String.class, PacketDataSerializerClass}, "MC|BOpen", dataSCon.newInstance(Unpooled.buffer()));
+            packet.send();
+        } else {
+            Class<?> PacketPlayOutOpenBookClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenBook");
+            Class<?> EnumHandClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumHand");
+
+            Packet packet = new Packet(PacketPlayOutOpenBookClass, this.player);
+            packet.initialize(new Class[]{EnumHandClass}, EnumHandClass.getEnumConstants()[0]);
+            packet.send();
+        }
     }
 
     private void writeBook() {
