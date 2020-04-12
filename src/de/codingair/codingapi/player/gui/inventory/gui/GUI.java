@@ -70,6 +70,7 @@ public abstract class GUI extends Interface implements Removable {
 
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
+                if(closingForGUI) return;
                 listeners.forEach(l -> l.onInvCloseEvent(e));
 
                 if(useFallbackGUI && fallbackGUI != null) {
@@ -107,11 +108,6 @@ public abstract class GUI extends Interface implements Removable {
     @Override
     public UUID getUniqueId() {
         return uniqueId;
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return GUI.class;
     }
 
     @Override

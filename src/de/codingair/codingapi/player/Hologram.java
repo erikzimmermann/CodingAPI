@@ -178,7 +178,7 @@ public class Hologram implements Removable {
     }
 
     public boolean isInitialized() {
-        return API.getRemovable(getAbstractClass(), getUniqueId()) != null;
+        return API.getRemovable(Hologram.class, getUniqueId()) != null;
     }
 
     public void update() {
@@ -487,11 +487,6 @@ public class Hologram implements Removable {
     @Override
     public Player getPlayer() {
         return null;
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return Hologram.class;
     }
 
     @Override

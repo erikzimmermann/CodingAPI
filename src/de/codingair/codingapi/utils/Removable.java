@@ -16,14 +16,12 @@ public interface Removable {
 	void destroy();
 	
 	Player getPlayer();
-	
-	Class<? extends Removable> getAbstractClass();
-	
+
 	UUID getUniqueId();
 
 	JavaPlugin getPlugin();
 	
 	default boolean equals(Removable removable) {
-		return getAbstractClass() == removable.getAbstractClass() && getUniqueId().toString().equals(removable.getUniqueId().toString());
+		return getUniqueId().toString().equals(removable.getUniqueId().toString());
 	}
 }

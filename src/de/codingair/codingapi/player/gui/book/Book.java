@@ -149,11 +149,6 @@ public class Book implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return Book.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.uniqueId;
     }

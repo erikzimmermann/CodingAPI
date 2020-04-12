@@ -193,8 +193,10 @@ public enum TextAlignment {
                 line = new StringBuilder();
                 cells = 0;
 
-                lastColor[0] = lastColor[1];
-                lastColor[1] = "";
+                if(!lastColor[1].isEmpty()) {
+                    lastColor[0] = lastColor[1];
+                    lastColor[1] = "";
+                }
             }
         }
 

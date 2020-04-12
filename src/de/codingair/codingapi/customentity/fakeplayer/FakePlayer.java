@@ -1,7 +1,6 @@
 package de.codingair.codingapi.customentity.fakeplayer;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.customentity.fakeplayer.extras.AnimationType;
 import de.codingair.codingapi.customentity.fakeplayer.extras.EquipmentType;
@@ -13,7 +12,6 @@ import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Type;
 import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerMotionLook;
 import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerMotionPosition;
 import de.codingair.codingapi.player.data.Skin;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.server.Environment;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -29,7 +27,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -98,11 +95,6 @@ public class FakePlayer implements Removable {
     @Override
     public void destroy() {
         destroy(null);
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return FakePlayer.class;
     }
 
     @Override

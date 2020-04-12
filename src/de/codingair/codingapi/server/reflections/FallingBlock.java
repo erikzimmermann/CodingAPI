@@ -40,12 +40,7 @@ public class FallingBlock implements Removable {
 	public Player getPlayer() {
 		return null;
 	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return FallingBlock.class;
-	}
-	
+
 	@Override
 	public UUID getUniqueId() {
 		return uniqueId;

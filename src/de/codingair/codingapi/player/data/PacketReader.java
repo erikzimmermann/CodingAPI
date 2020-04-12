@@ -36,12 +36,7 @@ public abstract class PacketReader implements Removable {
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return PacketReader.class;
-	}
-	
+
 	@Override
 	public void destroy() {
 		unInject();

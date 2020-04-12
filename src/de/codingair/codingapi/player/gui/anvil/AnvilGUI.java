@@ -1,7 +1,6 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.gui.anvil.depended.ContainerAccess;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -61,11 +60,6 @@ public class AnvilGUI implements Removable {
 
     public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
         this(plugin, player, listener, "Repair & Name");
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return AnvilGUI.class;
     }
 
     @Override

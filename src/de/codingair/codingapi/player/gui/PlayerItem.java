@@ -31,12 +31,7 @@ public abstract class PlayerItem extends ItemStack implements Removable {
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return PlayerItem.class;
-	}
-	
+
 	@Override
 	public void destroy() {
 		remove();

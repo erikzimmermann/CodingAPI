@@ -232,11 +232,6 @@ public class SimpleMessage implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return SimpleMessage.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.uniqueId;
     }

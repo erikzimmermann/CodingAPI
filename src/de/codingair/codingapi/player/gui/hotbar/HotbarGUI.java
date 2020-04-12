@@ -185,11 +185,6 @@ public abstract class HotbarGUI implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return HotbarGUI.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return uniqueId;
     }

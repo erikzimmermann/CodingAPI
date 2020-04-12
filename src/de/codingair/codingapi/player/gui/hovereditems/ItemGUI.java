@@ -68,11 +68,6 @@ public class ItemGUI implements Removable {
 	}
 
 	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return ItemGUI.class;
-	}
-
-	@Override
 	public UUID getUniqueId() {
 		return uniqueId;
 	}

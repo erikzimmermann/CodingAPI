@@ -77,12 +77,7 @@ public abstract class HoveredItem implements Removable {
 	public void destroy() {
 		remove();
 	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return HoveredItem.class;
-	}
-	
+
 	public abstract void onInteract(Player p);
 	
 	public abstract void onLookAt(Player p);
