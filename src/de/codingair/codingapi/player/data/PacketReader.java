@@ -43,9 +43,9 @@ public abstract class PacketReader implements Removable {
 	}
 	
 	public boolean inject() {
-		IReflection.FieldAccessor getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
-		IReflection.FieldAccessor getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
-		IReflection.FieldAccessor getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
+		IReflection.FieldAccessor<?> getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
+		IReflection.FieldAccessor<?> getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
+		IReflection.FieldAccessor<?> getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
 
 		Object ep = PacketUtils.getEntityPlayer(player);
 		if(ep == null) return false;
