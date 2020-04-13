@@ -7,7 +7,6 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 public class ChatButtonListener implements Listener {
     private HashMap<Connection, String> ids = new HashMap<>();

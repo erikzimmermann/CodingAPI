@@ -1,13 +1,13 @@
 package de.codingair.codingapi.customentity.networkentity;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.customentity.fakeplayer.extras.AnimationType;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.Environment;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.customentity.fakeplayer.extras.AnimationType;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

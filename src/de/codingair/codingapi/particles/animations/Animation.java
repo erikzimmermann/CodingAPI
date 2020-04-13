@@ -4,10 +4,6 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.particles.Particle;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class Animation implements Ticker {
     private Particle particle;

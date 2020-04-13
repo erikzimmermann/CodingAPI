@@ -93,12 +93,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             //unregister existing command
             if(command != null) {
                 //remove from SimpleCommandMap
-                SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-                IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
-                SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
-
-                IReflection.FieldAccessor<?> knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
-                Map<String, Command> commands = (Map<String, Command>) knownCommands.get(scm);
+                Map<String, Command> commands = getKnownCommands();
                 commands.remove(command.getName().toLowerCase(Locale.ENGLISH).trim());
                 commands.remove(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
 
@@ -214,6 +209,32 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         names.clear();
         REGISTERED.remove(this.name.toLowerCase());
+    }
+
+    public static Command getCommand(String name) {
+        if(name.startsWith("/")) return getKnownCommands().get(name.substring(1));
+        else return getKnownCommands().get(name);
+    }
+
+    public static boolean exists(String name) {
+        return getCommand(name) != null;
+    }
+
+    public static Map<String, Command> getKnownCommands() {
+        SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+
+        try {
+            Field commandMap = SimplePluginManager.class.getDeclaredField("commandMap");
+            Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+
+            commandMap.setAccessible(true);
+            knownCommands.setAccessible(true);
+
+            return (Map<String, Command>) knownCommands.get(commandMap.get(spm));
+        } catch(NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            return new HashMap<>();
+        }
     }
 
     @Override

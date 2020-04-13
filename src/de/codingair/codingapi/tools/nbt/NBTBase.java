@@ -2,7 +2,6 @@ package de.codingair.codingapi.tools.nbt;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 public class NBTBase<T> {

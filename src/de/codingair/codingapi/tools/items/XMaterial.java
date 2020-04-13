@@ -23,10 +23,10 @@ package de.codingair.codingapi.tools.items;
  * DEALINGS IN THE SOFTWARE.
  **/
 
-import java.util.HashMap;
-
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.HashMap;
 
 public enum XMaterial {
     ACACIA_BOAT(0, "BOAT_ACACIA"),
@@ -548,7 +548,7 @@ public enum XMaterial {
     NOTE_BLOCK(0, "NOTE_BLOCK"),
     OAK_BOAT(0, "BOAT"),
     OAK_BUTTON(0, "WOOD_BUTTON"),
-    OAK_DOOR(0, "WOODEN_DOOR", "WOOD_DOOR"),
+    OAK_DOOR(0, "WOOD_DOOR", "WOODEN_DOOR"),
     OAK_FENCE(0, "FENCE"),
     OAK_FENCE_GATE(0, "FENCE_GATE"),
     OAK_LEAVES(0, "LEAVES"),

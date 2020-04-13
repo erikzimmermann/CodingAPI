@@ -1,9 +1,9 @@
 package de.codingair.codingapi.customentity.fakeplayer.extras.modules;
 
+import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Module;
 import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Type;
 import de.codingair.codingapi.server.Environment;
-import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Module;
-import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import org.bukkit.Location;
 
 /**

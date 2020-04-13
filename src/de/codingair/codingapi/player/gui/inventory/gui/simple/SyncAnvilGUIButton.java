@@ -55,7 +55,6 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
                 if(e.getPost() == null) {
                     getInterface().reinitialize();
                     e.setPost(() -> getInterface().open());
-                    getInterface().setClosingForGUI(false);
                 }
             }
         }, this.anvilItem);

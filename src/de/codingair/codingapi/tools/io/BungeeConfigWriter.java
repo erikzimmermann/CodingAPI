@@ -1,12 +1,12 @@
 package de.codingair.codingapi.tools.io;
 
 import de.codingair.codingapi.bungeecord.files.ConfigFile;
+import de.codingair.codingapi.tools.io.JSON.JSON;
+import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
-import de.codingair.codingapi.tools.io.JSON.JSON;
-import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import net.md_5.bungee.config.Configuration;
 
 import java.util.*;

@@ -7,7 +7,6 @@ import net.minecraft.server.v1_11_R1.MinecraftKey;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
 
 public class CustomEntityType {
 	private static List<CustomEntityData> data = new ArrayList<>();

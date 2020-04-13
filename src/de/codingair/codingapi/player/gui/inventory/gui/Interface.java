@@ -1,6 +1,5 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
-import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Version;
@@ -416,12 +415,7 @@ public class Interface {
         this.currentPlayers = current;
         if(oldUsage) interfaces.remove(this);
 
-        if(!isClosing) {
-            if(API.getInstance().getMainPlugin() != null && API.getInstance().getMainPlugin().isEnabled())
-                Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
-            else
-                p.closeInventory();
-        }
+        if(!isClosing) p.closeInventory();
     }
 
     public boolean isUsing(Player p) {

@@ -1,8 +1,8 @@
 package de.codingair.codingapi.customentity.fakeplayer.extras.modules;
 
-import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Type;
-import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Module;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Module;
+import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Type;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

@@ -8,8 +8,7 @@ import org.bukkit.inventory.ItemStack;
 public class NBTTagCompound {
     private static Class<?> TAG;
     private static IReflection.MethodAccessor SET;
-    private static IReflection.MethodAccessor getTag;
-    private static IReflection.MethodAccessor setTag;
+    private static IReflection.FieldAccessor<?> TAG_FIELD;
     private static IReflection.MethodAccessor asBukkitCopy;
 
     private Object tag;
@@ -18,10 +17,13 @@ public class NBTTagCompound {
     public NBTTagCompound(ItemStack item) {
         initialize();
 
-        this.tag = getTag.invoke(itemStack = PacketUtils.getItemStack(item));
+        itemStack = PacketUtils.getItemStack(item);
+        if(itemStack == null) return;
+
+        this.tag = TAG_FIELD.get(itemStack);
         if(tag == null) {
             tag = create();
-            setTag.invoke(itemStack, tag);
+            TAG_FIELD.set(itemStack, tag);
         }
     }
 
@@ -41,13 +43,12 @@ public class NBTTagCompound {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", new Class[] {String.class, TAG});
         }
 
-        getTag = IReflection.getMethod(PacketUtils.ItemStackClass, "getTag", PacketUtils.NBTTagCompoundClass, new Class[] {});
-        setTag = IReflection.getMethod(PacketUtils.ItemStackClass, "setTag", new Class[] {PacketUtils.NBTTagCompoundClass});
+        TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, "tag");
         asBukkitCopy = IReflection.getMethod(PacketUtils.CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[] {PacketUtils.ItemStackClass});
     }
 
     public ItemStack getItem() {
-        return (ItemStack) asBukkitCopy.invoke(null, itemStack);
+        return itemStack == null ? null : (ItemStack) asBukkitCopy.invoke(null, itemStack);
     }
 
     public Object getTag() {
@@ -55,6 +56,7 @@ public class NBTTagCompound {
     }
 
     public Object set(String key, NBTBase<?> value) {
+        if(this.tag == null) return null;
         Object instance = value.invoke();
         if(instance == null) return null;
 

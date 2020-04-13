@@ -1,7 +1,7 @@
 package de.codingair.codingapi.customentity.fakeplayer.extras.motions;
 
-import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
+import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Location;
 
 /**

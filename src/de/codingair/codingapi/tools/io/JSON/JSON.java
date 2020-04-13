@@ -1,6 +1,8 @@
 package de.codingair.codingapi.tools.io.JSON;
 
-import de.codingair.codingapi.tools.io.lib.*;
+import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
+import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 import de.codingair.codingapi.tools.io.utils.SpigotDataWriter;
 

@@ -2,7 +2,6 @@ package de.codingair.codingapi.server;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import net.minecraft.server.v1_14_R1.MathHelper;
 import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;

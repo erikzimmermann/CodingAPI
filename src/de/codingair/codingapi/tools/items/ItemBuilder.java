@@ -725,14 +725,7 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setLore(List<String> lore) {
         if(this.lore != null) this.lore.clear();
-        else this.lore = new ArrayList<>();
-
-        if(lore == null) return this;
-
-        for(String s : lore) {
-            if(s != null) this.lore.add(s);
-        }
-        return this;
+        return addLore(lore);
     }
 
     public ItemBuilder setLore(String... lore) {
@@ -741,24 +734,7 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder addLore(List<String> lore) {
         if(this.lore == null) this.lore = new ArrayList<>();
-
-        if(lore == null) return this;
-
-        for(String s : lore) {
-            if(s != null) this.lore.add(s);
-        }
-        return this;
-    }
-
-    public ItemBuilder addLore(int index, List<String> lore) {
-        if(this.lore == null) this.lore = new ArrayList<>();
-
-        if(lore == null) return this;
-
-        for(String s : lore) {
-            if(s != null) this.lore.add(index++, s);
-        }
-        return this;
+        return addLore(this.lore.size(), lore);
     }
 
     public ItemBuilder addLore(String... lore) {
@@ -767,6 +743,24 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder addLore(int index, String... lore) {
         return addLore(index, Arrays.asList(lore));
+    }
+
+    public ItemBuilder addLore(int index, List<String> lore) {
+        if(this.lore == null) this.lore = new ArrayList<>();
+        if(lore == null) return this;
+
+        for(String s : lore) {
+            if(s != null) {
+                if(s.contains("\n")) {
+                    String lastColor = "";
+                    for(String s1 : s.split("\n")) {
+                        this.lore.add(index++, lastColor + s1);
+                        lastColor = ChatColor.getLastFullColor(s1, '§');
+                    }
+                } else this.lore.add(index++, s);
+            }
+        }
+        return this;
     }
 
     public ItemBuilder removeLore(List<String> lore) {

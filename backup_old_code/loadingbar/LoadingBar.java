@@ -1,18 +1,16 @@
 package de.codingair.codingapi.player.layout.loadingbar;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.time.CountdownListener;
-import de.codingair.codingapi.time.TimeFetcher;
-import de.codingair.codingapi.tools.Converter;
 import de.codingair.codingapi.player.gui.bossbar.BarColor;
 import de.codingair.codingapi.player.gui.bossbar.BossBar;
 import de.codingair.codingapi.player.gui.bossbar.BossBarAction;
 import de.codingair.codingapi.time.Countdown;
+import de.codingair.codingapi.time.CountdownListener;
+import de.codingair.codingapi.time.TimeFetcher;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 public class LoadingBar implements Removable {
