@@ -158,6 +158,7 @@ public enum Particle {
         ParticlePacket packet = new ParticlePacket(this);
         if(packet.available()) {
             packet.setLongDistance(true);
+            System.out.println("setMaxDistance to " + maxDistance);
             packet.setMaxDistance(maxDistance);
             packet.initialize(loc);
             packet.send();
@@ -206,6 +207,18 @@ public enum Particle {
         }
     }
 
+    public void send(Location loc, Color color, int noteColor, boolean longDistance, double maxDistance) {
+        ParticlePacket packet = new ParticlePacket(this);
+        if(packet.available()) {
+            packet.setLongDistance(longDistance);
+            packet.setColor(color);
+            packet.setNoteId(noteColor);
+            packet.setMaxDistance(maxDistance);
+            packet.initialize(loc);
+            packet.send();
+        }
+    }
+
     public void send(Location loc, Color color, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
         if(packet.available()) {
@@ -248,6 +261,21 @@ public enum Particle {
         ParticlePacket packet = new ParticlePacket(this);
         if(packet.available()) {
             packet.setLongDistance(longDistance);
+            if(color != null) packet.setColor(color);
+            packet.setNoteId(noteColor);
+            packet.initialize(loc);
+
+            for(Player player : players) {
+                packet.send(player);
+            }
+        }
+    }
+
+    public void send(Location loc, Color color, int noteColor, boolean longDistance, double maxDistance, Player... players) {
+        ParticlePacket packet = new ParticlePacket(this);
+        if(packet.available()) {
+            packet.setLongDistance(longDistance);
+            packet.setMaxDistance(maxDistance);
             if(color != null) packet.setColor(color);
             packet.setNoteId(noteColor);
             packet.initialize(loc);

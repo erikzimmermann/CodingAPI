@@ -6,10 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * -== IReflection ==-
@@ -158,7 +155,7 @@ public class IReflection {
 	public static MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
 		Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
 		for (Method method : target.getDeclaredMethods())
-			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
+			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && ((primitiveParameter.length == 0 && method.getParameterTypes().length == 0) || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
 				method.setAccessible(true);
 				return new MethodAccessor() {
 					

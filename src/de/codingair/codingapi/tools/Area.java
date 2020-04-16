@@ -19,13 +19,8 @@ public class Area {
 
         Location eye = target.clone().add(0, entity.getEyeHeight(), 0);
         if(eye.getY() >= middle.getY() - 0.5 && target.getY() <= middle.getY() + 0.5) {
-            //Ist in y ebene
-
-            if(target.getX() + 0.3 >= middle.getX() - 0.5 && target.getX() - 0.3 <= middle.getX() + 0.5) {
-                //Ist in x ebene
-
-                if(target.getZ() + 0.3 >= middle.getZ() - 0.5 && target.getZ() - 0.3 <= middle.getZ() + 0.5) {
-                    //Ist in z ebene
+            if(target.getX() + 0.1 >= middle.getX() - 0.5 && target.getX() - 0.1 <= middle.getX() + 0.5) {
+                if(target.getZ() + 0.1 >= middle.getZ() - 0.5 && target.getZ() - 0.1 <= middle.getZ() + 0.5) {
                     return true;
                 }
             }

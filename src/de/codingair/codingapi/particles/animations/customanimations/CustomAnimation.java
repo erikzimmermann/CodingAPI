@@ -170,7 +170,7 @@ public abstract class CustomAnimation extends Animation {
                             (getParticle() == Particle.NOTE ?
                                     Color.RED.getColor() :
                                     color == Color.RAINBOW ? Color.values()[rainbow++].getColor() : color.getColor()
-                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), false);
+                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), false, getMaxDistance());
                     if(rainbow == (getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH)) rainbow = 0;
                 }
             } else {
@@ -179,7 +179,7 @@ public abstract class CustomAnimation extends Animation {
                             (getParticle() == Particle.NOTE ?
                                     Color.RED.getColor() :
                                     color == Color.RAINBOW ? Color.values()[rainbow++].getColor() : color.getColor()
-                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), false, viewer);
+                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), false, getMaxDistance(), viewer);
                     if(rainbow == (getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH)) rainbow = 0;
                 }
             }

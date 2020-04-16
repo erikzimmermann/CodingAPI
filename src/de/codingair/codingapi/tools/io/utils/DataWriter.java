@@ -42,7 +42,17 @@ public interface DataWriter {
 
     Object finalCommit(String key, Object value);
 
+    default Boolean getBoolean(String key, Boolean def) {
+        Boolean o = getBoolean(key);
+        return o == null ? def : o;
+    }
+
     Boolean getBoolean(String key);
+
+    default Integer getInteger(String key, Integer def) {
+        Integer o = getInteger(key);
+        return o == null ? def : o;
+    }
 
     Integer getInteger(String key);
 
@@ -53,17 +63,41 @@ public interface DataWriter {
 
     JSONArray getList(String key);
 
+    default Long getLong(String key, Long def) {
+        Long o = getLong(key);
+        return o == null ? def : o;
+    }
+
     Long getLong(String key);
+
+    default Date getDate(String key, Date def) {
+        Date o = getDate(key);
+        return o == null ? def : o;
+    }
 
     Date getDate(String key);
 
+    default Double getDouble(String key, Double def) {
+        Double o = getDouble(key);
+        return o == null ? def : o;
+    }
+
     Double getDouble(String key);
+
+    default Float getFloat(String key, Float def) {
+        Float o = getFloat(key);
+        return o == null ? def : o;
+    }
 
     Float getFloat(String key);
 
-    default String getString(String key) {
+    default String getString(String key, String def) {
         Object o = get(key);
-        return o == null ? null : o + "";
+        return o == null ? def : o + "";
+    }
+
+    default String getString(String key) {
+        return getString(key, null);
     }
 
     <T extends Serializable> T getSerializable(String key, Serializable serializable);

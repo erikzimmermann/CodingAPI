@@ -212,8 +212,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     }
 
     public static Command getCommand(String name) {
-        if(name.startsWith("/")) return getKnownCommands().get(name.substring(1));
-        else return getKnownCommands().get(name);
+        if(name.startsWith("/")) return getKnownCommands().get(name.toLowerCase().substring(1));
+        else return getKnownCommands().get(name.toLowerCase());
     }
 
     public static boolean exists(String name) {

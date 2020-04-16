@@ -1,6 +1,8 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
+import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import de.codingair.codingapi.player.gui.hovereditems.HoveredItem;
 import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
@@ -14,10 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
@@ -39,7 +38,7 @@ public class GUIListener implements Listener {
     private static GUIListener instance = null;
     private Plugin plugin;
 
-    public GUIListener(Plugin plugin) {
+    private GUIListener(Plugin plugin) {
         if(instance != null) HandlerList.unregisterAll(instance);
 
         this.plugin = plugin;
@@ -52,13 +51,7 @@ public class GUIListener implements Listener {
     }
 
     public static boolean isRegistered() {
-        if(instance == null) return false;
-
-        for(RegisteredListener registeredListener : HandlerList.getRegisteredListeners(instance.plugin)) {
-            if(registeredListener.getListener() instanceof GUIListener) return true;
-        }
-
-        return false;
+        return instance != null;
     }
 
     public static void onTick() {
@@ -80,7 +73,7 @@ public class GUIListener implements Listener {
      * PlayerItem
      */
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInteractEvent(PlayerInteractEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
@@ -89,11 +82,11 @@ public class GUIListener implements Listener {
         ItemStack item = p.getInventory().getItemInHand();
 
         for(PlayerItem pItem : items) {
-            if(item != null && pItem.equals(item)) pItem.onInteract(e);
+            if(pItem.equals(item)) pItem.trigger(e);
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent e) {
         if(!PlayerItem.isUsing((Player) e.getWhoClicked())) return;
 
@@ -105,7 +98,7 @@ public class GUIListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDrop(PlayerDropItemEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
@@ -118,13 +111,22 @@ public class GUIListener implements Listener {
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
+    public void onSwitch(PlayerItemHeldEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
         List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
 
+        ItemStack old = e.getPlayer().getInventory().getItem(e.getPreviousSlot());
+        ItemStack current = e.getPlayer().getInventory().getItem(e.getNewSlot());
+
+        PlayerItem prev = null, next = null;
+
         for(PlayerItem pItem : items) {
-            pItem.remove();
+            if(pItem.equals(old) && pItem.isFreezed()) prev = pItem;
+            if(pItem.equals(current) && pItem.isFreezed()) next = pItem;
         }
+
+        if(prev != null) prev.onUnhover(e);
+        if(next != null) next.onHover(e);
     }
 
     /*
@@ -453,7 +455,7 @@ public class GUIListener implements Listener {
 
         if(inv instanceof GUI && !((GUI) inv).isClosingByButton()) {
             SoundData sound = ((GUI) inv).getCancelSound();
-            if(sound != null) sound.play(p);
+            if(sound != null && !((GUI) inv).isClosingForGUI()) sound.play(p);
         }
 
         inv.close((Player) e.getPlayer(), true);

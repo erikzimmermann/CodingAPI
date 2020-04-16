@@ -56,7 +56,6 @@ public class EventListener implements Listener {
             //PLAY SOUND
             if(ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());
             else if(gui.getClickSound() != null && !ic.isSilent()) gui.getClickSound().play(e.getPlayer());
-
             //DO ACTION
             if(ic.getAction() != null) ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
 

@@ -134,12 +134,13 @@ public class Location extends org.bukkit.Location implements Serializable {
         return (Location) super.subtract(x, y, z);
     }
 
-    public void trim(int decimalPlaces) {
+    public Location trim(int decimalPlaces) {
         setX(trim(getX(), decimalPlaces));
         setY(trim(getY(), decimalPlaces));
         setZ(trim(getZ(), decimalPlaces));
         setYaw(trim(getYaw(), decimalPlaces));
         setPitch(trim(getPitch(), decimalPlaces));
+        return this;
     }
 
     public void apply(org.bukkit.Location l) {
@@ -226,6 +227,6 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     public void setWorldName(String worldName) {
         this.worldName = worldName;
-        setWorld(Bukkit.getWorld(worldName));
+        if(worldName != null) setWorld(Bukkit.getWorld(worldName));
     }
 }

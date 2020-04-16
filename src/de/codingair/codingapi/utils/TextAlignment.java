@@ -185,8 +185,6 @@ public enum TextAlignment {
 
             line.append(word);
 
-
-
             if(cells >= length) {
                 line = new StringBuilder(line.toString().substring(0, line.length() - 1));
                 lines.add(lastColor[0] + line.toString());
