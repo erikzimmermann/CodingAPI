@@ -181,7 +181,7 @@ public class UTFConfig extends YamlConfiguration {
         List<String> toRemove = new ArrayList<>();
 
         for(String key : getKeys(true)) {
-            if(!origin.contains(key)/* || isSameType(key, origin)*/) toRemove.add(key);
+            if(!origin.contains(key)) toRemove.add(key);
         }
 
         for(String key : toRemove) {
