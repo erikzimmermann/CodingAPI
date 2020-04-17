@@ -19,9 +19,7 @@ import java.util.Map;
 
 public class UTFConfiguration extends ConfigurationProvider {
     private static final String COMMENT = "#";
-    private static final String CONFIG_TAG = "~Config\n";
     private List<Extra> extras = new ArrayList<>();
-    private boolean loadExtras = false;
     private boolean deployedExtras = false;
     private Configuration config;
 
@@ -70,10 +68,7 @@ public class UTFConfiguration extends ConfigurationProvider {
 
     @Override
     public void save(Configuration config, Writer writer) {
-        String data = this.saveToString(config);
-        if(this.loadExtras) {
-            data = writeExtras(CONFIG_TAG + data);
-        }
+        String data = writeExtras(this.saveToString(config));
 
         try {
             writer.write(data);
@@ -96,11 +91,8 @@ public class UTFConfiguration extends ConfigurationProvider {
 
     private Configuration loadFromString(String contents, Configuration def) {
         notNull(contents, "Contents cannot be null");
-        if(contents.startsWith(CONFIG_TAG)) {
-            this.loadExtras = true;
-            loadExtras(contents);
-            contents = contents.replaceFirst(CONFIG_TAG, "");
-        }
+        loadExtras(contents);
+        contents = contents.replaceFirst("~Config\n", "");
 
         Map<String, Object> input = this.yaml.get().load(contents);
         config = createConfiguration(input, def);
@@ -210,11 +202,8 @@ public class UTFConfiguration extends ConfigurationProvider {
     }
 
     public void deployExtras(String contents) {
-        if(contents.startsWith(CONFIG_TAG)) {
-            this.loadExtras = true;
-            this.loadExtras(contents);
-            this.deployedExtras = true;
-        }
+        this.loadExtras(contents);
+        this.deployedExtras = true;
     }
 
     private void loadExtras(String contents) {
