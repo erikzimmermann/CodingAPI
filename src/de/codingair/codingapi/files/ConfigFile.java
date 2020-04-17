@@ -60,18 +60,20 @@ public class ConfigFile {
                 ex.printStackTrace();
             }
 
-            if(builder.toString().startsWith("~Config\n")) {
-                this.config.deployExtras(builder.toString());
+            String read;
+            if(builder.toString().startsWith("~Config\n")) read = builder.toString().replaceFirst("~Config\n", "");
+            else read = builder.toString();
 
-                if(removeUnused) {
-                    in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-                    if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
-                }
+            this.config.deployExtras(read);
 
-                this.config.options().copyDefaults(true);
-                this.config.options().copyHeader(true);
-                this.saveConfig();
+            if(removeUnused) {
+                in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
+                if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
             }
+
+            this.config.options().copyDefaults(true);
+            this.config.options().copyHeader(true);
+            this.saveConfig();
         }
     }
 

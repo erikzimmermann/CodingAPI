@@ -20,9 +20,7 @@ import java.util.Map;
 
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
-    private static final String CONFIG_TAG = "~Config\n";
     private List<Extra> extras = new ArrayList<>();
-    private boolean loadExtras = false;
     private boolean deployedExtras = false;
 
     private UTFConfig() {
@@ -36,10 +34,7 @@ public class UTFConfig extends YamlConfiguration {
     public void save(File file) throws IOException {
         Validate.notNull(file, "File cannot be null");
         Files.createParentDirs(file);
-        String data = this.saveToString();
-        if(this.loadExtras) {
-            data = writeExtras(CONFIG_TAG + data);
-        }
+        String data = writeExtras(this.saveToString());
 
         BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
         StringBuilder builder = new StringBuilder();
@@ -96,8 +91,6 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     protected String parseHeader(String input) {
-        if(loadExtras) return "";
-
         String[] lines = input.split("\r?\n", -1);
         StringBuilder result = new StringBuilder();
         boolean readingHeader = true;
@@ -124,8 +117,6 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     protected String buildHeader() {
-        if(loadExtras) return "";
-
         String header = this.options().header();
         if(this.options().copyHeader()) {
             Configuration def = this.getDefaults();
@@ -166,11 +157,8 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public void loadFromString(String contents) throws InvalidConfigurationException {
-        if(contents.startsWith(CONFIG_TAG)) {
-            this.loadExtras = true;
-            loadExtras(contents);
-            contents = contents.replaceFirst(CONFIG_TAG, "");
-        }
+        loadExtras(contents);
+        if(contents.startsWith("~Config\n")) contents = contents.replaceFirst("~Config\n", "");
 
         super.loadFromString(contents);
     }
@@ -209,11 +197,8 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     public void deployExtras(String contents) {
-        if(contents.startsWith(CONFIG_TAG)) {
-            this.loadExtras = true;
-            this.loadExtras(contents);
-            this.deployedExtras = true;
-        }
+        this.loadExtras(contents);
+        this.deployedExtras = true;
     }
 
     private void loadExtras(String contents) {
