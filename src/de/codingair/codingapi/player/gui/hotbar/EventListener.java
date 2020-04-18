@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -80,6 +81,13 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
+    public void onBlockBreak(BlockBreakEvent e) {
+        if(API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
         if(API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
             e.setCancelled(true);
@@ -100,5 +108,4 @@ public class EventListener implements Listener {
             e.setCancelled(h.getItem(e.getSlot()) != null);
         }
     }
-
 }
