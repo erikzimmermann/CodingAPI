@@ -211,7 +211,7 @@ public class IReflection {
 				};
 			}
 		if (target.getSuperclass() != null)
-			return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
+			return IReflection.getSaveMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
 		
 		return null;
 	}

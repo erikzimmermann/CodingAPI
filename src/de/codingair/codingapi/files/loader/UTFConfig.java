@@ -78,11 +78,10 @@ public class UTFConfig extends YamlConfiguration {
             yamlOptions.setAllowUnicode(true);
             yamlRepresenter.setDefaultFlowStyle(fs);
 
-            String header = this.buildHeader();
             String dump = yaml.dump(this.getValues(false));
             if(dump.equals("{}\n")) dump = "";
 
-            return header + dump;
+            return dump;
         } catch(Exception ex) {
             ex.printStackTrace();
         }
@@ -91,62 +90,12 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     protected String parseHeader(String input) {
-        String[] lines = input.split("\r?\n", -1);
-        StringBuilder result = new StringBuilder();
-        boolean readingHeader = true;
-        boolean foundHeader = false;
-
-        for(int i = 0; i < lines.length && readingHeader; ++i) {
-            String line = lines[i];
-            if(line.startsWith(COMMENT)) {
-                if(i > 0) {
-                    result.append("\n");
-                }
-
-                result.append(line.substring(COMMENT.length()));
-                foundHeader = true;
-            } else if(foundHeader && line.length() == 0) {
-                result.append("\n");
-            } else if(foundHeader) {
-                readingHeader = false;
-            }
-        }
-
-        return result.toString();
+        return "";
     }
 
     @Override
     protected String buildHeader() {
-        String header = this.options().header();
-        if(this.options().copyHeader()) {
-            Configuration def = this.getDefaults();
-            if(def instanceof UTFConfig) {
-                UTFConfig fileDefaults = (UTFConfig) def;
-                String defaultsHeader = fileDefaults.buildHeader();
-                if(defaultsHeader != null && defaultsHeader.length() > 0) {
-                    return defaultsHeader;
-                }
-            }
-        }
-
-        if(header == null) {
-            return "";
-        } else {
-            StringBuilder builder = new StringBuilder();
-            String[] lines = header.split("\r?\n", -1);
-            boolean startedHeader = false;
-
-            for(int i = lines.length - 1; i >= 0; --i) {
-                builder.insert(0, "\n");
-                if(startedHeader || lines[i].length() != 0) {
-                    builder.insert(0, lines[i]);
-                    builder.insert(0, COMMENT);
-                    startedHeader = true;
-                }
-            }
-
-            return builder.toString();
-        }
+        return "";
     }
 
     @Override

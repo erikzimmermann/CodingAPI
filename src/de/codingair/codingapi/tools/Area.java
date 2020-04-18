@@ -9,16 +9,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Area {
-    
+
     public static boolean isInBlock(LivingEntity entity, Block b) {
         return isInBlock(entity, entity.getLocation(), b);
     }
-    
+
     public static boolean isInBlock(LivingEntity entity, Location target, Block b) {
         Location middle = b.getLocation().clone().add(0.5, 0.5, 0.5);
-        double radius = entity.getWidth() / 2;
 
-        Location height = target.clone().add(0, entity.getHeight(), 0);
+        double radius;
+        try {
+            radius = entity.getWidth() / 2;
+        } catch(Throwable t) {
+            radius = 0.25;
+        }
+
+        Location height = target.clone().add(0, entity.getEyeHeight(), 0);
         if(height.getY() >= middle.getY() - 0.5 && target.getY() <= middle.getY() + 0.5) {
             if(target.getX() + radius >= middle.getX() - 0.5 && target.getX() - radius <= middle.getX() + 0.5) {
                 if(target.getZ() + radius >= middle.getZ() - 0.5 && target.getZ() - radius <= middle.getZ() + 0.5) {
@@ -43,9 +49,14 @@ public class Area {
 
         Location middle = a.clone().add(b.toVector().subtract(a.toVector()).multiply(0.5));
 
-        Location eye = target.clone().add(0, entity.getHeight(), 0);
-        double radius = entity.getWidth() / 2;
-        
+        Location eye = target.clone().add(0, entity.getEyeHeight(), 0);
+        double radius;
+        try {
+            radius = entity.getWidth() / 2;
+        } catch(Throwable t) {
+            radius = 0.25;
+        }
+
         if(eye.getY() >= middle.getY() - height / 2 && target.getY() <= middle.getY() + height / 2) {
             //Ist in y ebene
 

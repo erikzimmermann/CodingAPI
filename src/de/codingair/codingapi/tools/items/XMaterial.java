@@ -904,6 +904,18 @@ public enum XMaterial {
         return new ItemStack(mat, 1, (byte) data);
     }
 
+    public ItemStack parseItemSafely() {
+        try {
+            Material mat = parseMaterial(true);
+            if(mat == null) return null;
+
+            if(isNewVersion()) return new ItemStack(mat);
+            return new ItemStack(mat, 1, (byte) data);
+        } catch(Exception ex) {
+            return null;
+        }
+    }
+
     public static boolean isNewVersion() {
         Material mat = Material.getMaterial("RED_WOOL");
         return mat != null;

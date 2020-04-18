@@ -43,7 +43,7 @@ import java.util.*;
 
 public class ItemBuilder implements Serializable {
     private String name = "";
-    private Material type;
+    private Material type = null;
     private byte data = 0;
     private short durability = 0;
     private int amount = 1;
@@ -71,7 +71,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseItem());
+        this(xMaterial.parseItemSafely());
     }
 
     public ItemBuilder(Material type) {
@@ -79,6 +79,8 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(ItemStack item) {
+        if(item == null) return;
+
         this.nbt = new NBTTagCompound(item);
         this.type = item.getType();
         this.data = item.getData().getData();
@@ -166,6 +168,8 @@ public class ItemBuilder implements Serializable {
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
+        if(this.type == null) return null;
+
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
         if(this.type.name().contains("POTION")) {
@@ -492,6 +496,19 @@ public class ItemBuilder implements Serializable {
                 Objects.equals(skullId, builder.skullId) &&
                 Objects.equals(lore, builder.lore) &&
                 Objects.equals(enchantments, builder.enchantments);
+    }
+
+    public boolean equalsSimply(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        ItemBuilder builder = (ItemBuilder) o;
+
+        return data == builder.data &&
+                durability == builder.durability &&
+                amount == builder.amount &&
+                type == builder.type &&
+                Objects.equals(skullId, builder.skullId) &&
+                Objects.equals(lore, builder.lore);
     }
 
     @Override
