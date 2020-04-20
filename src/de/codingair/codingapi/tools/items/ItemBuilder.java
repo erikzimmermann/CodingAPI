@@ -71,7 +71,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseItemSafely());
+        this(xMaterial.parseItem(true));
     }
 
     public ItemBuilder(Material type) {
@@ -324,17 +324,20 @@ public class ItemBuilder implements Serializable {
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(d.get("Data") + "");
 
-                                XMaterial mat = XMaterial.requestXMaterial(name, data);
+                                Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
 
-                                if(mat == null) {
+                                if(mat.isPresent()) material = mat.get().parseMaterial(true);
+                                else {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
 
-                                if(mat != null) material = mat.parseMaterial();
                             } else {
-                                XMaterial xType = XMaterial.valueOf(name);
-                                material = xType.parseMaterial();
-                                setData((byte) xType.data);
+                                Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
+
+                                if(mat.isPresent()) {
+                                    material = mat.get().parseMaterial(true);
+                                    setData(mat.get().getData());
+                                }
                             }
 
                             try {
