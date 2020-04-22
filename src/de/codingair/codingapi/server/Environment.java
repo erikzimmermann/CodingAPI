@@ -104,7 +104,10 @@ public class Environment {
 
         for(int z = startZ - chunkRadius; z <= startZ + chunkRadius; z++) {
             for(int x = startX - chunkRadius; x <= startX + chunkRadius; x++) {
-                chunks.add(mid.getWorld().getChunkAt(x, z));
+                try {
+                    chunks.add(mid.getWorld().getChunkAt(x, z));
+                } catch(Throwable ignored) {
+                }
             }
         }
 

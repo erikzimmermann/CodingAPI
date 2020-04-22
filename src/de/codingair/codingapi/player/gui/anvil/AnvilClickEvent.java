@@ -21,6 +21,7 @@ public class AnvilClickEvent extends Event {
     private final ClickType clickType;
 
     private final ItemStack item;
+    private String submitted = null;
 
     private boolean close = false;
     private boolean cancelled = true;
@@ -118,5 +119,13 @@ public class AnvilClickEvent extends Event {
 
     public ClickType getClickType() {
         return clickType;
+    }
+
+    public String getSubmitted() {
+        return submitted;
+    }
+
+    public void setSubmitted(String submitted) {
+        this.submitted = submitted;
     }
 }

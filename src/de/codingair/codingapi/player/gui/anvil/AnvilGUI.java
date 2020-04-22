@@ -109,7 +109,7 @@ public class AnvilGUI implements Removable {
 
                         if(clickEvent.getSlot().equals(AnvilSlot.OUTPUT)) {
                             submitted = true;
-                            submittedText = clickEvent.getInput();
+                            submittedText = clickEvent.getSubmitted() == null ? clickEvent.getInput() : clickEvent.getSubmitted();
                         }
 
                         e.setCancelled(clickEvent.isCancelled());
