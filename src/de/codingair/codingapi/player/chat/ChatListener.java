@@ -31,7 +31,7 @@ public class ChatListener implements Listener {
                 if(packet.getClass().getSimpleName().equals("PacketPlayInChat")) {
                     IReflection.FieldAccessor<String> aField = IReflection.getField(packet.getClass(), "a");
                     String msg = aField.get(packet);
-                    
+
                     if(msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
                     String type = null;
                     UUID uniqueId;
@@ -57,13 +57,11 @@ public class ChatListener implements Listener {
                                 }
                             }
 
-                            if(!clicked) {
-                                ChatButtonManager.onInteract(l -> l.onForeignClick(player, uniqueId, finalType));
-                            }
+                            if(!clicked) callForeignClick(player, uniqueId, finalType);
 
                             messageList.clear();
                         });
-                    } else ChatButtonManager.onInteract(l -> l.onForeignClick(player, uniqueId, finalType));
+                    } else callForeignClick(player, uniqueId, finalType);
 
                     return true;
                 }
@@ -76,5 +74,11 @@ public class ChatListener implements Listener {
                 return false;
             }
         }.inject();
+    }
+
+    private void callForeignClick(Player player, UUID uniqueId, String type) {
+        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
+            ChatButtonManager.onInteract(l -> l.onForeignClick(player, uniqueId, type));
+        });
     }
 }

@@ -90,10 +90,11 @@ public abstract class PacketReader implements Removable {
 		if(channel.pipeline().get(name) != null) {
 			try {
 				channel.pipeline().remove(name);
-				API.removeRemovable(this);
-			} catch(NoSuchElementException ex) {
+			} catch(Throwable ignored) {
 			}
 		}
+
+		API.removeRemovable(this);
 	}
 	
 	public void refresh() {
