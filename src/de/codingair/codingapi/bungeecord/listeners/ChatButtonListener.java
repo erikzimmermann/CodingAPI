@@ -5,13 +5,14 @@ import net.md_5.bungee.api.connection.Connection;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
 
 import java.util.HashMap;
 
 public class ChatButtonListener implements Listener {
     private HashMap<Connection, String> ids = new HashMap<>();
 
-    @EventHandler(priority = -64)
+    @EventHandler(priority = -100)
     public void beforeChat(ChatEvent e) {
         if(e.getMessage() == null || !e.getMessage().startsWith(ChatButton.PREFIX)) return;
         String id = e.getMessage().replace(ChatButton.PREFIX, "");
@@ -21,7 +22,7 @@ public class ChatButtonListener implements Listener {
         e.setMessage("");
     }
 
-    @EventHandler(priority = 64)
+    @EventHandler(priority = 100)
     public void afterChat(ChatEvent e) {
         String id = ids.remove(e.getSender());
         if(id != null)  {
