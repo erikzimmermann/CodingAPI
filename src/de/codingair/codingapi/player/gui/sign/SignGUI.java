@@ -55,7 +55,7 @@ public abstract class SignGUI {
                     } else {
                         lines = sign == null ? new String[4] : sign.getLines();
 
-                        Object[] data = (String[]) b.get(p);
+                        Object[] data = (Object[]) b.get(p);
 
                         IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
                         IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});

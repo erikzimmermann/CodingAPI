@@ -43,6 +43,7 @@ public abstract class GUI extends Interface implements Removable {
     private Callback<GUI> closingConfirmed = null;
     private GUI fallbackGUI = null;
     private boolean useFallbackGUI = false;
+    protected boolean openForFirstTime = true;
 
     public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
@@ -155,7 +156,10 @@ public abstract class GUI extends Interface implements Removable {
             public void accept(GUI old) {
                 if(fallbackGUI == null) fallbackGUI = old;
 
-                if(GUI.this.openSound != null) GUI.this.openSound.play(p);
+                if(openForFirstTime) {
+                    if(getOpenSound() != null) getOpenSound().play(player);
+                    openForFirstTime = false;
+                }
 
                 if(old != null) {
                     //transfer existing inventory
