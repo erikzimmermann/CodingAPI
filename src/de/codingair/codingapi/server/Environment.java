@@ -50,7 +50,7 @@ public class Environment {
         fw.setFireworkMeta(fwm);
     }
 
-    private static org.bukkit.Color getColor(int i) {
+    public static org.bukkit.Color getColor(int i) {
         org.bukkit.Color c = null;
 
         if(i == 1) c = org.bukkit.Color.AQUA;
