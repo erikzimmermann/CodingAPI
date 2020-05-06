@@ -120,46 +120,41 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.addCommand(this);
         }
 
-        for(String s : names) {
-            command = Bukkit.getPluginCommand(s);
+        command = Bukkit.getPluginCommand(this.name);
 
-            if(command != null && (!API.getInstance().getPlugins().contains(command.getPlugin()) || (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name)))) {
-                //alias matches original command > continue
-                if(command.getExecutor().equals(this)) continue;
+        if(command != null && (!API.getInstance().getPlugins().contains(command.getPlugin()) || (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name))) && !command.getExecutor().equals(this)) {
+            if(highestPriority) {
+                //going to overwrite existing command > create backup
+                backups.add(new CommandBackup(command));
 
-                if(highestPriority) {
-                    //going to overwrite existing command > create backup
-                    backups.add(new CommandBackup(command));
+                try {
+                    //1.9+
+                    command.setName(main.getName());
+                } catch(Throwable ignored) {
+                }
 
-                    try {
-                        //1.9+
-                        command.setName(main.getName());
-                    } catch(Throwable ignored) {
-                    }
+                command.setExecutor(this);
+                command.setTabCompleter(this);
+                command.setDescription(main.getDescription());
+                command.setAliases(main.getAliases());
+                command.setPermission(null);
+                command.setUsage(main.getUsage());
 
-                    command.setExecutor(this);
-                    command.setTabCompleter(this);
-                    command.setDescription(main.getDescription());
-                    command.setAliases(main.getAliases());
-                    command.setPermission(null);
-                    command.setUsage(main.getUsage());
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                }
+            } else if(command.getPlugin().getName().equals(plugin.getName())) {
+                command.setExecutor(this);
+                command.setTabCompleter(this);
 
-                    try {
-                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                        owningPlugin.setAccessible(true);
-                        owningPlugin.set(command, plugin);
-                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
-                    }
-                } else if(command.getPlugin().getName().equals(plugin.getName())) {
-                    command.setExecutor(this);
-                    command.setTabCompleter(this);
-
-                    try {
-                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                        owningPlugin.setAccessible(true);
-                        owningPlugin.set(command, plugin);
-                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
-                    }
+                try {
+                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                    owningPlugin.setAccessible(true);
+                    owningPlugin.set(command, plugin);
+                } catch(NoSuchFieldException | IllegalAccessException ignored) {
                 }
             }
         }
@@ -279,6 +274,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         CommandComponent component = getComponent(args);
 
         if(component == null) return sug;
+
+        args[args.length - 1] = lastArg;
 
         for(CommandComponent child : component.getChildren()) {
             if(child.hasPermission(sender)) {
