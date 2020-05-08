@@ -102,7 +102,7 @@ public class ParticlePacket {
 
             if(particle.requiresData()) {
                 Location below = loc.clone();
-                below.setY(loc.getBlockY() - 1);
+                below.setY(loc.getBlockY() - 0.49);
 
                 //noinspection deprecation
                 data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());

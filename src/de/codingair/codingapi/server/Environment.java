@@ -1,7 +1,10 @@
 package de.codingair.codingapi.server;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.sounds.Sound;
 import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -16,7 +19,9 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class Environment {
 
@@ -48,6 +53,90 @@ public class Environment {
         fwm.addEffect(effect);
 
         fw.setFireworkMeta(fwm);
+    }
+
+    private static final Cache<Material, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build();
+
+    public static Sound getBreakSoundOf(Block b) {
+        Optional<Sound> cachedSound = CACHE.getIfPresent(b.getType());
+        if (cachedSound != null) return cachedSound.orElse(null);
+
+        Object w = PacketUtils.getWorldServer(b.getWorld());
+
+        IReflection.MethodAccessor getType = IReflection.getMethod(PacketUtils.WorldServerClass, "getType", PacketUtils.IBlockDataClass, new Class[] {PacketUtils.BlockPositionClass});
+        Object blockType = getType.invoke(w, PacketUtils.getBlockPosition(b.getLocation()));
+
+        IReflection.MethodAccessor getBlock = IReflection.getMethod(PacketUtils.IBlockDataClass, "getBlock", PacketUtils.BlockClass, new Class[] {});
+        Object block = getBlock.invoke(blockType);
+
+        String key;
+        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
+
+            Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "SoundEffectType");
+            Class<?> soundEffectClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "SoundEffect");
+            Class<?> minecraftKeyClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "MinecraftKey");
+
+            Object soundEffectType = getSoundEffectType.get(block);
+
+            String f;
+            switch(Version.getVersion()) {
+                case v1_15:
+                    f = "z";
+                    break;
+                case v1_14:
+                    f = "y";
+                    break;
+                case v1_13:
+                    f = "q";
+                    break;
+                default:
+                    f = "o";
+                    break;
+            }
+
+            IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, f);
+            Object soundEffect = getSoundEffect.get(soundEffectType);
+
+            switch(Version.getVersion()) {
+                case v1_15:
+                case v1_14:
+                case v1_13:
+                    f = "a";
+                    break;
+                default:
+                    f = "b";
+                    break;
+            }
+
+            IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, f);
+            Object mcKey = getMCKey.get(soundEffect);
+
+            if(Version.getVersion().isBiggerThan(Version.v1_14)) f = "key";
+            else f = "a";
+
+            IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, f);
+            key = getKey.get(mcKey);
+        } else {
+            IReflection.FieldAccessor<?> getStepSound = IReflection.getField(PacketUtils.BlockClass, "stepSound");
+            Class<?> stepSoundClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Block$StepSound");
+            IReflection.MethodAccessor breakSound = IReflection.getMethod(stepSoundClass, "getBreakSound", String.class, new Class[0]);
+
+            Object stepSound = getStepSound.get(block);
+            key = (String) breakSound.invoke(stepSound);
+
+            if(b.getType().name().contains("GLASS")) {
+                key = key.substring(4);
+            }
+        }
+
+        Optional<Sound> s = Sound.matchXSound(key.replace(".", "_"));
+        CACHE.put(b.getType(), s);
+
+        return s.orElse(null);
     }
 
     public static org.bukkit.Color getColor(int i) {
@@ -115,8 +204,8 @@ public class Environment {
     }
 
     private static int floor(double var0) {
-        int var2 = (int)var0;
-        return var0 < (double)var2 ? var2 - 1 : var2;
+        int var2 = (int) var0;
+        return var0 < (double) var2 ? var2 - 1 : var2;
     }
 
     public static boolean isSlab(Block block) {

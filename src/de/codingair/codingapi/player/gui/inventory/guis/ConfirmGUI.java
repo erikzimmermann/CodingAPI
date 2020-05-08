@@ -75,7 +75,7 @@ public class ConfirmGUI extends GUI {
     @Override
     public void initialize(Player p) {
         ItemButtonOption option = new ItemButtonOption();
-        option.setClickSound(Sound.CLICK.bukkitSound());
+        option.setClickSound(Sound.UI_BUTTON_CLICK.parseSound());
         option.setOnlyLeftClick(true);
         option.setCloseOnClick(true);
 

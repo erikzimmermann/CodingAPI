@@ -41,15 +41,11 @@ public class SoundData {
     }
 
     public void play(Player player) {
-        play(player, null);
-    }
-
-    public void play(Player player, Location location) {
-        this.sound.playSound(player, location == null ? player.getLocation() : location, this.volume, this.pitch);
+        this.sound.playSound(player, this.volume, this.pitch);
     }
 
     public void stop(Player player) {
-        player.stopSound(this.sound.bukkitSound());
+        this.sound.stopSound(player);
     }
 
     public SoundData clone() {

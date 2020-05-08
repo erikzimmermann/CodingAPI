@@ -12,8 +12,8 @@ public abstract class CommandComponent {
     private List<CommandComponent> children = new ArrayList<>();
     private String argument;
     private String permission;
-    private boolean onlyPlayers = false;
-    private boolean onlyConsole = false;
+    private Boolean onlyPlayers = null;
+    private Boolean onlyConsole = null;
 
     public CommandComponent(String argument) {
         this.argument = argument;
@@ -138,9 +138,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyPlayers() {
-        if(onlyPlayers) return true;
+        if(onlyPlayers != null) return onlyPlayers;
 
-        if(this.parent == null) return onlyPlayers;
+        if(this.parent == null) return false;
         else return this.parent.isOnlyPlayers();
     }
 
@@ -150,9 +150,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyConsole() {
-        if(onlyConsole) return true;
+        if(onlyConsole != null) return onlyConsole;
 
-        if(this.parent == null) return onlyConsole;
+        if(this.parent == null) return false;
         else return this.parent.isOnlyConsole();
     }
 

@@ -120,41 +120,47 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
             if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.addCommand(this);
         }
 
-        command = Bukkit.getPluginCommand(this.name);
+        for(String s : names) {
+            command = Bukkit.getPluginCommand(s);
 
-        if(command != null && (!API.getInstance().getPlugins().contains(command.getPlugin()) || (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name))) && !command.getExecutor().equals(this)) {
-            if(highestPriority) {
-                //going to overwrite existing command > create backup
-                backups.add(new CommandBackup(command));
+            //overwrite only if same
+            if(command != null && (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name))) {
+                //alias matches original command > continue
+                if(command.getExecutor().equals(this)) continue;
 
-                try {
-                    //1.9+
-                    command.setName(main.getName());
-                } catch(Throwable ignored) {
-                }
+                if(highestPriority) {
+                    //going to overwrite existing command > create backup
+                    backups.add(new CommandBackup(command));
 
-                command.setExecutor(this);
-                command.setTabCompleter(this);
-                command.setDescription(main.getDescription());
-                command.setAliases(main.getAliases());
-                command.setPermission(null);
-                command.setUsage(main.getUsage());
+                    try {
+                        //1.9+
+                        command.setName(main.getName());
+                    } catch(Throwable ignored) {
+                    }
 
-                try {
-                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                    owningPlugin.setAccessible(true);
-                    owningPlugin.set(command, plugin);
-                } catch(NoSuchFieldException | IllegalAccessException ignored) {
-                }
-            } else if(command.getPlugin().getName().equals(plugin.getName())) {
-                command.setExecutor(this);
-                command.setTabCompleter(this);
+                    command.setExecutor(this);
+                    command.setTabCompleter(this);
+                    command.setDescription(main.getDescription());
+                    command.setAliases(main.getAliases());
+                    command.setPermission(null);
+                    command.setUsage(main.getUsage());
 
-                try {
-                    final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                    owningPlugin.setAccessible(true);
-                    owningPlugin.set(command, plugin);
-                } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                    try {
+                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                        owningPlugin.setAccessible(true);
+                        owningPlugin.set(command, plugin);
+                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                    }
+                } else if(command.getPlugin().getName().equals(plugin.getName())) {
+                    command.setExecutor(this);
+                    command.setTabCompleter(this);
+
+                    try {
+                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
+                        owningPlugin.setAccessible(true);
+                        owningPlugin.set(command, plugin);
+                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
+                    }
                 }
             }
         }

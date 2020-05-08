@@ -30,7 +30,7 @@ public class MusicData extends SoundData {
                 if(currentDelay == musicPlayer.getDelay()) {
                     currentDelay = 0;
 
-                    musicPlayer.getSound().playSound(player, player.getLocation(), musicPlayer.getVolume(), musicPlayer.getPitch());
+                    musicPlayer.getSound().playSound(player, musicPlayer.getVolume(), musicPlayer.getPitch());
 
                     if(musicPlayer.getFollower() == null) {
                         this.cancel();
@@ -43,11 +43,6 @@ public class MusicData extends SoundData {
         };
 
         runnable.runTaskTimer(plugin, 0, 1);
-    }
-
-    @Override
-    public void play(Player player, Location location) {
-        play(player, API.getInstance().getMainPlugin());
     }
 
     public MusicData getFollower() {

@@ -44,11 +44,11 @@ public class ItemGUI implements Removable {
 	private boolean visibleOnSneak = false;
 	private boolean closeOnWalk = false;
 
-	private SoundData interactSound = new SoundData(Sound.CLICK, 1F, 1F);
-	private SoundData hoverSound = new SoundData(Sound.CLICK, 0.05F, 1.2F);
-	private SoundData unhoverSound = new SoundData(Sound.CLICK, 0.05F, 0.8F);
-	private SoundData closeSound = new SoundData(Sound.ITEM_BREAK, 1F, 1F);
-	private SoundData openSound = new SoundData(Sound.LEVEL_UP, 1F, 1F);
+	private SoundData interactSound = new SoundData(Sound.UI_BUTTON_CLICK, 1F, 1F);
+	private SoundData hoverSound = new SoundData(Sound.UI_BUTTON_CLICK, 0.05F, 1.2F);
+	private SoundData unhoverSound = new SoundData(Sound.UI_BUTTON_CLICK, 0.05F, 0.8F);
+	private SoundData closeSound = new SoundData(Sound.ENTITY_ITEM_BREAK, 1F, 1F);
+	private SoundData openSound = new SoundData(Sound.ENTITY_PLAYER_LEVELUP, 1F, 1F);
 
 	public ItemGUI(JavaPlugin plugin, Player player) {
 		this.plugin = plugin;
