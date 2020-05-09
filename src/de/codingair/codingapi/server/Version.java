@@ -48,6 +48,10 @@ public enum Version {
         return name;
     }
 
+    public String getShortVersionName() {
+        return Bukkit.getBukkitVersion().split("-")[0];
+    }
+
     public boolean isBiggerThan(Version version) {
         return id > version.id;
     }

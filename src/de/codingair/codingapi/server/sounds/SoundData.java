@@ -41,6 +41,7 @@ public class SoundData {
     }
 
     public void play(Player player) {
+        if(!sound.isSupported()) return;
         this.sound.playSound(player, this.volume, this.pitch);
     }
 
