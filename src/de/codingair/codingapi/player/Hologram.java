@@ -59,9 +59,8 @@ public class Hologram implements Removable {
         return new Listener() {
             @EventHandler(priority = EventPriority.LOWEST)
             public void onSwitchWorld(PlayerChangedWorldEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
 
                     if(hologram.getLocation().getWorld() == e.getFrom()) {
@@ -69,8 +68,7 @@ public class Hologram implements Removable {
                     } else if(hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
                             hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
@@ -78,9 +76,8 @@ public class Hologram implements Removable {
                 if(e.getFrom().getWorld() != e.getTo().getWorld()) return;
 
                 Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
-                    List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                    for(Hologram hologram : holograms) {
+                    List<Hologram> l = API.getRemovables(null, Hologram.class);
+                    for(Hologram hologram : l) {
                         if(!hologram.isWatching(e.getPlayer())) continue;
 
                         double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
@@ -92,43 +89,37 @@ public class Hologram implements Removable {
                             hologram.remove(e.getPlayer());
                         }
                     }
-
-                    holograms.clear();
+                    l.clear();
                 }, 2);
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onJoin(PlayerJoinEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
                     if(hologram.getLocation().getWorld() != e.getPlayer().getWorld()) continue;
 
                     if(hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
                             hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onQuit(PlayerQuitEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     hologram.remove(e.getPlayer());
                     hologram.watchList.remove(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onWalk(PlayerWalkEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : API.getRemovables(Hologram.class)) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
 
                     if(e.getFrom().getWorld() != e.getTo().getWorld() || e.getTo().getWorld() != hologram.getLocation().getWorld()) continue;
@@ -142,8 +133,7 @@ public class Hologram implements Removable {
                         hologram.remove(e.getPlayer());
                     }
                 }
-
-                holograms.clear();
+                l.clear();
             }
         };
     }
@@ -322,14 +312,12 @@ public class Hologram implements Removable {
     private void uninjectPacketReader(Player player) {
         //Interact event handler
         List<PacketReader> l = API.getRemovables(player, PacketReader.class);
-
         for(PacketReader reader : l) {
             if(reader.getName().equals("CodingAPI-HologramReader")) {
                 reader.unInject();
                 break;
             }
         }
-
         l.clear();
     }
 

@@ -3,44 +3,56 @@ package de.codingair.codingapi.server;
 import org.bukkit.Bukkit;
 
 public enum Version {
-	UNKNOWN, v1_7, v1_8, v1_9, v1_10, v1_11, v1_12, v1_13, v1_14, v1_15;
-	
-	public static Version getVersion() {
-		if(Bukkit.getVersion().contains("1.7")) return v1_7;
-		else if(Bukkit.getVersion().contains("1.8")) return v1_8;
-		else if(Bukkit.getVersion().contains("1.9")) return v1_9;
-		else if(Bukkit.getVersion().contains("1.10")) return v1_10;
-		else if(Bukkit.getVersion().contains("1.11")) return v1_11;
-		else if(Bukkit.getVersion().contains("1.12")) return v1_12;
-		else if(Bukkit.getVersion().contains("1.13")) return v1_13;
-		else if(Bukkit.getVersion().contains("1.14")) return v1_14;
-		else if(Bukkit.getVersion().contains("1.15")) return v1_15;
-		else return UNKNOWN;
-	}
-	
-	public String getVersionName() {
-		return getBukkitVersion();
-	}
-	
-	public static String getBukkitVersion() {
-		return Bukkit.getServer().getClass().getPackage().getName().substring(23);
-	}
-	
-	public boolean isBiggerThan(Version version) {
-		int current = getIndex();
-		int param = version.getIndex();
-		
-		return current > param;
-	}
-	
-	public int getIndex() {
-		int index = 0;
-		
-		for(Version v : values()) {
-			if(this.equals(v)) return index;
-			else index++;
-		}
-		
-		return -1;
-	}
+    UNKNOWN(0),
+    v1_7(7),
+    v1_8(8),
+    v1_9(9),
+    v1_10(10),
+    v1_11(11),
+    v1_12(12),
+    v1_13(13),
+    v1_14(14),
+    v1_15(15),
+    v1_16(16),
+    ;
+
+    public static Version version = null;
+    private int id;
+
+    Version(int id) {
+        this.id = id;
+    }
+
+    public static Version getVersion() {
+        if(version == null) {
+            int versionId = Integer.parseInt(Bukkit.getBukkitVersion().split("-", -1)[0].split("\\.")[1]);
+
+            for(Version value : values()) {
+                if(value.id == versionId) {
+                    version = value;
+                    break;
+                }
+            }
+        }
+
+        return version;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getVersionName() {
+        String name = Bukkit.getBukkitVersion().split("-")[0];
+        name += " (" + Bukkit.getBukkitVersion().replace(name + "-", "") + ")";
+        return name;
+    }
+
+    public boolean isBiggerThan(Version version) {
+        return id > version.id;
+    }
+
+    public boolean isBiggerThan(int version) {
+        return id > version;
+    }
 }

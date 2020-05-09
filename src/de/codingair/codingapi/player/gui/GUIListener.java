@@ -55,16 +55,20 @@ public class GUIListener implements Listener {
     }
 
     public static void onTick() {
-        for(HoveredItem item : API.getRemovables(HoveredItem.class)) {
-            boolean lookingAt = item.isLookingAt(item.getPlayer());
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            List<HoveredItem> l = API.getRemovables(player, HoveredItem.class);
+            for(HoveredItem item : l) {
+                boolean lookingAt = item.isLookingAt(item.getPlayer());
 
-            if(lookingAt && !item.isLookAt()) {
-                item.onLookAt(item.getPlayer());
-                item.setLookAt(true);
-            } else if(!lookingAt && item.isLookAt()) {
-                item.onUnlookAt(item.getPlayer());
-                item.setLookAt(false);
+                if(lookingAt && !item.isLookAt()) {
+                    item.onLookAt(item.getPlayer());
+                    item.setLookAt(true);
+                } else if(!lookingAt && item.isLookAt()) {
+                    item.onUnlookAt(item.getPlayer());
+                    item.setLookAt(false);
+                }
             }
+            l.clear();
         }
     }
 
@@ -77,43 +81,46 @@ public class GUIListener implements Listener {
     public void onInteractEvent(PlayerInteractEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
         Player p = e.getPlayer();
         ItemStack item = p.getInventory().getItemInHand();
 
         for(PlayerItem pItem : items) {
             if(pItem.equals(item)) pItem.trigger(e);
         }
+        items.clear();
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent e) {
         if(!PlayerItem.isUsing((Player) e.getWhoClicked())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems((Player) e.getWhoClicked());
+        List<PlayerItem> items = API.getRemovables((Player) e.getWhoClicked(), PlayerItem.class);
         ItemStack current = e.getCurrentItem();
 
         for(PlayerItem pItem : items) {
             if(pItem.equals(current) && pItem.isFreezed()) e.setCancelled(true);
         }
+        items.clear();
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDrop(PlayerDropItemEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
         ItemStack current = e.getItemDrop().getItemStack();
 
         for(PlayerItem pItem : items) {
             if(pItem.equals(current) && pItem.isFreezed()) e.setCancelled(true);
         }
+        items.clear();
     }
 
     @EventHandler
     public void onSwitch(PlayerItemHeldEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
 
         ItemStack old = e.getPlayer().getInventory().getItem(e.getPreviousSlot());
         ItemStack current = e.getPlayer().getInventory().getItem(e.getNewSlot());
@@ -124,6 +131,7 @@ public class GUIListener implements Listener {
             if(pItem.equals(old) && pItem.isFreezed()) prev = pItem;
             if(pItem.equals(current) && pItem.isFreezed()) next = pItem;
         }
+        items.clear();
 
         if(prev != null) prev.onUnhover(e);
         if(next != null) next.onHover(e);

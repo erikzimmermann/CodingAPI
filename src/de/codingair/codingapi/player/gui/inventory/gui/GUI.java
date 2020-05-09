@@ -440,7 +440,8 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public static GUI getGUI(Player p) {
-        return API.getRemovable(p, GUI.class);
+        GUI g = API.getRemovable(p, GUI.class);
+        return g;
     }
 
     public boolean isOpen() {

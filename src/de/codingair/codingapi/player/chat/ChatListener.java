@@ -42,7 +42,7 @@ public class ChatListener implements Listener {
                         type = a[1];
                     } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
 
-                    List<SimpleMessage> messageList = API.getRemovables(SimpleMessage.class);
+                    List<SimpleMessage> messageList = API.getRemovables(player, SimpleMessage.class);
 
                     String finalType = type;
                     if(!messageList.isEmpty()) {
@@ -56,10 +56,9 @@ public class ChatListener implements Listener {
                                     break;
                                 }
                             }
+                            messageList.clear();
 
                             if(!clicked) callForeignClick(player, uniqueId, finalType);
-
-                            messageList.clear();
                         });
                     } else callForeignClick(player, uniqueId, finalType);
 

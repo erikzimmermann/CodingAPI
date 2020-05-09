@@ -20,9 +20,8 @@ public class BookListener implements Listener {
         e.setMessage(null);
         e.getRecipients().clear();
 
-        List<Book> bookList = API.getRemovables(Book.class);
-
-        for(Book book : bookList) {
+        List<Book> l = API.getRemovables(e.getPlayer(), Book.class);
+        for(Book book : l) {
             Button button = book.getButton(uniqueId);
             if(button != null) {
                 if(button.onClick(e.getPlayer())) {
@@ -30,6 +29,7 @@ public class BookListener implements Listener {
                 }
             }
         }
+        l.clear();
     }
 
 }

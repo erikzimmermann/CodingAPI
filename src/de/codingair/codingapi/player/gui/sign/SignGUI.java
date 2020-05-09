@@ -131,12 +131,14 @@ public abstract class SignGUI {
     public void close() {
         PacketReader packetReader = null;
 
-        for(PacketReader reader : API.getRemovables(this.player, PacketReader.class)) {
+        List<PacketReader> l = API.getRemovables(this.player, PacketReader.class);
+        for(PacketReader reader : l) {
             if(reader.getName().equals("SignEditor")) {
                 packetReader = reader;
                 break;
             }
         }
+        l.clear();
 
         packetReader.unInject();
         Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());

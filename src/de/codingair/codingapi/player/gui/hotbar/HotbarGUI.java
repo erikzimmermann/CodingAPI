@@ -57,6 +57,7 @@ public abstract class HotbarGUI implements Removable {
             this.backup = gui.getBackup();
             gui.destroy();
         }
+        l.clear();
 
         if(backup == null) this.backup = new PlayerInventory(this.player);
         waiting = false;

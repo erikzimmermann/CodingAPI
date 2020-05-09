@@ -96,10 +96,6 @@ public abstract class PlayerItem extends ItemStack implements Removable {
         return API.getRemovable(p, PlayerItem.class) != null;
     }
 
-    public static List<PlayerItem> getPlayerItems(Player p) {
-        return API.getRemovables(p, PlayerItem.class);
-    }
-
     public void setDisplayName(String name) {
         ItemMeta meta = getItemMeta();
         meta.setDisplayName(name);

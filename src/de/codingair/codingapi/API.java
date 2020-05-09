@@ -1,5 +1,8 @@
 package de.codingair.codingapi;
 
+import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import de.codingair.codingapi.particles.animations.customanimations.AnimationType;
 import de.codingair.codingapi.player.Hologram;
@@ -7,10 +10,12 @@ import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
 import de.codingair.codingapi.server.commands.builder.CommandBuilder;
+import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
+import de.codingair.codingapi.utils.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
@@ -18,7 +23,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
@@ -29,13 +33,10 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class API {
-    private static final List<Removable> REMOVABLES = new ArrayList<>();
+    private static final Cache<String, HashMap<Class<?>, List<Removable>>> CACHE = CacheBuilder.newBuilder().build();
     private static final List<Ticker> TICKERS = new ArrayList<>();
 
     private static API instance;
@@ -163,16 +164,18 @@ public class API {
             /** FakePlayerListener - Start */
 
             @EventHandler
-            public void onMove(PlayerMoveEvent e) {
+            public void onMove(PlayerWalkEvent e) {
                 Player p = e.getPlayer();
                 Location from = e.getFrom();
                 Location to = e.getTo();
 
-                for(FakePlayer fakePlayer : API.getRemovables(FakePlayer.class)) {
+                List<FakePlayer> l = API.getRemovables(null, FakePlayer.class);
+                for(FakePlayer fakePlayer : l) {
                     if(!fakePlayer.isInRange(from) && fakePlayer.isInRange(to)) {
                         fakePlayer.updatePlayer(p);
                     }
                 }
+                l.clear();
             }
 
             /* FakePlayerListener - End */
@@ -185,14 +188,21 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if(this.tickerTimer != null) return;
 
+        Value<Integer> last = new Value<>(0);
         this.tickerSecondTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for(Ticker ticker : TICKERS) {
                 ticker.onSecond();
             }
+            int i = count();
+            if(last.getValue() != i) {
+                last.setValue(i);
+            }
         }, 0, 20);
 
         this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            API.getRemovables(FakePlayer.class).forEach(FakePlayer::onTick);
+            List<FakePlayer> l = API.getRemovables(null, FakePlayer.class);
+            l.forEach(FakePlayer::onTick);
+            l.clear();
             GUIListener.onTick();
 
             for(Ticker ticker : TICKERS) {
@@ -201,94 +211,161 @@ public class API {
         }, 0, 1);
     }
 
+    private int count() {
+        int i = 0;
+        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
+
+        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
+            for(List<Removable> removables : value.values()) {
+                i += removables.size();
+            }
+        }
+
+        return i;
+    }
+
     public static API getInstance() {
         if(instance == null) instance = new API();
         return instance;
     }
 
+    private static String getKey(Player player) {
+        return player == null ? "§" : player.getName();
+    }
+
+    private static Class<?> getRemovableClass(Removable removable) {
+        return getRemovableClass(removable.getClass());
+    }
+
+    private static Class<?> getRemovableClass(Class<?> c) {
+        if(!containsRemovableInterface(c.getInterfaces())) {
+            Class<?> deep = c.getSuperclass();
+            if(deep == null) return null;
+            else {
+                Class<?> deeper = getRemovableClass(deep);
+                return deeper == null ? c : deeper;
+            }
+        } else return c;
+    }
+
+    private static boolean containsRemovableInterface(Class<?>[] classes) {
+        for(Class<?> aClass : classes) {
+            if(aClass.equals(Removable.class)) return true;
+        }
+        return false;
+    }
+
     public static synchronized boolean addRemovable(Removable removable) {
-        if(isRegistered(removable)) removeRemovable(removable);
-        return REMOVABLES.add(removable);
+        Preconditions.checkNotNull(removable);
+
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(removable.getPlayer()));
+
+        Class<?> enclosingClass = getRemovableClass(removable);
+
+        List<Removable> entries;
+        if(data == null) {
+            data = new HashMap<>();
+            entries = new ArrayList<>();
+            data.put(enclosingClass, entries);
+            CACHE.put(getKey(removable.getPlayer()), data);
+        } else {
+            entries = data.get(enclosingClass);
+            if(entries == null) {
+                entries = new ArrayList<>();
+                data.put(enclosingClass, entries);
+            } else if(entries.contains(removable)) return false;
+        }
+
+        entries.add(removable);
+        return true;
     }
 
     public static synchronized <T extends Removable> T getRemovable(Player player, Class<? extends T> clazz) {
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r)) {
-                if((r.getPlayer() == null) != (player == null)) continue;
-                if(r.getPlayer().equals(player)) return clazz.cast(r);
-            }
-        }
+        Preconditions.checkNotNull(clazz);
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
 
-        return null;
-    }
+        if(data != null) {
+            List<T> l = (List<T>) data.get(getRemovableClass(clazz));
 
-    public static synchronized <T extends Removable> T getRemovable(int id, Class<? extends T> clazz) {
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r)) {
-                if(getID(r) == id) return clazz.cast(r);
+            if(l != null) {
+                for(T t : l) {
+                    if(clazz.isInstance(t)) return t;
+                }
             }
+
+            return null;
         }
 
         return null;
     }
 
     public static synchronized <T extends Removable> T getRemovable(Class<? extends T> clazz, UUID uniqueId) {
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r)) {
-                if(r.getUniqueId() == uniqueId) return clazz.cast(r);
+        Preconditions.checkNotNull(clazz);
+        Preconditions.checkNotNull(uniqueId);
+
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(null));
+        if(data == null) return null;
+
+        List<Removable> entries = data.get(getRemovableClass(clazz));
+        if(entries != null) {
+            for(Removable entry : entries) {
+                if(entry.getUniqueId().equals(uniqueId)) return (T) entry;
             }
         }
 
         return null;
     }
 
-    public static synchronized List<Removable> getRemovables(JavaPlugin plugin) {
-        List<Removable> l = new ArrayList<>();
+    private static synchronized List<Removable> getRemovables(JavaPlugin plugin) {
+        List<Removable> found = new ArrayList<>();
+        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
 
-        if(plugin == null) return l;
-
-        for(Removable r : REMOVABLES) {
-            if(r.getPlugin() == plugin) {
-                l.add(r);
+        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
+            for(List<Removable> removables : value.values()) {
+                for(Removable removable : removables) {
+                    if(removable.getPlugin().equals(plugin)) found.add(removable);
+                }
             }
         }
 
-        return l;
-    }
-
-    public static synchronized <T extends Removable> List<T> getRemovables(JavaPlugin plugin, Class<? extends T> clazz) {
-        List<T> l = new ArrayList<>();
-
-        if(plugin == null) return l;
-
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r) && r.getPlugin() == plugin) {
-                l.add(clazz.cast(r));
-            }
-        }
-
-        return l;
+        return found;
     }
 
     public static synchronized <T extends Removable> List<T> getRemovables(Player player, Class<? extends T> clazz) {
-        List<T> l = new ArrayList<>();
+        Preconditions.checkNotNull(clazz);
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
 
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r)) {
-                if((r.getPlayer() == null) != (player == null)) continue;
-                if(r.getPlayer().equals(player)) l.add(clazz.cast(r));
+        if(data != null) {
+            List<?> entries = data.get(getRemovableClass(clazz));
+
+            if(entries != null) {
+                List<T> l = new ArrayList<>();
+                for(Object removable : entries) {
+                    if(clazz.isInstance(removable)) l.add((T) removable);
+                }
+                return l;
             }
+
+            return new ArrayList<>();
         }
 
-        return l;
+        return new ArrayList<>();
     }
 
+    @Deprecated
     public static synchronized <T extends Removable> List<T> getRemovables(Class<? extends T> clazz) {
+        Preconditions.checkNotNull(clazz);
         List<T> l = new ArrayList<>();
 
-        for(Removable r : REMOVABLES) {
-            if(clazz.isInstance(r)) {
-                l.add(clazz.cast(r));
+        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
+        Class<?> rClazz = getRemovableClass(clazz);
+
+        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
+            List<Removable> r = value.get(rClazz);
+            if(r != null) {
+                for(Removable removable : r) {
+                    if(clazz.isInstance(removable)) l.add((T) removable);
+                }
             }
         }
 
@@ -296,65 +373,43 @@ public class API {
     }
 
     public static synchronized boolean removeRemovable(Removable removable) {
-        return removeRemovable(getID(removable));
-    }
+        Preconditions.checkNotNull(removable);
+        String key = getKey(removable.getPlayer());
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(key);
 
-    public static synchronized boolean removeRemovable(int id) {
-        if(id == -999) return false;
+        if(data != null) {
+            Class<?> enclosingClass = getRemovableClass(removable);
+            List<Removable> entries = data.get(enclosingClass);
+            if(entries != null) {
+                boolean success = entries.remove(removable);
 
-        Removable removable = getRemovable(id, Removable.class);
-        if(removable == null) return false;
+                if(entries.isEmpty()) {
+                    data.remove(enclosingClass);
+                    if(data.isEmpty()) CACHE.invalidate(key);
+                }
 
-        boolean removed = REMOVABLES.contains(id);
-        REMOVABLES.remove(id);
-        removable.destroy();
+                return success;
+            }
+        }
 
-        return removed;
+        return false;
     }
 
     public static synchronized void removeRemovables(Player player) {
-        List<Removable> removables = getRemovables(player, Removable.class);
+        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
 
-        for(Removable r : removables) {
-            int id = getID(r);
-            if(id >= 0) REMOVABLES.remove(id);
-            r.destroy();
-        }
-
-        removables.clear();
-    }
-
-    public static synchronized <T extends Removable> void removeRemovables(Player player, Class<? extends T> clazz) {
-        List<Removable> removables = getRemovables(player, clazz);
-
-        for(Removable r : removables) {
-            REMOVABLES.remove(getID(r));
-            r.destroy();
-        }
-
-        removables.clear();
-    }
-
-    public static synchronized boolean isRegistered(Removable removable) {
-        return getID(removable) != -999;
-    }
-
-    public static synchronized int getID(Removable removable) {
-        int id = 0;
-
-        List<Removable> REMOVABLES = new ArrayList<>(API.REMOVABLES);
-
-        for(Removable r : REMOVABLES) {
-            if(r.equals(removable)) {
-                REMOVABLES.clear();
-                return id;
+        if(data != null) {
+            List<List<Removable>> l = new ArrayList<>(data.values());
+            for(List<Removable> value : l) {
+                List<Removable> l2 = new ArrayList<>(value);
+                l2.forEach(Removable::destroy);
+                l2.clear();
+                value.clear();
             }
-            id++;
+            l.clear();
+            data.clear();
+            CACHE.invalidate(getKey(player));
         }
-
-        REMOVABLES.clear();
-
-        return -999;
     }
 
     public static void addTicker(Ticker ticker) {
