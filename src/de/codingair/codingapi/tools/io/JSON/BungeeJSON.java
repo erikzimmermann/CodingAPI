@@ -177,14 +177,14 @@ public class BungeeJSON extends JSONObject implements DataWriter {
         return (T) serializable;
     }
 
-    public Boolean getBoolean(String key) {
+    public Boolean getBoolean(String key, Boolean def) {
         Boolean b = get(key);
-        return b == null ? false : b;
+        return b == null ? def : b;
     }
 
-    public Integer getInteger(String key) {
-        Object i = get(key);
-        return i == null ? 0 : (i instanceof Number ? ((Number) i).intValue() : 0);
+    public Integer getInteger(String key, Integer def) {
+        Number i = get(key);
+        return i == null ? def : (Integer) i.intValue();
     }
 
     public JSONArray getList(String key) {
@@ -198,24 +198,19 @@ public class BungeeJSON extends JSONObject implements DataWriter {
         return array;
     }
 
-    public Long getLong(String key) {
-        Object i = get(key, 0L, true);
-        return i == null ? 0L : (i instanceof Number ? ((Number) i).longValue() : 0);
+    public Long getLong(String key, Long def) {
+        Object i = get(key, def, true);
+        return i == null ? def : (i instanceof Number ? ((Number) i).longValue() : def);
     }
 
-    public Date getDate(String key) {
-        Long l = getLong(key);
-        return l == null ? null : new Date(l);
-    }
-
-    public Double getDouble(String key) {
-        Double d = get(key);
-        return d == null ? 0 : d;
-    }
-
-    public Float getFloat(String key) {
+    public Double getDouble(String key, Double def) {
         Number d = get(key);
-        return d == null ? 0F : d.floatValue();
+        return d == null ? def : (Double) d.doubleValue();
+    }
+
+    public Float getFloat(String key, Float def) {
+        Number d = get(key);
+        return d == null ? def : (Float) d.floatValue();
     }
 
     public <T> T get(String key, T def, boolean raw) {

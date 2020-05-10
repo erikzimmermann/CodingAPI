@@ -104,13 +104,13 @@ public class ConfigWriter implements SpigotDataWriter {
     }
 
     @Override
-    public Boolean getBoolean(String key) {
-        return c().getBoolean(k(key));
+    public Boolean getBoolean(String key, Boolean def) {
+        return c().getBoolean(k(key), def);
     }
 
     @Override
-    public Integer getInteger(String key) {
-        return c().getInt(k(key));
+    public Integer getInteger(String key, Integer def) {
+        return c().getInt(k(key), def);
     }
 
     @Override
@@ -125,24 +125,19 @@ public class ConfigWriter implements SpigotDataWriter {
     }
 
     @Override
-    public Long getLong(String key) {
-        return c().getLong(k(key));
+    public Long getLong(String key, Long def) {
+        return c().getLong(k(key), def);
     }
 
     @Override
-    public Date getDate(String key) {
-        return new Date(c().getLong(k(key)));
+    public Double getDouble(String key, Double def) {
+        return c().getDouble(k(key), def);
     }
 
     @Override
-    public Double getDouble(String key) {
-        return c().getDouble(k(key));
-    }
-
-    @Override
-    public Float getFloat(String key) {
+    public Float getFloat(String key, Float def) {
         Double d = getDouble(key);
-        return d == null ? null : (Float) d.floatValue();
+        return d == null ? def : d.floatValue();
     }
 
     @Override

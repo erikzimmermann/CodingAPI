@@ -42,54 +42,55 @@ public interface DataWriter {
 
     Object finalCommit(String key, Object value);
 
-    default Boolean getBoolean(String key, Boolean def) {
-        Boolean o = getBoolean(key);
-        return o == null ? def : o;
+    Boolean getBoolean(String key, Boolean def);
+
+    default Boolean getBoolean(String key) {
+        return getBoolean(key, false);
     }
 
-    Boolean getBoolean(String key);
+    Integer getInteger(String key, Integer def);
 
-    default Integer getInteger(String key, Integer def) {
-        Integer o = getInteger(key);
-        return o == null ? def : o;
+    default Integer getInteger(String key) {
+        return getInteger(key, 0);
     }
-
-    Integer getInteger(String key);
 
     default Byte getByte(String key) {
-        Number n = getInteger(key);
-        return n == null ? 0 : n.byteValue();
+        return getByte(key, (byte) 0);
+    }
+
+    default Byte getByte(String key, Byte def) {
+        Number n = getInteger(key, null);
+        return n == null ? def : n.byteValue();
     }
 
     JSONArray getList(String key);
 
-    default Long getLong(String key, Long def) {
-        Long o = getLong(key);
-        return o == null ? def : o;
-    }
+    Long getLong(String key, Long def);
 
-    Long getLong(String key);
+    default Long getLong(String key) {
+        return getLong(key, 0L);
+    }
 
     default Date getDate(String key, Date def) {
-        Date o = getDate(key);
-        return o == null ? def : o;
+        Long o = getLong(key, null);
+        return o == null ? def : new Date(o);
     }
 
-    Date getDate(String key);
-
-    default Double getDouble(String key, Double def) {
-        Double o = getDouble(key);
-        return o == null ? def : o;
+    default Date getDate(String key) {
+        return getDate(key, null);
     }
 
-    Double getDouble(String key);
+    Double getDouble(String key, Double def);
 
-    default Float getFloat(String key, Float def) {
-        Float o = getFloat(key);
-        return o == null ? def : o;
+    default Double getDouble(String key) {
+        return getDouble(key, 0D);
     }
 
-    Float getFloat(String key);
+    Float getFloat(String key, Float def);
+
+    default Float getFloat(String key) {
+        return getFloat(key, 0F);
+    }
 
     default String getString(String key, String def) {
         Object o = get(key);
