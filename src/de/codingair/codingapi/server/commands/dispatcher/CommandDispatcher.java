@@ -23,7 +23,6 @@ public class CommandDispatcher {
                 Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
                 IReflection.MethodAccessor getRoot = IReflection.getMethod(commandDispatcherBrigadierClass, "getRoot", rootCommandNodeClass, new Class[] {});
 
-
                 IReflection.FieldAccessor<Map<String, ?>> children = IReflection.getField(commandNode, "children");
                 Map<String, ?> childrenMap = children.get(getRoot.invoke(dispatcher()));
                 return childrenMap.remove(command) != null;

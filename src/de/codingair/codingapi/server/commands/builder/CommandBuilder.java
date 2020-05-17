@@ -2,6 +2,8 @@ package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
+import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
 import de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Bukkit;
@@ -58,7 +60,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     private boolean highestPriority = false;
 
     public CommandBuilder(String name, BaseComponent baseComponent, boolean tabCompleter) {
-        this(name, null, baseComponent, tabCompleter, null);
+        this(name, null, baseComponent, tabCompleter, (String[]) null);
     }
 
     public CommandBuilder(String name, String description, BaseComponent baseComponent, boolean tabCompleter, String... aliases) {
@@ -267,10 +269,14 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if(this.ownTabCompleter != null) return this.ownTabCompleter.onTabComplete(sender, command, label, args);
+        List<String> sug = new ArrayList<>();
+        if(this.ownTabCompleter != null) {
+            List<String> apply = this.ownTabCompleter.onTabComplete(sender, command, label, args);
+            if(apply != null) sug.addAll(apply);
+            return sug;
+        }
 
         HashMap<CommandComponent, List<String>> sub = new HashMap<>();
-        List<String> sug = new ArrayList<>();
 
         if(args.length == 0) return sug;
 
@@ -283,39 +289,51 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
 
         args[args.length - 1] = lastArg;
 
-        for(CommandComponent child : component.getChildren()) {
-            if(child.hasPermission(sender)) {
-                if(child.useInTabCompleter(sender, label, args)) {
-                    List<String> suggestion = new ArrayList<>();
+        if(!(component instanceof NaturalCommandComponent)) {
+            for(CommandComponent child : component.getChildren()) {
+                if(child.hasPermission(sender)) {
+                    if(child.useInTabCompleter(sender, label, args)) {
+                        List<String> suggestion = new ArrayList<>();
 
-                    if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
-                    else suggestion.add(child.getArgument());
+                        if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
+                        else suggestion.add(child.getArgument());
 
-                    if(!suggestion.isEmpty()) sub.put(child, suggestion);
+                        if(!suggestion.isEmpty()) sub.put(child, suggestion);
+                    }
+                }
+            }
+
+            for(CommandComponent c : sub.keySet()) {
+                List<String> suggestions = sub.get(c);
+
+                for(String subCommand : suggestions) {
+                    if(sug.contains(subCommand)) continue;
+
+                    if(c.matchTabComplete(sender, subCommand, lastArg.toLowerCase())) {
+                        sug.add(subCommand);
+                        continue;
+                    }
+
+                    if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg.toLowerCase())) {
+                        sug.add(subCommand);
+                    }
+                }
+
+                suggestions.clear();
+            }
+
+            sub.clear();
+        } else {
+            NaturalCommandComponent ncc = (NaturalCommandComponent) component;
+            if(ncc.hasPermission(sender)) {
+                List<String> list = ncc.onTabComplete(sender, command, label, args);
+                if(list != null) {
+                    sug.addAll(list);
+                    list.clear();
                 }
             }
         }
 
-        for(CommandComponent c : sub.keySet()) {
-            List<String> suggestions = sub.get(c);
-
-            for(String subCommand : suggestions) {
-                if(sug.contains(subCommand)) continue;
-
-                if(c.matchTabComplete(sender, subCommand, lastArg.toLowerCase())) {
-                    sug.add(subCommand);
-                    continue;
-                }
-
-                if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg.toLowerCase())) {
-                    sug.add(subCommand);
-                }
-            }
-
-            suggestions.clear();
-        }
-
-        sub.clear();
         sug.sort(Comparator.naturalOrder());
         return sug;
     }
@@ -331,8 +349,11 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         CommandComponent current = this.baseComponent;
 
         for(String value : s) {
-            if(current == null || (value != null && value.isEmpty())) break;
-            current = current.getChild(value);
+            if(current == null || current instanceof NaturalCommandComponent) break;
+            CommandComponent cc = current.getChild(value);
+
+            if((value != null && value.isEmpty()) && !(cc instanceof NaturalCommandComponent)) break;
+            current = cc;
         }
 
         return current;

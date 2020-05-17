@@ -1,5 +1,6 @@
-package de.codingair.codingapi.server.commands.builder;
+package de.codingair.codingapi.server.commands.builder.special;
 
+import de.codingair.codingapi.server.commands.builder.CommandComponent;
 import org.bukkit.command.CommandSender;
 
 public abstract class MultiTextCommandComponent extends MultiCommandComponent {

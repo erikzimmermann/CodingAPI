@@ -188,15 +188,12 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if(this.tickerTimer != null) return;
 
-        Value<Integer> last = new Value<>(0);
         this.tickerSecondTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for(Ticker ticker : TICKERS) {
+            List<Ticker> tickers = new ArrayList<>(TICKERS);
+            for(Ticker ticker : tickers) {
                 ticker.onSecond();
             }
-            int i = count();
-            if(last.getValue() != i) {
-                last.setValue(i);
-            }
+            tickers.clear();
         }, 0, 20);
 
         this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
@@ -205,23 +202,12 @@ public class API {
             l.clear();
             GUIListener.onTick();
 
-            for(Ticker ticker : TICKERS) {
+            List<Ticker> tickers = new ArrayList<>(TICKERS);
+            for(Ticker ticker : tickers) {
                 ticker.onTick();
             }
+            tickers.clear();
         }, 0, 1);
-    }
-
-    private int count() {
-        int i = 0;
-        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
-
-        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
-            for(List<Removable> removables : value.values()) {
-                i += removables.size();
-            }
-        }
-
-        return i;
     }
 
     public static API getInstance() {

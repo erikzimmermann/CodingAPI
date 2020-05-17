@@ -25,6 +25,13 @@ import java.util.concurrent.TimeUnit;
 
 public class Environment {
 
+    public static boolean canBeEntered(Material m) {
+        IReflection.MethodAccessor isFuel = IReflection.getSaveMethod(Material.class, "isFuel", boolean.class);
+        boolean fuel = isFuel != null && (boolean) isFuel.invoke(m);
+
+        return !m.isOccluding() && (fuel || !m.isSolid());
+    }
+
     public static void playRandomFireworkEffect(Location loc) {
         Random r = new Random();
         int rt = r.nextInt(2) + 1;
