@@ -87,7 +87,7 @@ public abstract class PacketReader implements Removable {
 	}
 	
 	public void unInject() {
-		if(channel.pipeline().get(name) != null) {
+		if(player.isOnline() && channel.pipeline().get(name) != null) {
 			try {
 				channel.pipeline().remove(name);
 			} catch(Throwable ignored) {
