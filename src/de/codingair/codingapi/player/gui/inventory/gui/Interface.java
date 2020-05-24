@@ -1,6 +1,5 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
-import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.Version;
@@ -253,7 +252,7 @@ public class Interface {
     public boolean setSize(int size) {
         if(this.getSize() == size) return true;
 
-        double s = (double) size;
+        double s = size;
         double res = s / 9;
         res *= 100;
         String resS = res + "";
@@ -303,7 +302,11 @@ public class Interface {
     }
 
     public void updateTitle() {
-        if(isOldTitle(this.title)) return;
+        updateTitle(false);
+    }
+
+    public void updateTitle(boolean force) {
+        if(!force && isOldTitle(this.title)) return;
         if(this instanceof GUI) ((GUI) this).isClosed = false;
 
         this.currentPlayers.forEach(p -> {
@@ -312,19 +315,19 @@ public class Interface {
 
             IReflection.MethodAccessor updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {containerClass});
 
-            IReflection.FieldAccessor activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
-            IReflection.FieldAccessor windowId = IReflection.getField(containerClass, "windowId");
+            IReflection.FieldAccessor<?> activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
+            IReflection.FieldAccessor<Integer> windowId = IReflection.getField(containerClass, "windowId");
 
             Object ep = PacketUtils.getEntityPlayer(p);
             Object packet;
             Object icbcTitle = PacketUtils.getChatMessage(this.title);
 
             Object active = activeContainer.get(ep);
-            int id = (int) windowId.get(active);
-            
+            int id = windowId.get(active);
+
             if(Version.getVersion().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-                IReflection.FieldAccessor title = IReflection.getField(containerClass, "title");
+                IReflection.FieldAccessor<?> title = IReflection.getField(containerClass, "title");
 
                 title.set(active, icbcTitle);
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
@@ -343,7 +346,7 @@ public class Interface {
 
     private Object getContainerType(int size) {
         Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-        IReflection.FieldAccessor generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
+        IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
         return generic.get(null);
     }
 
@@ -412,12 +415,7 @@ public class Interface {
         this.currentPlayers = current;
         if(oldUsage) interfaces.remove(this);
 
-        if(!isClosing) {
-            if(API.getInstance().getMainPlugin() != null && API.getInstance().getMainPlugin().isEnabled())
-                Bukkit.getScheduler().runTask(plugin, () -> p.closeInventory());
-            else
-                p.closeInventory();
-        }
+        if(!isClosing) p.closeInventory();
     }
 
     public boolean isUsing(Player p) {
@@ -693,7 +691,12 @@ public class Interface {
 
     public void setItem(int x, ItemStack item) {
         ItemStack old;
-        if((old = this.inventory.getItem(x)) != null && old.isSimilar(item)) return;
+
+        try {
+            if((old = this.inventory.getItem(x)) != null && old.isSimilar(item)) return;
+        } catch(Throwable ignored) {
+        }
+
         this.inventory.setItem(x, item);
     }
 

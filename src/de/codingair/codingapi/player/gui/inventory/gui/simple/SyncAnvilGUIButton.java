@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
     private ItemStack anvilItem;
     private boolean onlyOutputTrigger = true;
+    private AnvilGUI gui;
 
     public SyncAnvilGUIButton(int slot) {
         super(slot);
@@ -28,12 +29,14 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     @Override
     public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
+        if(!canTrigger(e, trigger, player)) return;
+
         getInterface().setClosingByButton(true);
         getInterface().setClosingForGUI(true);
 
         this.anvilItem = craftAnvilItem(trigger);
 
-        AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
+        gui = AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
             @Override
             public void onClick(AnvilClickEvent e) {
                 e.setCancelled(true);
@@ -41,8 +44,8 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
                 if(onlyOutputTrigger && e.getSlot() != AnvilSlot.OUTPUT) return;
 
+                playSound(e.getClickType(), player);
                 SyncAnvilGUIButton.this.onClick(e);
-                playSound(player);
             }
 
             @Override
@@ -52,10 +55,13 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
                 if(e.getPost() == null) {
                     getInterface().reinitialize();
                     e.setPost(() -> getInterface().open());
-                    getInterface().setClosingForGUI(false);
                 }
             }
         }, this.anvilItem);
+    }
+
+    public boolean canTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
+        return true;
     }
 
     @Override
@@ -81,5 +87,9 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     public void setOnlyOutputTrigger(boolean onlyOutputTrigger) {
         this.onlyOutputTrigger = onlyOutputTrigger;
+    }
+
+    public AnvilGUI getAnvilGUI() {
+        return gui;
     }
 }

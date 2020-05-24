@@ -35,11 +35,6 @@ public class Title implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return Title.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.uuid;
     }

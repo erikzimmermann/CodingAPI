@@ -1,5 +1,7 @@
 package de.codingair.codingapi.server.commands.builder;
 
+import de.codingair.codingapi.server.commands.builder.special.SpecialCommandComponent;
+import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -11,12 +13,11 @@ public abstract class CommandComponent {
     private List<CommandComponent> children = new ArrayList<>();
     private String argument;
     private String permission;
-    private boolean onlyPlayers = false;
-    private boolean onlyConsole = false;
+    private Boolean onlyPlayers = null;
+    private Boolean onlyConsole = null;
 
     public CommandComponent(String argument) {
-        this.argument = argument;
-        this.permission = null;
+        this(argument, null);
     }
 
     public CommandComponent(String argument, String permission) {
@@ -26,6 +27,10 @@ public abstract class CommandComponent {
 
     public boolean useInTabCompleter(CommandSender sender, String label, String[] args) {
         return true;
+    }
+
+    public boolean matchTabComplete(CommandSender sender, String suggestion, String argument) {
+        return false;
     }
 
     public abstract boolean runCommand(CommandSender sender, String label, String[] args);
@@ -38,24 +43,53 @@ public abstract class CommandComponent {
         return parent;
     }
 
+    public BaseComponent getBase() {
+        if(this instanceof BaseComponent) return (BaseComponent) this;
+        else if(parent instanceof BaseComponent) return (BaseComponent) parent;
+        return parent == null ? null : parent.getBase();
+    }
+
     public List<CommandComponent> getChildren() {
         return Collections.unmodifiableList(children);
     }
 
-    public void addChild(CommandComponent child) {
-        if(child instanceof MultiCommandComponent && this.getChild(null) != null) throw new IllegalStateException("There is already a MultiCommandComponent!");
+    public CommandComponent addChild(CommandComponent child) {
+        if(child instanceof SpecialCommandComponent && this.getChild(null) != null) throw new IllegalStateException("There is already a SpecialCommandComponent!");
         child.setParent(this);
         this.children.add(child);
+        return this;
+    }
+
+    public Object buildLiteralArgument() {
+        try {
+            Class<?> lArgBuilder = Class.forName("com.mojang.brigadier.builder.LiteralArgumentBuilder");
+            Class<?> argBuilder = Class.forName("com.mojang.brigadier.builder.ArgumentBuilder");
+            IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[] {String.class});
+            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[] {argBuilder});
+
+            Object l = literal.invoke(null, argument);
+
+            for(CommandComponent child : getChildren()) {
+                if(child instanceof SpecialCommandComponent) continue;
+                Object o = child.buildLiteralArgument();
+                if(o != null) then.invoke(l, o);
+            }
+
+            return l;
+        } catch(ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public CommandComponent getChild(String arg) {
         List<CommandComponent> children = new ArrayList<>(this.children);
         CommandComponent child = null;
-        CommandComponent multi = null;
+        CommandComponent special = null;
 
         for(CommandComponent c : children) {
-            if(c instanceof MultiCommandComponent) {
-                multi = c;
+            if(c instanceof SpecialCommandComponent) {
+                special = c;
                 continue;
             }
 
@@ -69,7 +103,7 @@ public abstract class CommandComponent {
 
         children.clear();
 
-        return child == null ? multi : child;
+        return child == null ? special : child;
     }
 
     public boolean removeChild(CommandComponent child) {
@@ -112,9 +146,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyPlayers() {
-        if(onlyPlayers) return true;
+        if(onlyPlayers != null) return onlyPlayers;
 
-        if(this.parent == null) return onlyPlayers;
+        if(this.parent == null) return false;
         else return this.parent.isOnlyPlayers();
     }
 
@@ -124,9 +158,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyConsole() {
-        if(onlyConsole) return true;
+        if(onlyConsole != null) return onlyConsole;
 
-        if(this.parent == null) return onlyConsole;
+        if(this.parent == null) return false;
         else return this.parent.isOnlyConsole();
     }
 

@@ -17,12 +17,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
 public class Hologram implements Removable {
     private static final double DISTANCE_TO_SEE = 120;
     private static final double DISTANCE = 0.25;
+    private static final double ARMOR_STAND_HEIGHT = 2.6;
 
     private final UUID uniqueId = UUID.randomUUID();
     private JavaPlugin plugin;
@@ -36,22 +38,29 @@ public class Hologram implements Removable {
     private Location location;
     private boolean visible = false;
 
+    private BukkitRunnable runnable;
+    private long updateInterval;
+
     public Hologram(Location location, JavaPlugin plugin, String... text) {
+        this(location, plugin, 0, text);
+    }
+
+    public Hologram(Location location, JavaPlugin plugin, long updateInterval, String... text) {
         if(!API.getInstance().isInitialized()) throw new IllegalStateException("API have to be initialized!");
 
         this.text = new ArrayList<>(Arrays.asList(text));
         if(location.getWorld() == null) throw new IllegalStateException("Could not initialize Hologram with a location without world!");
         this.source = location.clone();
         this.plugin = plugin;
+        this.updateInterval = updateInterval / 50;
     }
 
     public static Listener getListener() {
         return new Listener() {
             @EventHandler(priority = EventPriority.LOWEST)
             public void onSwitchWorld(PlayerChangedWorldEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
 
                     if(hologram.getLocation().getWorld() == e.getFrom()) {
@@ -59,8 +68,7 @@ public class Hologram implements Removable {
                     } else if(hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
                             hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
@@ -68,9 +76,8 @@ public class Hologram implements Removable {
                 if(e.getFrom().getWorld() != e.getTo().getWorld()) return;
 
                 Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
-                    List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                    for(Hologram hologram : holograms) {
+                    List<Hologram> l = API.getRemovables(null, Hologram.class);
+                    for(Hologram hologram : l) {
                         if(!hologram.isWatching(e.getPlayer())) continue;
 
                         double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
@@ -82,43 +89,37 @@ public class Hologram implements Removable {
                             hologram.remove(e.getPlayer());
                         }
                     }
-
-                    holograms.clear();
+                    l.clear();
                 }, 2);
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onJoin(PlayerJoinEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
                     if(hologram.getLocation().getWorld() != e.getPlayer().getWorld()) continue;
 
                     if(hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
                             hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onQuit(PlayerQuitEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : holograms) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     hologram.remove(e.getPlayer());
                     hologram.watchList.remove(e.getPlayer());
                 }
-
-                holograms.clear();
+                l.clear();
             }
 
             @EventHandler(priority = EventPriority.LOWEST)
             public void onWalk(PlayerWalkEvent e) {
-                List<Hologram> holograms = API.getRemovables(Hologram.class);
-
-                for(Hologram hologram : API.getRemovables(Hologram.class)) {
+                List<Hologram> l = API.getRemovables(null, Hologram.class);
+                for(Hologram hologram : l) {
                     if(!hologram.isWatching(e.getPlayer())) continue;
 
                     if(e.getFrom().getWorld() != e.getTo().getWorld() || e.getTo().getWorld() != hologram.getLocation().getWorld()) continue;
@@ -132,8 +133,7 @@ public class Hologram implements Removable {
                         hologram.remove(e.getPlayer());
                     }
                 }
-
-                holograms.clear();
+                l.clear();
             }
         };
     }
@@ -142,7 +142,7 @@ public class Hologram implements Removable {
         if(isInitialized()) remove();
 
         this.location = source.clone();
-        this.location.subtract(0, 2, 0);
+        this.location.subtract(0, ARMOR_STAND_HEIGHT, 0);
         this.location.add(0, this.text.size() * DISTANCE, 0);
 
         for(String line : this.text) {
@@ -158,7 +158,27 @@ public class Hologram implements Removable {
             this.entities.add(armorStand);
         }
 
+        initializeRunnable();
         API.addRemovable(this);
+    }
+
+    private void initializeRunnable() {
+        if(updateInterval > 0) {
+            this.runnable = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    List<Player> watchList = new ArrayList<>(Hologram.this.watchList);
+                    for(Player player : watchList) {
+                        initedPlayers.replace(player, true);
+                    }
+                    watchList.clear();
+
+                    update(null);
+                }
+            };
+
+            this.runnable.runTaskTimer(plugin, 0, updateInterval);
+        }
     }
 
     public void teleport(Location location) {
@@ -166,7 +186,7 @@ public class Hologram implements Removable {
         if(!isInitialized()) return;
 
         this.location = location.clone();
-        this.location.subtract(0, 2, 0);
+        this.location.subtract(0, ARMOR_STAND_HEIGHT, 0);
         this.location.add(0, this.text.size() * DISTANCE, 0);
 
         for(Object entity : this.entities) {
@@ -178,22 +198,14 @@ public class Hologram implements Removable {
     }
 
     public boolean isInitialized() {
-        return API.getRemovable(getAbstractClass(), getUniqueId()) != null;
+        return API.getRemovable(Hologram.class, getUniqueId()) != null;
     }
 
     public void update() {
         if(!canUpdateText()) {
-            List<Player> backupPlayers = new ArrayList<>(this.initedPlayers.keySet());
             List<String> backupText = new ArrayList<>(this.text);
-
             destroy();
-
-            for(Player backupPlayer : backupPlayers) {
-                this.initedPlayers.put(backupPlayer, false);
-            }
             this.text.addAll(backupText);
-
-            backupPlayers.clear();
             backupText.clear();
 
             initialize();
@@ -252,8 +264,12 @@ public class Hologram implements Removable {
         if(!canUpdateText() || !isSpawnedFor(player)) return;
 
         for(int i = 0; i < this.entities.size(); i++) {
-            HologramPackets.update(player, this.entities.get(i), this.text.get(i));
+            HologramPackets.update(player, this.entities.get(i), modifyText(player, this.text.get(i)));
         }
+    }
+
+    public String modifyText(Player player, String text) {
+        return text;
     }
 
     private void injectPacketReader(Player player) {
@@ -262,9 +278,9 @@ public class Hologram implements Removable {
             @Override
             public boolean readPacket(Object packet) {
                 if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {
-                    IReflection.FieldAccessor action = IReflection.getField(packet.getClass(), "action");
-                    IReflection.FieldAccessor fA = IReflection.getField(packet.getClass(), "a");
-                    int clicked = (int) fA.get(packet);
+                    IReflection.FieldAccessor<?> action = IReflection.getField(packet.getClass(), "action");
+                    IReflection.FieldAccessor<Integer> fA = IReflection.getField(packet.getClass(), "a");
+                    int clicked = fA.get(packet);
 
                     String aS = action.get(packet).toString();
                     Action a;
@@ -296,14 +312,12 @@ public class Hologram implements Removable {
     private void uninjectPacketReader(Player player) {
         //Interact event handler
         List<PacketReader> l = API.getRemovables(player, PacketReader.class);
-
         for(PacketReader reader : l) {
             if(reader.getName().equals("CodingAPI-HologramReader")) {
                 reader.unInject();
                 break;
             }
         }
-
         l.clear();
     }
 
@@ -316,7 +330,8 @@ public class Hologram implements Removable {
         }
 
         //put on spawned list
-        this.initedPlayers.put(player, false);
+        this.initedPlayers.put(player, true);
+        update(player);
     }
 
     private void destroy(Player player) {
@@ -352,6 +367,11 @@ public class Hologram implements Removable {
         this.watchList.clear();
         this.text.clear();
         this.entities.clear();
+
+        if(this.runnable != null) {
+            this.runnable.cancel();
+            this.runnable = null;
+        }
 
         API.removeRemovable(this);
     }
@@ -424,7 +444,9 @@ public class Hologram implements Removable {
 
         setChanged(true);
         this.text.clear();
-        this.text.addAll(text);
+        for(String s : text) {
+            this.text.addAll(Arrays.asList(s.split("\n", -1)));
+        }
 
         text.clear();
     }
@@ -490,11 +512,6 @@ public class Hologram implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return Hologram.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.uniqueId;
     }
@@ -556,11 +573,14 @@ public class Hologram implements Removable {
         }
 
         public static void update(Player player, Object armorStand, String text) {
+            setCustomName(armorStand, text);
+            sendDataWatcher(player, armorStand);
+        }
+
+        public static void sendDataWatcher(Player player, Object armorStand) {
             IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, "getDataWatcher", PacketUtils.DataWatcherClass, new Class[] {});
 
-            setCustomName(armorStand, text);
-
-            Packet packet = player == null ? new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player) : new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
+            Packet packet = new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
             packet.initialize(new Class[] {int.class, PacketUtils.DataWatcherClass, boolean.class}, PacketUtils.EntityPackets.getId(armorStand), getDataWatcher.invoke(armorStand), true);
             packet.send();
         }
@@ -578,11 +598,13 @@ public class Hologram implements Removable {
         public static void spawn(Player player, Object armorStand) {
             Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
+
+            if(Version.getVersion().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {
             IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, "setPosition", new Class[] {double.class, double.class, double.class});
-            IReflection.FieldAccessor world = IReflection.getField(PacketUtils.EntityClass, "world");
+            IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, "world");
 
             world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));
             setPosition.invoke(armorStand, location.getX(), location.getY(), location.getZ());

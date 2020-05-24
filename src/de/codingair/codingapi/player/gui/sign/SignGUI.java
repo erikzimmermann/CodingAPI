@@ -45,18 +45,17 @@ public abstract class SignGUI {
             @Override
             public boolean readPacket(Object packet) {
                 if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInUpdateSign")) {
-                    IReflection.FieldAccessor b = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
+                    IReflection.FieldAccessor<?> b = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
                     Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
 
                     String[] lines;
 
                     if(Version.getVersion().isBiggerThan(Version.v1_8)) {
-                        String[] commit = (String[]) b.get(p);
-                        lines = commit;
+                        lines = (String[]) b.get(p);
                     } else {
                         lines = sign == null ? new String[4] : sign.getLines();
 
-                        Object[] data = (String[]) b.get(p);
+                        Object[] data = (Object[]) b.get(p);
 
                         IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
                         IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
@@ -70,7 +69,7 @@ public abstract class SignGUI {
                                 icbc = PacketUtils.getChatMessage((String) data[i]);
                             }
 
-                            int siblings = ((List) getSiblings.invoke(icbc)).size();
+                            int siblings = ((List<?>) getSiblings.invoke(icbc)).size();
                             String line = (String) getText.invoke(icbc);
 
                             if(!line.isEmpty() || siblings == 0) lines[i] = line;
@@ -78,7 +77,7 @@ public abstract class SignGUI {
                     }
 
                     onSignChangeEvent(lines);
-                    return sign == null;
+                    return true;
                 }
 
                 return false;
@@ -94,23 +93,31 @@ public abstract class SignGUI {
             Object tileEntity;
 
             if(Version.getVersion().isBiggerThan(Version.v1_11)) {
-                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "tileEntity");
+                IReflection.FieldAccessor<?> field = IReflection.getField(this.sign.getClass(), "tileEntity");
                 tileEntity = field.get(this.sign);
             } else {
-                IReflection.FieldAccessor field = IReflection.getField(this.sign.getClass(), "sign");
+                IReflection.FieldAccessor<?> field = IReflection.getField(this.sign.getClass(), "sign");
                 tileEntity = field.get(this.sign);
             }
 
-            IReflection.FieldAccessor editable = IReflection.getField(tileEntity.getClass(), "isEditable");
+            IReflection.FieldAccessor<?> editable = IReflection.getField(tileEntity.getClass(), "isEditable");
             editable.set(tileEntity, true);
 
-            IReflection.FieldAccessor owner;
-            if(Version.getVersion().isBiggerThan(Version.v1_13)) {
-                owner = IReflection.getField(tileEntity.getClass(), "j");
-            } else if(Version.getVersion().isBiggerThan(Version.v1_12)) {
-                owner = IReflection.getField(tileEntity.getClass(), "g");
-            } else {
-                owner = IReflection.getField(tileEntity.getClass(), "h");
+            IReflection.FieldAccessor<?> owner;
+
+            switch(Version.getVersion()) {
+                case v1_15:
+                    owner = IReflection.getField(tileEntity.getClass(), "c");
+                    break;
+                case v1_14:
+                    owner = IReflection.getField(tileEntity.getClass(), "j");
+                    break;
+                case v1_13:
+                    owner = IReflection.getField(tileEntity.getClass(), "g");
+                    break;
+                default:
+                    owner = IReflection.getField(tileEntity.getClass(), "h");
+                    break;
             }
 
             owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
@@ -124,12 +131,14 @@ public abstract class SignGUI {
     public void close() {
         PacketReader packetReader = null;
 
-        for(PacketReader reader : API.getRemovables(this.player, PacketReader.class)) {
+        List<PacketReader> l = API.getRemovables(this.player, PacketReader.class);
+        for(PacketReader reader : l) {
             if(reader.getName().equals("SignEditor")) {
                 packetReader = reader;
                 break;
             }
         }
+        l.clear();
 
         packetReader.unInject();
         Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());

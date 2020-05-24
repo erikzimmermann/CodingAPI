@@ -3,9 +3,6 @@ package de.codingair.codingapi.particles.animations.standalone;
 import de.codingair.codingapi.particles.Particle;
 import de.codingair.codingapi.particles.animations.Animation;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
-
-import java.util.List;
 
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;

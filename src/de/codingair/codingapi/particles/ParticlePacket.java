@@ -60,7 +60,7 @@ public class ParticlePacket {
                     data = IReflection.getConstructor(dustOptions, org.bukkit.Color.class, float.class).newInstance(org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue()), 1);
                 else if(particle == Particle.NOTE) {
                     count = 0;
-                    offsetX = noteId/24F;
+                    offsetX = noteId / 24F;
                     extra = 1F;
                 } else if(particle == Particle.SPELL_MOB || particle == Particle.SPELL_MOB_AMBIENT) {
                     count = 0;
@@ -102,7 +102,7 @@ public class ParticlePacket {
 
             if(particle.requiresData()) {
                 Location below = loc.clone();
-                below.setY(loc.getBlockY() - 1);
+                below.setY(loc.getBlockY() - 0.49);
 
                 //noinspection deprecation
                 data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());

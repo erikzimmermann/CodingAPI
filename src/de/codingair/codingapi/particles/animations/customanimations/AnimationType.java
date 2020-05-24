@@ -2,7 +2,6 @@ package de.codingair.codingapi.particles.animations.customanimations;
 
 import de.codingair.codingapi.particles.Particle;
 import de.codingair.codingapi.particles.animations.movables.MovableMid;
-import de.codingair.codingapi.particles.animations.movables.PlayerMid;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

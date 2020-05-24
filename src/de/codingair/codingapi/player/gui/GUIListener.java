@@ -1,23 +1,22 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
+import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import de.codingair.codingapi.player.gui.hovereditems.HoveredItem;
 import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.Interface;
 import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
+import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
@@ -39,7 +38,7 @@ public class GUIListener implements Listener {
     private static GUIListener instance = null;
     private Plugin plugin;
 
-    public GUIListener(Plugin plugin) {
+    private GUIListener(Plugin plugin) {
         if(instance != null) HandlerList.unregisterAll(instance);
 
         this.plugin = plugin;
@@ -52,26 +51,24 @@ public class GUIListener implements Listener {
     }
 
     public static boolean isRegistered() {
-        if(instance == null) return false;
-
-        for(RegisteredListener registeredListener : HandlerList.getRegisteredListeners(instance.plugin)) {
-            if(registeredListener.getListener() instanceof GUIListener) return true;
-        }
-
-        return false;
+        return instance != null;
     }
 
     public static void onTick() {
-        for(HoveredItem item : API.getRemovables(HoveredItem.class)) {
-            boolean lookingAt = item.isLookingAt(item.getPlayer());
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            List<HoveredItem> l = API.getRemovables(player, HoveredItem.class);
+            for(HoveredItem item : l) {
+                boolean lookingAt = item.isLookingAt(item.getPlayer());
 
-            if(lookingAt && !item.isLookAt()) {
-                item.onLookAt(item.getPlayer());
-                item.setLookAt(true);
-            } else if(!lookingAt && item.isLookAt()) {
-                item.onUnlookAt(item.getPlayer());
-                item.setLookAt(false);
+                if(lookingAt && !item.isLookAt()) {
+                    item.onLookAt(item.getPlayer());
+                    item.setLookAt(true);
+                } else if(!lookingAt && item.isLookAt()) {
+                    item.onUnlookAt(item.getPlayer());
+                    item.setLookAt(false);
+                }
             }
+            l.clear();
         }
     }
 
@@ -80,51 +77,64 @@ public class GUIListener implements Listener {
      * PlayerItem
      */
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInteractEvent(PlayerInteractEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
         Player p = e.getPlayer();
         ItemStack item = p.getInventory().getItemInHand();
 
         for(PlayerItem pItem : items) {
-            if(item != null && pItem.equals(item)) pItem.onInteract(e);
+            if(pItem.equals(item)) pItem.trigger(e);
         }
+        items.clear();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onInventoryClick(InventoryClickEvent e) {
         if(!PlayerItem.isUsing((Player) e.getWhoClicked())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems((Player) e.getWhoClicked());
+        List<PlayerItem> items = API.getRemovables((Player) e.getWhoClicked(), PlayerItem.class);
         ItemStack current = e.getCurrentItem();
 
         for(PlayerItem pItem : items) {
             if(pItem.equals(current) && pItem.isFreezed()) e.setCancelled(true);
         }
+        items.clear();
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onDrop(PlayerDropItemEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
 
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
         ItemStack current = e.getItemDrop().getItemStack();
 
         for(PlayerItem pItem : items) {
             if(pItem.equals(current) && pItem.isFreezed()) e.setCancelled(true);
         }
+        items.clear();
     }
 
     @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
+    public void onSwitch(PlayerItemHeldEvent e) {
         if(!PlayerItem.isUsing(e.getPlayer())) return;
-        List<PlayerItem> items = PlayerItem.getPlayerItems(e.getPlayer());
+        List<PlayerItem> items = API.getRemovables(e.getPlayer(), PlayerItem.class);
+
+        ItemStack old = e.getPlayer().getInventory().getItem(e.getPreviousSlot());
+        ItemStack current = e.getPlayer().getInventory().getItem(e.getNewSlot());
+
+        PlayerItem prev = null, next = null;
 
         for(PlayerItem pItem : items) {
-            pItem.remove();
+            if(pItem.equals(old) && pItem.isFreezed()) prev = pItem;
+            if(pItem.equals(current) && pItem.isFreezed()) next = pItem;
         }
+        items.clear();
+
+        if(prev != null) prev.onUnhover(e);
+        if(next != null) next.onHover(e);
     }
 
     /*
@@ -261,18 +271,25 @@ public class GUIListener implements Listener {
 
             e.setCancelled(!button.isMovable());
 
-            if((button.isOnlyLeftClick() && e.isLeftClick())
-                    || (button.isOnlyRightClick() && e.isRightClick())
-                    || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
-                    || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY))) {
+            if(button.canClick(e.getClick()) &&
+                    (button.isOnlyLeftClick() && e.isLeftClick()
+                            || (button.isOnlyRightClick() && e.isRightClick())
+                            || (!button.isOnlyRightClick() && !button.isOnlyLeftClick())
+                            || (button.getOption().isNumberKey() && e.getClick().equals(ClickType.NUMBER_KEY)))) {
                 if((e.getClick() == ClickType.DOUBLE_CLICK) != button.getOption().isDoubleClick()) return;
 
+                button.playSound(e.getClick(), (Player) e.getWhoClicked());
+                button.onClick(e);
+
                 if(button.isCloseOnClick()) {
-                    if(inv instanceof GUI) ((GUI) inv).setClosingByButton(true);
-                    e.getWhoClicked().closeInventory();
+                    if(inv instanceof GUI) {
+                        GUI g = (GUI) inv;
+                        g.setClosingByButton(true);
+                        if(g.useFallbackGUI() && g.getFallbackGUI() != null) {
+                            g.fallBack();
+                        } else e.getWhoClicked().closeInventory();
+                    } else e.getWhoClicked().closeInventory();
                 }
-                button.playSound((Player) e.getWhoClicked());
-                Bukkit.getScheduler().runTaskLater(plugin, () -> button.onClick(e), 1L);
             }
         } else {
             if(inv instanceof GUI) {
@@ -446,7 +463,7 @@ public class GUIListener implements Listener {
 
         if(inv instanceof GUI && !((GUI) inv).isClosingByButton()) {
             SoundData sound = ((GUI) inv).getCancelSound();
-            if(sound != null) sound.play(p);
+            if(sound != null && !((GUI) inv).isClosingForGUI()) sound.play(p);
         }
 
         inv.close((Player) e.getPlayer(), true);

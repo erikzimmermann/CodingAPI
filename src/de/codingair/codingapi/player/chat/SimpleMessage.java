@@ -2,7 +2,10 @@ package de.codingair.codingapi.player.chat;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.utils.Removable;
-import net.md_5.bungee.api.chat.*;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -119,8 +122,8 @@ public class SimpleMessage implements Removable {
         return base;
     }
 
-    public void send(Player player) {
-        player.spigot().sendMessage(getTextComponent());
+    public void send(Player sender) {
+        sender.spigot().sendMessage(getTextComponent());
         sent = true;
 
         if(this.runnable == null && timeOut > 0) {
@@ -229,11 +232,6 @@ public class SimpleMessage implements Removable {
     }
 
     @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return SimpleMessage.class;
-    }
-
-    @Override
     public UUID getUniqueId() {
         return this.uniqueId;
     }
@@ -262,9 +260,5 @@ public class SimpleMessage implements Removable {
 
     public void clearTimeOut() {
         this.sent = false;
-    }
-
-    private class LineSeperator {
-
     }
 }

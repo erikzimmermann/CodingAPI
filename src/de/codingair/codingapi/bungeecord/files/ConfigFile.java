@@ -1,11 +1,13 @@
 package de.codingair.codingapi.bungeecord.files;
 
+import com.google.common.base.Charsets;
+import de.codingair.codingapi.bungeecord.files.loader.UTFConfiguration;
+import de.codingair.codingapi.server.reflections.IReflection;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
 
 import java.io.*;
+import java.util.Map;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -15,14 +17,14 @@ import java.io.*;
  **/
 
 public class ConfigFile {
+    private UTFConfiguration configuration;
     private String name;
     private String path;
     private String srcPath;
     private Plugin plugin;
 
-    private Configuration config;
-
     public ConfigFile(String name, String path, String srcPath, Plugin plugin) {
+        configuration = new UTFConfiguration();
         this.name = name;
         this.path = path;
         this.srcPath = srcPath == null ? "" : srcPath;
@@ -73,10 +75,63 @@ public class ConfigFile {
             }
         }
 
-        Configuration defaults = in == null ? null : ConfigurationProvider.getProvider(YamlConfiguration.class).load(in);
-        config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file, defaults);
+
+        in = plugin.getResourceAsStream(srcPath + this.name + ".yml");
+        Configuration defaults = in == null ? null : configuration.load(in);
+        configuration.load(file, defaults);
+
+        if(defaults != null) {
+            configuration.removeUnused(defaults);
+            merge(configuration.getConfig(), defaults);
+        }
+
+        in = plugin.getResourceAsStream(srcPath + this.name + ".yml");
+        if(in != null) {
+            InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
+
+            BufferedReader input = new BufferedReader(reader);
+            StringBuilder builder = new StringBuilder();
+
+            String line;
+            try {
+                try {
+                    while((line = input.readLine()) != null) {
+                        builder.append(line);
+                        builder.append('\n');
+                    }
+                } finally {
+                    input.close();
+                }
+            } catch(IOException ex) {
+                ex.printStackTrace();
+            }
+
+            if(builder.toString().startsWith("~Config\n")) {
+                configuration.deployExtras(builder.toString());
+            }
+        }
 
         if(in != null) in.close();
+    }
+
+    private void merge(Configuration config, Configuration defaults) {
+        Map<String, Object> data = getSelf(config);
+        Map<String, Object> def = getSelf(defaults);
+
+        for(String key : def.keySet()) {
+            if(data.containsKey(key)) {
+                Object baseValue = data.get(key);
+                Object dataValue = def.get(key);
+
+                if(dataValue instanceof Configuration) {
+                    if(baseValue instanceof Configuration) {
+                        merge((Configuration) baseValue, (Configuration) dataValue);
+                    } else data.put(key, dataValue);
+                }
+            } else {
+                data.put(key, def.get(key));
+            }
+        }
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {
@@ -93,26 +148,37 @@ public class ConfigFile {
             }
 
             to.write(buf, 0, r);
-            total += (long) r;
+            total += r;
         }
     }
 
     public void save() {
         try {
-            ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(getDataFolder(), path + this.name + ".yml"));
+            configuration.save(configuration.getConfig(), new File(getDataFolder(), path + this.name + ".yml"));
         } catch(IOException e) {
             e.printStackTrace();
         }
     }
 
+    private Map<String, Object> getSelf(Configuration config) {
+        IReflection.FieldAccessor<Map<String, Object>> self = IReflection.getField(Configuration.class, "self");
+        return self.get(config);
+    }
+
     public Configuration getConfig() {
-        if(config == null) {
+        if(configuration.getConfig() == null) {
             try {
                 this.load();
             } catch(IOException e) {
                 e.printStackTrace();
             }
         }
-        return config;
+        return configuration.getConfig();
+    }
+
+    public void clearConfig() {
+        for(String key : getConfig().getKeys()) {
+            getConfig().set(key, null);
+        }
     }
 }

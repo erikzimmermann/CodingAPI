@@ -1,8 +1,8 @@
 package de.codingair.codingapi.player.skins;
 
 import com.mojang.authlib.GameProfile;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.data.Skin;
+import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 
 /**
  * Removing of this disclaimer is forbidden.

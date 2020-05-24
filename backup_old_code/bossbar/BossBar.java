@@ -1,12 +1,12 @@
 package de.codingair.codingapi.player.gui.bossbar;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.customentity.networkentity.NetworkEntity;
 import de.codingair.codingapi.customentity.networkentity.NetworkEntityType;
 import de.codingair.codingapi.server.Environment;
+import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.customentity.networkentity.NetworkEntity;
-import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Location;
 import org.bukkit.block.Block;

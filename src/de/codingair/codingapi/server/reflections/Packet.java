@@ -25,7 +25,7 @@ public class Packet {
 	
 	public Packet(Class<?> packet, Player... players) {
 		this.clazz = packet;
-		this.players = players;
+		this.players = players == null ? null : (players.length == 1 && players[0] == null ? null : players);
 	}
 	
 	public void initialize(Object... parameters) {

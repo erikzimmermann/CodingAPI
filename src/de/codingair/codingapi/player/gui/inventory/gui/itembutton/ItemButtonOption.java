@@ -1,6 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui.itembutton;
 
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.SoundData;
 import org.bukkit.Sound;
 
 /**

@@ -70,7 +70,7 @@ public class SimpleGUI extends GUI {
     @Override
     public void initialize(Player p) {
         if(this.current != null) this.current.initialize(this);
-        else if(this.main != null) this.main.initialize(this);
+        else if(this.main != null && this.main != this.current) this.main.initialize(this);
     }
 
     void changePage(Page page) {

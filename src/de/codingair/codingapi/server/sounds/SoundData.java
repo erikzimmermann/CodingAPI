@@ -1,7 +1,8 @@
-package de.codingair.codingapi.server;
+package de.codingair.codingapi.server.sounds;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import java.util.Objects;
 
 public class SoundData {
     private Sound sound;
@@ -39,14 +40,30 @@ public class SoundData {
     }
 
     public void play(Player player) {
+        if(!sound.isSupported()) return;
         this.sound.playSound(player, this.volume, this.pitch);
     }
 
-    public void play(Player player, Location location) {
-        this.sound.playSound(player, location == null ? player.getLocation() : location, this.volume, this.pitch);
+    public void stop(Player player) {
+        this.sound.stopSound(player);
     }
 
     public SoundData clone() {
         return new SoundData(this.sound, volume, pitch);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        SoundData soundData = (SoundData) o;
+        return Float.compare(soundData.volume, volume) == 0 &&
+                Float.compare(soundData.pitch, pitch) == 0 &&
+                sound == soundData.sound;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(sound, volume, pitch);
     }
 }

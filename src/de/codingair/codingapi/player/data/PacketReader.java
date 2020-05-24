@@ -36,21 +36,16 @@ public abstract class PacketReader implements Removable {
 	public UUID getUniqueId() {
 		return uniqueId;
 	}
-	
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return PacketReader.class;
-	}
-	
+
 	@Override
 	public void destroy() {
 		unInject();
 	}
 	
 	public boolean inject() {
-		IReflection.FieldAccessor getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
-		IReflection.FieldAccessor getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
-		IReflection.FieldAccessor getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
+		IReflection.FieldAccessor<?> getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
+		IReflection.FieldAccessor<?> getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
+		IReflection.FieldAccessor<?> getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
 
 		Object ep = PacketUtils.getEntityPlayer(player);
 		if(ep == null) return false;
@@ -92,13 +87,14 @@ public abstract class PacketReader implements Removable {
 	}
 	
 	public void unInject() {
-		if(channel.pipeline().get(name) != null) {
+		if(player.isOnline() && channel.pipeline().get(name) != null) {
 			try {
 				channel.pipeline().remove(name);
-				API.removeRemovable(this);
-			} catch(NoSuchElementException ex) {
+			} catch(Throwable ignored) {
 			}
 		}
+
+		API.removeRemovable(this);
 	}
 	
 	public void refresh() {

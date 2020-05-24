@@ -160,7 +160,7 @@ public enum ChatColor {
     }
 
     public static String highlight(String text, String toHighlight, String highlighter, String resetColor) {
-        return highlight(text, toHighlight, highlighter, RESET.toString, false);
+        return highlight(text, toHighlight, highlighter, resetColor, false);
     }
 
     public static String highlight(String text, String toHighlight, String highlighter, String resetColor, boolean ignoreCase) {

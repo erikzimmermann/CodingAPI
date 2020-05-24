@@ -5,10 +5,10 @@ import de.codingair.codingapi.server.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
@@ -39,6 +39,7 @@ public class PacketUtils {
     public static final Class<?> PlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerList");
     public static final Class<?> DedicatedPlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DedicatedPlayerList");
     public static final Class<?> DimensionManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DimensionManager");
+    public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagCompound");
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Entity");
     public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
@@ -49,6 +50,9 @@ public class PacketUtils {
 
     public static final Class<?> ItemStackClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ItemStack");
     public static final Class<?> CraftItemStackClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftItemStack");
+    public static final IReflection.MethodAccessor getCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "getCustomModelData", int.class);
+    public static final IReflection.MethodAccessor hasCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "hasCustomModelData", boolean.class);
+    public static final IReflection.MethodAccessor setCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "setCustomModelData", null, int.class);
 
     public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerConnection");
     public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NetworkManager");
@@ -223,7 +227,7 @@ public class PacketUtils {
     public static Object getPlayerInfoPacket(int enumId, Object entityPlayer) {
         IReflection.ConstructorAccessor tabCon = IReflection.getConstructor(PacketPlayOutPlayerInfoClass);
 
-        IReflection.ConstructorAccessor dataCon = IReflection.getConstructor(PacketPlayOutPlayerInfo$PlayerInfoData, new Class[] {PacketPlayOutPlayerInfoClass, GameProfile.class, int.class, EnumGamemodeClass, IChatBaseComponentClass});
+        IReflection.ConstructorAccessor dataCon = IReflection.getConstructor(PacketPlayOutPlayerInfo$PlayerInfoData, PacketPlayOutPlayerInfoClass, GameProfile.class, int.class, EnumGamemodeClass, IChatBaseComponentClass);
 
         if(dataCon == null) return null;
 

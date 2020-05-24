@@ -1,15 +1,18 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
+import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButtonOption;
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.SoundData;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class Button extends ItemButton {
     private Page link;
+    private ClickType[] linkTrigger = null;
 
     public Button(int slot, ItemStack item) {
         super(slot, item);
@@ -23,7 +26,19 @@ public abstract class Button extends ItemButton {
     public void onClick(InventoryClickEvent e) {
         onClick(e, (Player) e.getWhoClicked());
 
-        if(this.link != null) getInterface().changePage(this.link);
+        if(linkTrigger == null) proceed(e);
+        else {
+            for(ClickType clickType : linkTrigger) {
+                if(clickType == e.getClick()) {
+                    proceed(e);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void proceed(InventoryClickEvent e) {
+        if(this.link != null) getGUI().changePage(this.link);
     }
 
     public abstract void onClick(InventoryClickEvent e, Player player);
@@ -37,7 +52,11 @@ public abstract class Button extends ItemButton {
     }
 
     @Override
-    public SimpleGUI getInterface() {
+    public GUI getInterface() {
+        return (GUI) super.getInterface();
+    }
+
+    public SimpleGUI getGUI() {
         return (SimpleGUI) super.getInterface();
     }
 
@@ -74,5 +93,14 @@ public abstract class Button extends ItemButton {
     @Override
     public Button setOnlyRightClick(boolean onlyRightClick) {
         return (Button) super.setOnlyRightClick(onlyRightClick);
+    }
+
+    public ClickType[] getLinkTrigger() {
+        return linkTrigger;
+    }
+
+    public Button setLinkTrigger(ClickType... linkTrigger) {
+        this.linkTrigger = linkTrigger;
+        return this;
     }
 }

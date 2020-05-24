@@ -185,16 +185,16 @@ public enum TextAlignment {
 
             line.append(word);
 
-
-
             if(cells >= length) {
                 line = new StringBuilder(line.toString().substring(0, line.length() - 1));
                 lines.add(lastColor[0] + line.toString());
                 line = new StringBuilder();
                 cells = 0;
 
-                lastColor[0] = lastColor[1];
-                lastColor[1] = "";
+                if(!lastColor[1].isEmpty()) {
+                    lastColor[0] = lastColor[1];
+                    lastColor[1] = "";
+                }
             }
         }
 

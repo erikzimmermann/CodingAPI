@@ -1,10 +1,11 @@
-package de.codingair.codingapi.server.commands.builder;
+package de.codingair.codingapi.server.commands.builder.special;
 
+import de.codingair.codingapi.server.commands.builder.CommandComponent;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
-public abstract class MultiCommandComponent extends CommandComponent {
+public abstract class MultiCommandComponent extends SpecialCommandComponent {
     public MultiCommandComponent() {
         super(null);
     }

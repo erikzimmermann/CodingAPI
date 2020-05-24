@@ -2,7 +2,7 @@ package de.codingair.codingapi.player.gui.hotbar.components;
 
 import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
 import de.codingair.codingapi.player.gui.hotbar.ItemListener;
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.SoundData;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemComponent {

@@ -1,8 +1,8 @@
 package de.codingair.codingapi.server.particlemessages;
 
-import de.codingair.codingapi.tools.Location;
 import de.codingair.codingapi.particles.Particle;
 import de.codingair.codingapi.particles.ParticlePacket;
+import de.codingair.codingapi.tools.Location;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

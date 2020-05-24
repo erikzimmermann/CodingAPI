@@ -14,19 +14,41 @@ public class FileManager {
     }
 
     public ConfigFile getFile(String name) {
+        return getFile(name, null);
+    }
+
+    public ConfigFile getFile(String name, String path) {
         for (ConfigFile file : configList) {
-            if (file.getName().equalsIgnoreCase(name)) return file;
+            if (file.getName().equalsIgnoreCase(name) && (path == null || path.equalsIgnoreCase(file.getPath()))) return file;
         }
 
         return null;
     }
 
-    public void loadFile(String name, String path) {
-        this.configList.add(new ConfigFile(plugin, name, path));
+    public void unloadFile(ConfigFile file) {
+        this.configList.remove(file);
+        file.destroy();
     }
 
-    public void loadFile(String name, String path, String srcPath) {
-        this.configList.add(new ConfigFile(plugin, name, path, srcPath));
+    public ConfigFile loadFile(String name, String path) {
+        return loadFile(name, path, true);
+    }
+
+    public ConfigFile loadFile(String name, String path, boolean removeUnused) {
+        return loadFile(name, path, null, removeUnused);
+    }
+
+    public ConfigFile loadFile(String name, String path, String srcPath) {
+        return this.loadFile(name, path, srcPath, true);
+    }
+
+    public ConfigFile loadFile(String name, String path, String srcPath, boolean removeUnused) {
+        ConfigFile cf = getFile(name, path);
+        if(cf != null) return cf;
+
+        cf = new ConfigFile(plugin, name, path, srcPath, removeUnused);
+        this.configList.add(cf);
+        return cf;
     }
 
     public void reloadAll() {

@@ -3,7 +3,6 @@ package de.codingair.codingapi.tools;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.tools.items.ItemBuilder;
 import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Color;

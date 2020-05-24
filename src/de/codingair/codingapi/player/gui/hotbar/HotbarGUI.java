@@ -3,7 +3,7 @@ package de.codingair.codingapi.player.gui.hotbar;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import de.codingair.codingapi.player.gui.inventory.PlayerInventory;
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -57,6 +57,7 @@ public abstract class HotbarGUI implements Removable {
             this.backup = gui.getBackup();
             gui.destroy();
         }
+        l.clear();
 
         if(backup == null) this.backup = new PlayerInventory(this.player);
         waiting = false;
@@ -159,7 +160,7 @@ public abstract class HotbarGUI implements Removable {
     }
 
     public ItemComponent getItem(int slot) {
-        if(this.menu.length <= slot) return null;
+        if(this.menu.length <= slot || slot < 0) return null;
         return this.menu[slot];
     }
 
@@ -182,11 +183,6 @@ public abstract class HotbarGUI implements Removable {
     @Override
     public Player getPlayer() {
         return this.player;
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return HotbarGUI.class;
     }
 
     @Override

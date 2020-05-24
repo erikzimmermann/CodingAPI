@@ -6,8 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.plugin.Plugin;
 
 public class EventListener implements Listener {
@@ -53,7 +57,6 @@ public class EventListener implements Listener {
             //PLAY SOUND
             if(ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());
             else if(gui.getClickSound() != null && !ic.isSilent()) gui.getClickSound().play(e.getPlayer());
-
             //DO ACTION
             if(ic.getAction() != null) ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
 
@@ -78,6 +81,13 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
+    public void onBlockBreak(BlockBreakEvent e) {
+        if(API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onDrop(PlayerDropItemEvent e) {
         if(API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
             e.setCancelled(true);
@@ -98,5 +108,4 @@ public class EventListener implements Listener {
             e.setCancelled(h.getItem(e.getSlot()) != null);
         }
     }
-
 }

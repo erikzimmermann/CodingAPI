@@ -1,12 +1,12 @@
 package de.codingair.codingapi.customentity.fakeplayer.extras.modules;
 
+import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import de.codingair.codingapi.customentity.fakeplayer.extras.FakePlayerListener;
 import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Module;
 import de.codingair.codingapi.customentity.fakeplayer.extras.modules.utils.Type;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 

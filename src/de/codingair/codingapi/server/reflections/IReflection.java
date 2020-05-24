@@ -1,12 +1,12 @@
 package de.codingair.codingapi.server.reflections;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.bukkit.Bukkit;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * -== IReflection ==-
@@ -57,6 +57,15 @@ public class IReflection {
 			return Class.forName(packet + name);
 		} catch (ClassNotFoundException e) {
 			throw e;
+		}
+	}
+
+	public static Class<?> getClass(String name){
+		try {
+			return Class.forName(name);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -146,7 +155,7 @@ public class IReflection {
 	public static MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
 		Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
 		for (Method method : target.getDeclaredMethods())
-			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
+			if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && ((primitiveParameter.length == 0 && method.getParameterTypes().length == 0) || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
 				method.setAccessible(true);
 				return new MethodAccessor() {
 					
@@ -202,9 +211,9 @@ public class IReflection {
 				};
 			}
 		if (target.getSuperclass() != null)
-			return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
+			return IReflection.getSaveMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
 		
-		throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, parameterTypes));
+		return null;
 	}
 	
 	public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
@@ -319,7 +328,6 @@ public class IReflection {
 	}
 	
 	public enum ServerPacket {
-		
 		MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
 		MOJANG_AUTHLIB("com.mojang.authlib"),
 		CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),

@@ -2,9 +2,9 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.Sound;
-import de.codingair.codingapi.server.SoundData;
 import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.sounds.Sound;
+import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
@@ -43,6 +43,7 @@ public abstract class GUI extends Interface implements Removable {
     private Callback<GUI> closingConfirmed = null;
     private GUI fallbackGUI = null;
     private boolean useFallbackGUI = false;
+    protected boolean openForFirstTime = true;
 
     public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
@@ -70,8 +71,14 @@ public abstract class GUI extends Interface implements Removable {
 
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
+                if(closingForGUI) return;
                 listeners.forEach(l -> l.onInvCloseEvent(e));
-                if(!closingByOperation && !closingByButton && !closingForGUI && useFallbackGUI && fallbackGUI != null) fallbackGUI.open();
+
+                if(useFallbackGUI && fallbackGUI != null) {
+                    GUI fb = fallbackGUI;
+                    fb.reinitialize();
+                    Bukkit.getScheduler().runTaskLater(getPlugin(), fb::open, 1);
+                }
             }
 
             @Override
@@ -102,11 +109,6 @@ public abstract class GUI extends Interface implements Removable {
     @Override
     public UUID getUniqueId() {
         return uniqueId;
-    }
-
-    @Override
-    public Class<? extends Removable> getAbstractClass() {
-        return GUI.class;
     }
 
     @Override
@@ -144,7 +146,7 @@ public abstract class GUI extends Interface implements Removable {
 
     @Override
     public void open(Player p) {
-        isClosed = false;
+        isClosed = true;
         closingByButton = false;
         closingByOperation = false;
         closingForGUI = false;
@@ -153,12 +155,40 @@ public abstract class GUI extends Interface implements Removable {
             @Override
             public void accept(GUI old) {
                 if(fallbackGUI == null) fallbackGUI = old;
-                if(GUI.this.openSound != null) GUI.this.openSound.play(p);
-                API.addRemovable(GUI.this);
-                GUI.this.reinitialize(getTitle());
-                GUI.super.open(p);
 
-                if(old != null) old.closingConfirmed = null;
+                if(openForFirstTime) {
+                    if(getOpenSound() != null) getOpenSound().play(player);
+                    openForFirstTime = false;
+                }
+
+                if(old != null) {
+                    //transfer existing inventory
+                    if(old.getSize() == getSize()) {
+                        isClosed = old.isClosed; //transfer status
+                        old.isClosed = true; //cancel closing inventory
+
+                        inventory = old.getInventory();
+                        reinitialize(); //initialize new items/buttons
+
+                        if(!isClosed && !old.getTitle().equals(getTitle())) {
+                            GUI.super.addToPlayerList(getPlayer());
+                            updateTitle(true);
+                        }
+                    }
+
+                    //remove confirmation runnable
+                    old.closingConfirmed = null;
+
+                    //unregister/close old GUI if 'isClosed' is false
+                    API.removeRemovable(old);
+                }
+
+                API.addRemovable(GUI.this); //register new GUI
+
+                if(isClosed) {
+                    isClosed = false;
+                    GUI.super.open(p); //open if closed
+                }
             }
         };
 
@@ -167,17 +197,8 @@ public abstract class GUI extends Interface implements Removable {
 
             GUI gui = GUI.getGUI(p);
 
-            if(getSize() == gui.getSize()) {
-                if(!gui.closingByButton && !gui.closingByOperation && !gui.closingForGUI) {
-                    gui.closingConfirmed = run;
-                } else {
-                    gui.isClosed = true;
-                    API.removeRemovable(gui);
-                    this.inventory = gui.inventory;
-                    API.addRemovable(this);
-                    addToPlayerList(p);
-                    this.reinitialize(this.getTitle());
-                }
+            if((gui.closingForGUI && gui.getSize() == getSize()) || gui.isClosed) {
+                run.accept(gui);
             } else {
                 gui.closingConfirmed = run;
                 gui.close();
@@ -286,14 +307,14 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void changeGUI(GUI newGui) {
-        if(getSize() == newGui.getSize()) {
-            newGui.setInventory(getInventory());
-            newGui.reinitialize(newGui.getTitle());
-            close(player, true);
-        } else {
-            close();
-            newGui.open();
-        }
+        closingForGUI = true;
+        newGui.open();
+    }
+
+    public void changeGUI(GUI newGui, boolean fallback) {
+        closingForGUI = true;
+        newGui.setUseFallbackGUI(fallback);
+        newGui.open();
     }
 
     protected void setInventory(Inventory inv) {
@@ -301,7 +322,7 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
-        double cX = (double) x0, cY = (double) y0;
+        double cX = x0, cY = y0;
         Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
 
         do {
@@ -419,7 +440,8 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public static GUI getGUI(Player p) {
-        return API.getRemovable(p, GUI.class);
+        GUI g = API.getRemovable(p, GUI.class);
+        return g;
     }
 
     public boolean isOpen() {
@@ -487,16 +509,30 @@ public abstract class GUI extends Interface implements Removable {
         updateInventory(getPlayer());
     }
 
-    public boolean isUseFallbackGUI() {
+    public boolean useFallbackGUI() {
         return useFallbackGUI;
     }
 
-    public void setUseFallbackGUI(boolean useFallbackGUI) {
+    public GUI setUseFallbackGUI(boolean useFallbackGUI) {
         this.useFallbackGUI = useFallbackGUI;
+        return this;
+    }
+
+    public GUI setFallbackGUI(GUI fallbackGUI) {
+        this.fallbackGUI = fallbackGUI;
+        return this;
     }
 
     public GUI getFallbackGUI() {
         return fallbackGUI;
+    }
+
+    public boolean fallBack() {
+        if(fallbackGUI == null) return false;
+        useFallbackGUI = false;
+        fallbackGUI.reinitialize();
+        changeGUI(fallbackGUI);
+        return true;
     }
 
     public boolean isClosingForGUI() {

@@ -1,8 +1,8 @@
 package de.codingair.codingapi.player.gui.hovereditems;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.Sound;
-import de.codingair.codingapi.server.SoundData;
+import de.codingair.codingapi.server.sounds.Sound;
+import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.tools.Converter;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
@@ -10,7 +10,6 @@ import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -45,11 +44,11 @@ public class ItemGUI implements Removable {
 	private boolean visibleOnSneak = false;
 	private boolean closeOnWalk = false;
 
-	private SoundData interactSound = new SoundData(Sound.CLICK, 1F, 1F);
-	private SoundData hoverSound = new SoundData(Sound.CLICK, 0.05F, 1.2F);
-	private SoundData unhoverSound = new SoundData(Sound.CLICK, 0.05F, 0.8F);
-	private SoundData closeSound = new SoundData(Sound.ITEM_BREAK, 1F, 1F);
-	private SoundData openSound = new SoundData(Sound.LEVEL_UP, 1F, 1F);
+	private SoundData interactSound = new SoundData(Sound.UI_BUTTON_CLICK, 1F, 1F);
+	private SoundData hoverSound = new SoundData(Sound.UI_BUTTON_CLICK, 0.05F, 1.2F);
+	private SoundData unhoverSound = new SoundData(Sound.UI_BUTTON_CLICK, 0.05F, 0.8F);
+	private SoundData closeSound = new SoundData(Sound.ENTITY_ITEM_BREAK, 1F, 1F);
+	private SoundData openSound = new SoundData(Sound.ENTITY_PLAYER_LEVELUP, 1F, 1F);
 
 	public ItemGUI(JavaPlugin plugin, Player player) {
 		this.plugin = plugin;
@@ -66,11 +65,6 @@ public class ItemGUI implements Removable {
 	@Override
 	public void destroy() {
 		remove(true);
-	}
-
-	@Override
-	public Class<? extends Removable> getAbstractClass() {
-		return ItemGUI.class;
 	}
 
 	@Override

@@ -4,15 +4,11 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.Arrays;
 
 public abstract class SyncSignGUIButton extends SyncButton {
     private Sign sign;
@@ -71,16 +67,15 @@ public abstract class SyncSignGUIButton extends SyncButton {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
                     if(updateSign) {
-                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign((Sign) sign.getLocation().getBlock().getState(), lines));
+                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
                     }
 
-                    close();
                     SyncSignGUIButton.this.onSignChangeEvent(lines);
                     getInterface().reinitialize();
+                    close();
 
                     Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
                         getInterface().open();
-                        getInterface().setClosingForGUI(false);
                     }, 1L);
                 }
             }.open();

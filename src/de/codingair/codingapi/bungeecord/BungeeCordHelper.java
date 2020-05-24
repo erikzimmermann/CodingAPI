@@ -12,7 +12,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.EOFException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
