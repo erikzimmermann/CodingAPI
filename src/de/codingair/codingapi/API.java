@@ -15,12 +15,12 @@ import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
-import de.codingair.codingapi.utils.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -154,9 +154,9 @@ public class API {
 
             /** PlayerDataListener - Start */
 
-            @EventHandler
+            @EventHandler(priority = EventPriority.HIGH)
             public void onQuit(PlayerQuitEvent e) {
-                removeRemovables(e.getPlayer());
+                Bukkit.getScheduler().runTaskLater(getMainPlugin(), () -> removeRemovables(e.getPlayer()), 1L);
             }
 
             /* PlayerDataListener - End */
@@ -381,7 +381,7 @@ public class API {
         return false;
     }
 
-    public static synchronized void removeRemovables(Player player) {
+    private static synchronized void removeRemovables(Player player) {
         HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
 
         if(data != null) {

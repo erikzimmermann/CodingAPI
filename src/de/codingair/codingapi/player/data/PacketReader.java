@@ -11,7 +11,6 @@ import io.netty.channel.ChannelPromise;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public abstract class PacketReader implements Removable {
