@@ -9,7 +9,6 @@ import de.codingair.codingapi.tools.io.utils.Serializable;
 import de.codingair.codingapi.tools.io.utils.SpigotDataWriter;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

@@ -40,7 +40,6 @@ public class API {
     private static final List<Ticker> TICKERS = new ArrayList<>();
 
     private static API instance;
-
     private boolean initialized = false;
 
     private List<JavaPlugin> plugins = new ArrayList<>();
@@ -152,17 +151,13 @@ public class API {
         Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
-            /** PlayerDataListener - Start */
-
+            /** PlayerDataListener */
             @EventHandler(priority = EventPriority.HIGH)
             public void onQuit(PlayerQuitEvent e) {
                 Bukkit.getScheduler().runTaskLater(getMainPlugin(), () -> removeRemovables(e.getPlayer()), 1L);
             }
 
-            /* PlayerDataListener - End */
-
-            /** FakePlayerListener - Start */
-
+            /** FakePlayerListener */
             @EventHandler
             public void onMove(PlayerWalkEvent e) {
                 Player p = e.getPlayer();
@@ -177,9 +172,6 @@ public class API {
                 }
                 l.clear();
             }
-
-            /* FakePlayerListener - End */
-
         }, plugin);
 
         runTicker(plugin);

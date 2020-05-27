@@ -1,8 +1,6 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
-import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import de.codingair.codingapi.player.gui.hovereditems.HoveredItem;
 import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
@@ -22,7 +20,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
 
 import java.util.ArrayList;
 import java.util.List;

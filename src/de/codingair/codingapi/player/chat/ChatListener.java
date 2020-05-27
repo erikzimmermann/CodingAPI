@@ -13,7 +13,14 @@ import java.util.List;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
+    private Class<?> chatPacket = null;
+
     public ChatListener() {
+        try {
+            chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInChat");
+        } catch(ClassNotFoundException ignored) {
+        }
+
         for(Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             inject(onlinePlayer);
         }
@@ -25,10 +32,10 @@ public class ChatListener implements Listener {
     }
 
     private void inject(Player player) {
-        new PacketReader(player, "WARPSYSTEM_CHAT_BUTTON_LISTENER", API.getInstance().getMainPlugin()) {
+        new PacketReader(player, "CHAT_BUTTON_LISTENER", API.getInstance().getMainPlugin()) {
             @Override
             public boolean readPacket(Object packet) {
-                if(packet.getClass().getSimpleName().equals("PacketPlayInChat")) {
+                if(packet.getClass().equals(chatPacket)) {
                     IReflection.FieldAccessor<String> aField = IReflection.getField(packet.getClass(), "a");
                     String msg = aField.get(packet);
 
@@ -42,7 +49,7 @@ public class ChatListener implements Listener {
                         type = a[1];
                     } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
 
-                    List<SimpleMessage> messageList = API.getRemovables(player, SimpleMessage.class);
+                    List<SimpleMessage> messageList = API.getRemovables(null, SimpleMessage.class);
 
                     String finalType = type;
                     if(!messageList.isEmpty()) {
@@ -64,7 +71,7 @@ public class ChatListener implements Listener {
 
                     return true;
                 }
-                
+
                 return false;
             }
 
