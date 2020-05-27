@@ -1233,7 +1233,11 @@ public enum Sound {
 	 */
 	public void playSound(@Nonnull Entity entity, float volume, float pitch) {
 		Objects.requireNonNull(entity, "Cannot play sound to a null entity");
-		playSound(entity.getLocation(), volume, pitch);
+
+		if(entity instanceof Player) {
+			org.bukkit.Sound sound = this.parseSound();
+			((Player) entity).playSound(entity.getLocation(), sound, volume, pitch);
+		} else playSound(entity.getLocation(), volume, pitch);
 	}
 
 	/**
