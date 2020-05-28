@@ -292,12 +292,11 @@ public class GUIListener implements Listener {
             if(inv instanceof GUI) {
                 GUI gui = (GUI) inv;
 
+                e.setCancelled(!gui.isMoveOwnItems());
                 if(gui.isMoveOwnItems() && e.getClickedInventory().equals(e.getView().getBottomInventory())) {
                     ItemStack current = e.getCurrentItem();
-
                     switch(e.getAction()) {
                         case MOVE_TO_OTHER_INVENTORY:
-
                             if(inv.isEditableItems()) {
                                 e.setCancelled(false);
                             } else {

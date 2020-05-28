@@ -34,7 +34,7 @@ public abstract class GUI extends Interface implements Removable {
     private boolean closingByButton = false;
     private boolean closingByOperation = false;
     private boolean closingForGUI = false;
-    private boolean moveOwnItems = false;
+    private boolean moveOwnItems = true;
     private List<Integer> movableSlots = new ArrayList<>();
     private List<GUIListener> listeners = new ArrayList<>();
     private boolean canDropItems = false;
