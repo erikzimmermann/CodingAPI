@@ -247,7 +247,7 @@ public class ItemBuilder implements Serializable {
     @Override
     public boolean read(DataWriter d) throws Exception {
         try {
-            for(Object key : d.keySet()) {
+            for(Object key : d.keySet(false)) {
                 String keyName = (String) key;
 
                 switch(keyName) {
@@ -282,7 +282,7 @@ public class ItemBuilder implements Serializable {
                         JSON jsonEnchantments = d.get("Enchantments");
                         if(jsonEnchantments == null) break;
 
-                        for(Object keySet : jsonEnchantments.keySet()) {
+                        for(Object keySet : jsonEnchantments.keySet(false)) {
                             String name = (String) keySet;
                             Enchantment enchantment = Enchantment.getByName(name);
                             int level = Integer.parseInt(jsonEnchantments.get(name) + "");
