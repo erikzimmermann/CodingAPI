@@ -40,11 +40,6 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
         time.clear();
     }
 
-    @Override
-    public Object getInstance() {
-        return this;
-    }
-
     public boolean add(E e, int expire) {
         this.time.put(e, expire);
         return super.add(e);

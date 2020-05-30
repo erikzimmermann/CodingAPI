@@ -1124,7 +1124,7 @@ public enum XMaterial {
      * @since 3.0.0
      */
     @SuppressWarnings("UnstableApiUsage")
-    private static final ImmutableMap<XMaterial, XMaterial> DUPLICATED = Maps.immutableEnumMap(ImmutableMap.<XMaterial, XMaterial>builder()
+    private static final ImmutableMap<XMaterial, XMaterial> DUPLICATED = Maps.immutableEnumMap(ImmutableMap.<XMaterial, XMaterial> builder()
             .put(MELON, MELON_SLICE)
             .put(CARROT, CARROTS)
             .put(POTATO, POTATOES)
@@ -1272,27 +1272,27 @@ public enum XMaterial {
      * @see #matchDefinedXMaterial(String, byte)
      * @since 1.0.0
      */
-@Nullable
-private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
-    String holder = name + data;
-    XMaterial material = NAME_CACHE.getIfPresent(holder);
-    if (material != null) return material;
+    @Nullable
+    private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
+        String holder = name + data;
+        XMaterial material = NAME_CACHE.getIfPresent(holder);
+        if(material != null) return material;
 
-    //bestMatch is a match that only matches the name and not the data
-    XMaterial firstBestMatch = null;
+        //bestMatch is a match that only matches the name and not the data
+        XMaterial firstBestMatch = null;
 
-    for (XMaterial materials : VALUES) {
-        if(materials.anyMatchLegacy(name) || materials.name().equals(name)) {
-            if(data == -1 || data == materials.data) {
-                NAME_CACHE.put(holder, materials);
-                return materials;
-            } else if(firstBestMatch == null) firstBestMatch = materials; //keep searching for a perfect match
+        for(XMaterial materials : VALUES) {
+            if(materials.anyMatchLegacy(name) || materials.name().equals(name)) {
+                if(data == -1 || data == materials.data) {
+                    NAME_CACHE.put(holder, materials);
+                    return materials;
+                } else if(firstBestMatch == null) firstBestMatch = materials; //keep searching for a perfect match
+            }
         }
-    }
 
-    if(firstBestMatch != null) NAME_CACHE.put(holder, firstBestMatch);
-    return firstBestMatch;
-}
+        if(firstBestMatch != null) NAME_CACHE.put(holder, firstBestMatch);
+        return firstBestMatch;
+    }
 
     /**
      * Checks if XMaterial enum contains a material with the given name.
@@ -1310,8 +1310,8 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         Validate.notEmpty(name, "Cannot check for null or empty material name");
         name = format(name);
 
-        for (XMaterial materials : VALUES)
-            if (materials.name().equals(name)) return true;
+        for(XMaterial materials : VALUES)
+            if(materials.name().equals(name)) return true;
         return false;
     }
 
@@ -1344,7 +1344,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
     public static Optional<XMaterial> matchXMaterial(@Nonnull String name, byte data) {
         Validate.notEmpty(name, "Cannot match a material with null or empty material name");
         Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
-        if (oldMatch.isPresent()) return oldMatch;
+        if(oldMatch.isPresent()) return oldMatch;
 
         // -1 Determines whether the item's data value is unknown and only the name is given.
         // Checking if the item is damageable won't do anything as the data is not going to be checked in requestOldMaterial anyway.
@@ -1368,9 +1368,9 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * @since 3.0.0
      */
     private static Optional<XMaterial> matchXMaterialWithData(String name) {
-        for (char separator : new char[]{',', ':'}) {
+        for(char separator : new char[] {',', ':'}) {
             int index = name.indexOf(separator);
-            if (index == -1) continue;
+            if(index == -1) continue;
 
             String mat = format(name.substring(0, index));
             byte data = Byte.parseByte(StringUtils.deleteWhitespace(name.substring(index + 1)));
@@ -1434,18 +1434,18 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         // Do basic number and boolean checks before accessing more complex enum stuff.
         // Maybe we can simplify (ISFLAT || !duplicated) with the (!ISFLAT && duplicated) under it to save a few nanoseconds?
         // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
-        if (data <= 0 && (ISFLAT || !duplicated)) {
+        if(data <= 0 && (ISFLAT || !duplicated)) {
             // Apparently the transform method is more efficient than toJavaUtil()
             // toJavaUtil isn't even supported in older versions.
             Optional<XMaterial> xMat = Enums.getIfPresent(XMaterial.class, name).transform(Optional::of).or(Optional.empty());
-            if (xMat.isPresent()) return xMat;
+            if(xMat.isPresent()) return xMat;
         }
 
         // XMaterial Paradox (Duplication Check)
         // I've concluded that this is just an infinite loop that keeps
         // going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
         // This solution works just fine anyway.
-        if (!ISFLAT && duplicated) return Optional.ofNullable(requestDuplicatedXMaterial(name, data));
+        if(!ISFLAT && duplicated) return Optional.ofNullable(requestDuplicatedXMaterial(name, data));
         return Optional.ofNullable(requestOldXMaterial(name, data));
     }
 
@@ -1466,8 +1466,8 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         name = format(name);
 
         // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
-        for (Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
-            if (duplicated.getKey().name().equals(name) || duplicated.getKey().anyMatchLegacy(name)) return true;
+        for(Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
+            if(duplicated.getKey().name().equals(name) || duplicated.getKey().anyMatchLegacy(name)) return true;
         return false;
     }
 
@@ -1483,11 +1483,11 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      */
     @Nonnull
     public static Optional<XMaterial> matchXMaterial(int id, byte data) {
-        if (id < 0 || data < 0) return Optional.empty();
+        if(id < 0 || data < 0) return Optional.empty();
 
         // Looping through Material.values() will take longer.
-        for (XMaterial materials : VALUES)
-            if (materials.data == data && materials.getId() == id) return Optional.of(materials);
+        for(XMaterial materials : VALUES)
+            if(materials.data == data && materials.getId() == id) return Optional.of(materials);
         return Optional.empty();
     }
 
@@ -1520,8 +1520,8 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         Validate.notEmpty(name, "Cannot get new duplicated material for null or empty material name");
         name = format(name);
 
-        for (Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
-            if (duplicated.getKey().name().equals(name)) return Optional.of(duplicated.getKey());
+        for(Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
+            if(duplicated.getKey().name().equals(name)) return Optional.of(duplicated.getKey());
         return Optional.empty();
     }
 
@@ -1538,9 +1538,9 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         Validate.notEmpty(name, "Cannot get duplicated material for null or empty material name");
         name = format(name);
 
-        for (Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
-            if (duplicated.getKey().name().equals(name)) return duplicated.getValue();
-            else if (duplicated.getValue().name().equals(name)) return duplicated.getKey();
+        for(Map.Entry<XMaterial, XMaterial> duplicated : DUPLICATED.entrySet())
+            if(duplicated.getKey().name().equals(name)) return duplicated.getValue();
+            else if(duplicated.getValue().name().equals(name)) return duplicated.getKey();
 
         return null;
     }
@@ -1616,9 +1616,9 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
 
         // getVersion()
         int index = version.lastIndexOf("MC:");
-        if (index != -1) {
+        if(index != -1) {
             version = version.substring(index + 4, version.length() - 1);
-        } else if (version.endsWith("SNAPSHOT")) {
+        } else if(version.endsWith("SNAPSHOT")) {
             // getBukkitVersion()
             index = version.indexOf('-');
             version = version.substring(0, index);
@@ -1626,7 +1626,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
 
         // 1.13.2, 1.14.4, etc...
         int lastDot = version.lastIndexOf('.');
-        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
+        if(version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
 
         return version;
     }
@@ -1642,8 +1642,8 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      */
     public static boolean isDamageable(@Nonnull String name) {
         Objects.requireNonNull(name, "Material name cannot be null");
-        for (String damageable : DAMAGEABLE)
-            if (name.contains(damageable)) return true;
+        for(String damageable : DAMAGEABLE)
+            if(name.contains(damageable)) return true;
         return false;
     }
 
@@ -1689,26 +1689,26 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * @since 3.1.1
      */
     public static boolean isOneOf(@Nonnull Material material, @Nullable List<String> materials) {
-        if (materials == null || materials.isEmpty()) return false;
+        if(materials == null || materials.isEmpty()) return false;
         Objects.requireNonNull(material, "Cannot match materials with a null material");
         String name = material.name();
 
-        for (String comp : materials) {
+        for(String comp : materials) {
             comp = comp.toUpperCase();
-            if (comp.startsWith("CONTAINS:")) {
+            if(comp.startsWith("CONTAINS:")) {
                 comp = format(comp.substring(9));
-                if (name.contains(comp)) return true;
+                if(name.contains(comp)) return true;
                 continue;
             }
-            if (comp.startsWith("REGEX:")) {
+            if(comp.startsWith("REGEX:")) {
                 comp = comp.substring(6);
-                if (name.matches(comp)) return true;
+                if(name.matches(comp)) return true;
                 continue;
             }
 
             // Direct Object Equals
             Optional<XMaterial> mat = matchXMaterial(comp);
-            if (mat.isPresent() && mat.get().parseMaterial() == material) return true;
+            if(mat.isPresent() && mat.get().parseMaterial() == material) return true;
         }
         return false;
     }
@@ -1721,9 +1721,9 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * @since 3.0.0
      */
     public int getMaterialVersion() {
-        if (this.legacy.length == 0) return 0;
+        if(this.legacy.length == 0) return 0;
         String version = this.legacy[0];
-        if (version.charAt(1) != '.') return 0;
+        if(version.charAt(1) != '.') return 0;
 
         return Integer.parseInt(version.substring(2));
     }
@@ -1744,7 +1744,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
         Objects.requireNonNull(item, "Cannot set material for null ItemStack");
 
         item.setType(this.parseMaterial());
-        if (!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
+        if(!ISFLAT && !this.isDamageable()) item.setDurability(this.data);
         return item;
     }
 
@@ -1759,7 +1759,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      */
     public boolean isOneOf(@Nullable List<String> materials) {
         Material material = this.parseMaterial();
-        if (material == null) return false;
+        if(material == null) return false;
         return isOneOf(material, materials);
     }
 
@@ -1772,9 +1772,9 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * @since 2.0.0
      */
     private boolean anyMatchLegacy(@Nonnull String name) {
-        for (String legacy : this.legacy) {
-            if (legacy.isEmpty()) break; // Left-side suggestion list
-            if (name.equals(legacy)) return true;
+        for(String legacy : this.legacy) {
+            if(legacy.isEmpty()) break; // Left-side suggestion list
+            if(name.equals(legacy)) return true;
         }
         return false;
     }
@@ -1801,7 +1801,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      */
     @SuppressWarnings("deprecation")
     public int getId() {
-        if (this.data != 0 || (this.legacy.length != 0 && Integer.parseInt(this.legacy[0].substring(2)) >= 13)) return -1;
+        if(this.data != 0 || (this.legacy.length != 0 && Integer.parseInt(this.legacy[0].substring(2)) >= 13)) return -1;
         Material material = this.parseMaterial();
         return material == null ? -1 : material.getId();
     }
@@ -1888,7 +1888,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * Parses an item from this XMaterial.
      * Uses data values on older versions.
      *
-     * @param suggest if true {@link #parseMaterial(boolean)} true will be used.
+     * @param suggest if true {@link #parseMaterial(boolean, boolean)} true will be used.
      * @return an ItemStack with the same material (and data value if in older versions.)
      * @see #setType(ItemStack)
      * @since 2.0.0
@@ -1896,8 +1896,23 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
     @Nullable
     @SuppressWarnings("deprecation")
     public ItemStack parseItem(boolean suggest) {
-        Material material = this.parseMaterial(suggest);
-        if (material == null) return null;
+        return parseItem(suggest, null);
+    }
+
+    /**
+     * Parses an item from this XMaterial.
+     * Uses data values on older versions.
+     *
+     * @param suggest if true {@link #parseMaterial(boolean, boolean)} true will be used.
+     * @return an ItemStack with the same material (and data value if in older versions.)
+     * @see #setType(ItemStack)
+     * @since 2.0.0
+     */
+    @Nullable
+    @SuppressWarnings("deprecation")
+    public ItemStack parseItem(boolean suggest, Material def) {
+        Material material = this.parseMaterial(suggest, true, def);
+        if(material == null) return null;
         return ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 
@@ -1905,37 +1920,72 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * Parses the material of this XMaterial.
      *
      * @return the material related to this XMaterial based on the server version.
-     * @see #parseMaterial(boolean)
+     * @see #parseMaterial(boolean, boolean)
      * @since 1.0.0
      */
     @Nullable
     public Material parseMaterial() {
-        return parseMaterial(false);
+        return parseMaterial(false, false);
     }
 
     /**
      * Parses the material of this XMaterial and accepts suggestions.
      *
      * @param suggest use a suggested material (from older materials) if the material is added in a later version of Minecraft.
+     * @param item    prefer item materials (ends with "_ITEM")
      * @return the material related to this XMaterial based on the server version.
      * @see #matchXMaterial(String, byte)
      * @since 2.0.0
      */
     @SuppressWarnings("OptionalAssignedToNull")
     @Nullable
-    public Material parseMaterial(boolean suggest) {
-        Optional<Material> cache = PARSED_CACHE.getIfPresent(this);
-        if (cache != null) return cache.orElse(null);
-        Material mat;
+    public Material parseMaterial(boolean suggest, boolean item) {
+        return parseMaterial(suggest, item, null);
+    }
 
-        if (!ISFLAT && this.isDuplicated()) mat = requestOldMaterial(suggest);
-        else {
-            mat = Material.getMaterial(this.name());
-            if (mat == null) mat = requestOldMaterial(suggest);
+    /**
+     * Parses the material of this XMaterial and accepts suggestions.
+     *
+     * @param suggest use a suggested material (from older materials) if the material is added in a later version of Minecraft.
+     * @param item    prefer item materials (ends with "_ITEM")
+     * @return the material related to this XMaterial based on the server version.
+     * @see #matchXMaterial(String, byte)
+     * @since 2.0.0
+     */
+    @SuppressWarnings("OptionalAssignedToNull")
+    @Nullable
+    public Material parseMaterial(boolean suggest, boolean item, Material def) {
+        Optional<Material> cache = PARSED_CACHE.getIfPresent(this);
+        if(cache != null) return cache.orElse(null);
+        Material mat = null;
+
+        if(item) {
+            //try material with item first
+            String legacy = getItemLegacy();
+
+            if(legacy != null) {
+                mat = Material.getMaterial(legacy);
+            }
         }
 
-        if (mat != null) PARSED_CACHE.put(this, Optional.ofNullable(mat));
-        return mat;
+        if(mat == null) {
+            if(!ISFLAT && this.isDuplicated()) mat = requestOldMaterial(suggest);
+            else {
+                mat = Material.getMaterial(this.name());
+                if(mat == null) mat = requestOldMaterial(suggest);
+            }
+        }
+
+        if(mat != null) PARSED_CACHE.put(this, Optional.ofNullable(mat));
+
+        return mat == null ? def : mat;
+    }
+
+    private String getItemLegacy() {
+        for(String s : legacy) {
+            if(s.endsWith("_ITEM")) return s;
+        }
+        return null;
     }
 
     /**
@@ -1944,28 +1994,28 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      *
      * @param suggest if true suggested materials will be considered for old versions.
      * @return a parsed material suitable for the current Minecraft version.
-     * @see #parseMaterial(boolean)
+     * @see #parseMaterial(boolean, boolean)
      * @since 2.0.0
      */
     @Nullable
     private Material requestOldMaterial(boolean suggest) {
-        for (int i = this.legacy.length - 1; i >= 0; i--) {
+        for(int i = this.legacy.length - 1; i >= 0; i--) {
             String legacy = this.legacy[i];
 
             // Check if we've reached the end and the last string is our
             // material version.
-            if (i == 0 && legacy.charAt(1) == '.') return null;
+            if(i == 0 && legacy.charAt(1) == '.') return null;
 
             // According to the suggestion list format, all the other names continuing
             // from here are considered as a "suggestion"
             // The empty string is an indicator for suggestion list on the left side.
-            if (legacy.isEmpty()) {
-                if (suggest) continue;
+            if(legacy.isEmpty()) {
+                if(suggest) continue;
                 break;
             }
 
             Material material = Material.getMaterial(legacy);
-            if (material != null) return material;
+            if(material != null) return material;
         }
         return null;
     }
@@ -1980,7 +2030,7 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
     @SuppressWarnings("deprecation")
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
-        if (item.getType() != this.parseMaterial()) return false;
+        if(item.getType() != this.parseMaterial()) return false;
         return ISFLAT || this.isDamageable() || item.getDurability() == this.data;
     }
 
@@ -1989,15 +2039,15 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      * if the material is not supported in the current version.
      *
      * @return a list of suggested material names.
-     * @see #parseMaterial(boolean)
+     * @see #parseMaterial(boolean, boolean)
      * @since 2.0.0
      */
     @Nonnull
     public List<String> getSuggestions() {
-        if (this.legacy.length == 0 || this.legacy[0].charAt(1) != '.') return new ArrayList<>();
+        if(this.legacy.length == 0 || this.legacy[0].charAt(1) != '.') return new ArrayList<>();
         List<String> suggestions = new ArrayList<>();
-        for (String legacy : this.legacy) {
-            if (legacy.isEmpty()) break;
+        for(String legacy : this.legacy) {
+            if(legacy.isEmpty()) break;
             suggestions.add(legacy);
         }
         return suggestions;
@@ -2015,10 +2065,10 @@ private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
      */
     public boolean isSupported() {
         int version = this.getMaterialVersion();
-        if (version != 0) return supports(version);
+        if(version != 0) return supports(version);
 
         Material material = Material.getMaterial(this.name());
-        if (material != null) return true;
+        if(material != null) return true;
         return requestOldMaterial(false) != null;
     }
 

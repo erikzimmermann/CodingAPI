@@ -71,7 +71,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseItem(true));
+        this(xMaterial.parseItem(true, XMaterial.STONE.parseMaterial()));
     }
 
     public ItemBuilder(Material type) {
@@ -326,7 +326,7 @@ public class ItemBuilder implements Serializable {
 
                                 Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
 
-                                if(mat.isPresent()) material = mat.get().parseMaterial(true);
+                                if(mat.isPresent()) material = mat.get().parseMaterial(true, false);
                                 else {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
@@ -335,7 +335,7 @@ public class ItemBuilder implements Serializable {
                                 Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
 
                                 if(mat.isPresent()) {
-                                    material = mat.get().parseMaterial(true);
+                                    material = mat.get().parseMaterial(true, false);
                                     setData(mat.get().getData());
                                 }
                             }
@@ -712,7 +712,8 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder setType(XMaterial type) {
-        return setType(type.parseMaterial());
+        setType(type.parseMaterial(true, true, XMaterial.STONE.parseMaterial()));
+        return this;
     }
 
     public ItemBuilder setType(Material type) {
@@ -726,7 +727,7 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setData(byte data) {
         this.data = data;
-        if(getType() != null && getType().equals(Material.POTION)) setDurability(getData());
+        if(getType() != null && (getType() == XMaterial.POTION.parseMaterial(true, true) || getType() == XMaterial.PLAYER_HEAD.parseMaterial(true, true))) setDurability(getData());
         return this;
     }
 
@@ -934,7 +935,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true, false), 1, (short) 3);
         if(gameProfile == null) return item;
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();

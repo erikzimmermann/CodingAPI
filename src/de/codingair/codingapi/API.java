@@ -34,9 +34,11 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class API {
     private static final Cache<String, HashMap<Class<?>, List<Removable>>> CACHE = CacheBuilder.newBuilder().build();
+    private static final Cache<Class<?>, List<Removable>> SPECIFIC = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.SECONDS).build();
     private static final List<Ticker> TICKERS = new ArrayList<>();
 
     private static API instance;
@@ -254,6 +256,7 @@ public class API {
             } else if(entries.contains(removable)) return false;
         }
 
+        updateSpecific(removable, 1);
         entries.add(removable);
         return true;
     }
@@ -330,10 +333,11 @@ public class API {
         return new ArrayList<>();
     }
 
-    @Deprecated
     public static synchronized <T extends Removable> List<T> getRemovables(Class<? extends T> clazz) {
         Preconditions.checkNotNull(clazz);
-        List<T> l = new ArrayList<>();
+        List<T> l = (List<T>) SPECIFIC.getIfPresent(clazz);
+        if(l != null) return l;
+        else l = new ArrayList<>();
 
         Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
         Class<?> rClazz = getRemovableClass(clazz);
@@ -347,7 +351,22 @@ public class API {
             }
         }
 
+        SPECIFIC.put(clazz, (List<Removable>) l);
         return l;
+    }
+
+    private static synchronized void updateSpecific(Removable r, int action) {
+        List<Removable> l = SPECIFIC.getIfPresent(r.getClass());
+        if(l == null) return;
+
+        if(action == 1) {
+            //add
+            l.add(r);
+        } else if(action == -1) {
+            //delete
+            l.remove(r);
+            if(l.isEmpty()) SPECIFIC.invalidate(r.getClass());
+        }
     }
 
     public static synchronized boolean removeRemovable(Removable removable) {
@@ -360,10 +379,14 @@ public class API {
             List<Removable> entries = data.get(enclosingClass);
             if(entries != null) {
                 boolean success = entries.remove(removable);
+                if(success) {
+                    updateSpecific(removable, -1);
+                    removable.destroy();
 
-                if(entries.isEmpty()) {
-                    data.remove(enclosingClass);
-                    if(data.isEmpty()) CACHE.invalidate(key);
+                    if(entries.isEmpty()) {
+                        data.remove(enclosingClass);
+                        if(data.isEmpty()) CACHE.invalidate(key);
+                    }
                 }
 
                 return success;
@@ -380,7 +403,10 @@ public class API {
             List<List<Removable>> l = new ArrayList<>(data.values());
             for(List<Removable> value : l) {
                 List<Removable> l2 = new ArrayList<>(value);
-                l2.forEach(Removable::destroy);
+                l2.forEach(r -> {
+                    updateSpecific(r, -1);
+                    r.destroy();
+                });
                 l2.clear();
                 value.clear();
             }
@@ -394,58 +420,12 @@ public class API {
         TICKERS.add(ticker);
     }
 
-    public static Ticker removeTicker(Ticker ticker) {
-        int index = getTickerIndex(ticker);
-        if(index == -999) return null;
-
-        return TICKERS.remove(index);
+    public static boolean removeTicker(Ticker ticker) {
+        return TICKERS.remove(ticker);
     }
 
-    public static Ticker getTicker(Object instance) {
-        List<Ticker> tickers = new ArrayList<>(TICKERS);
-        Ticker ticker = null;
-
-        for(Ticker t : tickers) {
-            if(t.getInstance().equals(instance)) {
-                ticker = t;
-                break;
-            }
-        }
-
-        tickers.clear();
-        return ticker;
-    }
-
-    public static <V extends Ticker> List<V> getTickers(Class<V> clazz) {
-        List<Ticker> tickers = new ArrayList<>(TICKERS);
-        List<V> list = new ArrayList<>();
-
-        for(Ticker t : tickers) {
-            if(clazz.isInstance(t)) {
-                list.add((V) t);
-            }
-        }
-
-        tickers.clear();
-        return list;
-    }
-
-    public static int getTickerIndex(Ticker ticker) {
-        List<Ticker> tickers = new ArrayList<>(TICKERS);
-        boolean contains = false;
-        int i = 0;
-
-        for(Ticker t : tickers) {
-            if(t.getInstance().equals(ticker.getInstance())) {
-                contains = true;
-                break;
-            }
-
-            i++;
-        }
-
-        tickers.clear();
-        return contains ? i : -999;
+    public static boolean isRunning(Ticker t) {
+        return TICKERS.contains(t);
     }
 
     public boolean isInitialized() {

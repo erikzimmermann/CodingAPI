@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -89,7 +90,7 @@ public class AnvilGUI implements Removable {
 
     private void registerBukkitListener() {
         this.bukkitListener = new Listener() {
-            @EventHandler
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onInventoryClick(InventoryClickEvent e) {
                 if(e.getWhoClicked() instanceof Player) {
                     Player p = (Player) e.getWhoClicked();

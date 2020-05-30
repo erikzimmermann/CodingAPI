@@ -192,8 +192,8 @@ public class JSON extends JSONObject implements SpigotDataWriter {
     }
 
     public Long getLong(String key, Long def) {
-        Object i = get(key, 0L, true);
-        return i == null ? def : (i instanceof Number ? ((Number) i).longValue() : def);
+        Number d = get(key);
+        return d == null ? def : (Long) d.longValue();
     }
 
     public Double getDouble(String key, Double def) {

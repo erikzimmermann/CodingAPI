@@ -192,8 +192,8 @@ public class BungeeJSON extends JSONObject implements DataWriter {
     }
 
     public Long getLong(String key, Long def) {
-        Object i = get(key, def, true);
-        return i == null ? def : (i instanceof Number ? ((Number) i).longValue() : def);
+        Number d = get(key);
+        return d == null ? def : (Long) d.longValue();
     }
 
     public Double getDouble(String key, Double def) {
