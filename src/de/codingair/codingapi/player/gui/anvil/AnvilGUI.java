@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -14,6 +15,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -45,6 +47,7 @@ public class AnvilGUI implements Removable {
 
     private AnvilCloseEvent closeEvent = null;
     private Listener bukkitListener;
+    private PrepareAnvilEventHelp prepareListener;
     private Inventory inv;
 
     //Only for 1.14+
@@ -57,6 +60,7 @@ public class AnvilGUI implements Removable {
         this.title = title == null ? "Repair & Name" : title;
 
         registerBukkitListener();
+        if(Version.getVersion().isBiggerThan(8)) Bukkit.getPluginManager().registerEvents(prepareListener = new PrepareAnvilEventHelp(), this.plugin);
     }
 
     public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
@@ -221,6 +225,7 @@ public class AnvilGUI implements Removable {
         reachable.set(container, false);
 
         inv = (Inventory) getTopInventory.invoke(getBukkitView.invoke(container));
+        if(prepareListener != null) prepareListener.setInv(inv);
 
         for(AnvilSlot slot : items.keySet()) {
             inv.setItem(slot.getSlot(), items.get(slot));
@@ -285,7 +290,7 @@ public class AnvilGUI implements Removable {
         if(!container.toString().toLowerCase().contains("anvil")) return;
 
         inv = (Inventory) getTopInventory.invoke(getBukkitView.invoke(container));
-
+        if(prepareListener != null) prepareListener.setInv(inv);
         inv.clear();
 
         for(AnvilSlot slot : items.keySet()) {
@@ -307,6 +312,7 @@ public class AnvilGUI implements Removable {
         this.items = null;
 
         HandlerList.unregisterAll(this.bukkitListener);
+        if(this.prepareListener != null) this.prepareListener.unregister();
         listener = null;
 
         API.removeRemovable(this);
