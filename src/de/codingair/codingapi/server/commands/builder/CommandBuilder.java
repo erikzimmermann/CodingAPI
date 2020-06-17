@@ -63,7 +63,6 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         //register just one command
         fallback = Bukkit.getPluginCommand(this.name);
-
         if(fallback != null) {
             //remove from SimpleCommandMap
             getKnownCommands().remove(fallback.getName().toLowerCase(Locale.ENGLISH).trim());
@@ -88,10 +87,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         //Remove from CommandDispatcher
         if(Version.getVersion().isBiggerThan(Version.v1_12)) CommandDispatcher.removeCommand(this);
 
-        //remove from SimpleCommandMap
-        Map<String, Command> commands = getKnownCommands();
-        commands.remove(main.getName().toLowerCase(Locale.ENGLISH).trim());
-        commands.remove(main.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + main.getName().toLowerCase(Locale.ENGLISH).trim());
+        unregister(name);
+        for(String alias : aliases) {
+            unregister(alias);
+        }
 
         if(fallback != null) {
             //add to SimpleCommandMap
@@ -101,6 +100,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         main = null;
         registered = false;
         API.removeRemovable(this);
+    }
+
+    private void unregister(String label) {
+        //remove from SimpleCommandMap
+        label = label.toLowerCase(Locale.ENGLISH).trim();
+
+        Map<String, Command> commands = getKnownCommands();
+        Command c = commands.get(label);
+
+        if(c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName())) commands.remove(label);
+        commands.remove(main.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + label);
     }
 
     public static Command getCommand(String name) {
