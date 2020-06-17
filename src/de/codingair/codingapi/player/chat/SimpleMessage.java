@@ -16,12 +16,12 @@ import java.util.UUID;
 
 public class SimpleMessage implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
-    private List<Object> components = new ArrayList<>();
+    private final List<Object> components = new ArrayList<>();
     private HoverEvent hoverEvent;
     private ClickEvent clickEvent;
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
     private boolean sent = false;
-    private int timeOut = -1;
+    private int timeOut = -1, cachedSize;
     private BukkitRunnable runnable = null;
 
     public SimpleMessage(JavaPlugin plugin) {
@@ -52,38 +52,45 @@ public class SimpleMessage implements Removable {
     public SimpleMessage add(String s) {
         s = s.replace("\\n", "\n");
         this.components.add(new TextComponent(s));
+        cachedSize = -1;
         return this;
     }
 
     public SimpleMessage add(TextComponent messageComponent) {
         this.components.add(messageComponent);
+        cachedSize = -1;
         return this;
     }
 
     public SimpleMessage add(ChatButton button) {
         this.components.add(button);
+        cachedSize = -1;
         return this;
     }
 
     public SimpleMessage add(int index, String s) {
         s = s.replace("\\n", "\n");
         this.components.add(index, new TextComponent(s));
+        cachedSize = -1;
         return this;
     }
 
     public SimpleMessage add(int index, TextComponent messageComponent) {
         this.components.add(index, messageComponent);
+        cachedSize = -1;
         return this;
     }
 
     private SimpleMessage add(int index, Object messageComponent) {
         if(messageComponent instanceof String) messageComponent = ((String) messageComponent).replace("\\n", "\n");
         this.components.add(index, messageComponent);
+        cachedSize = -1;
         return this;
     }
 
     public SimpleMessage add(int index, ChatButton button) {
         this.components.add(index, button);
+        cachedSize = -1;
         return this;
     }
 
@@ -103,6 +110,7 @@ public class SimpleMessage implements Removable {
 
         if(index >= 0) this.components.add(index, messageComponent);
         else this.components.add(messageComponent);
+        cachedSize = -1;
         return this;
     }
 
@@ -260,5 +268,21 @@ public class SimpleMessage implements Removable {
 
     public void clearTimeOut() {
         this.sent = false;
+    }
+
+    public int size() {
+        if(cachedSize == -1) {
+            cachedSize = 0;
+            int from = 0;
+            for(Object c : this.components) {
+                String s = c.toString();
+                while((from = s.indexOf("\n", from)) != -1) {
+                    from += 1;
+                    cachedSize++;
+                }
+            }
+        }
+
+        return cachedSize;
     }
 }

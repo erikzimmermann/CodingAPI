@@ -44,7 +44,7 @@ public class API {
     private static API instance;
     private boolean initialized = false;
 
-    private List<JavaPlugin> plugins = new ArrayList<>();
+    private final List<JavaPlugin> plugins = new ArrayList<>();
     private BukkitTask tickerTimer = null;
     private BukkitTask tickerSecondTimer = null;
 
@@ -59,16 +59,15 @@ public class API {
 
         List<CommandBuilder> toDisable = new ArrayList<>();
 
-        for(Map.Entry<String, CommandBuilder> e : CommandBuilder.REGISTERED.entrySet()) {
-            if(e.getValue().getMain().getPlugin().equals(plugin)) {
-                toDisable.add(e.getValue());
-            }
+        List<CommandBuilder> l = getRemovables(null, CommandBuilder.class);
+        for(CommandBuilder commandBuilder : l) {
+            if(commandBuilder.getPlugin().equals(plugin)) toDisable.add(commandBuilder);
         }
+        l.clear();
 
         for(CommandBuilder b : toDisable) {
-            b.unregister(plugin);
+            b.unregister();
         }
-
         toDisable.clear();
 
         HandlerList.unregisterAll(plugin);
@@ -99,8 +98,8 @@ public class API {
         Bukkit.getPluginManager().disablePlugin(plugin);
 
         try {
-            IReflection.FieldAccessor lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
-            IReflection.FieldAccessor plugins = IReflection.getField(SimplePluginManager.class, "plugins");
+            IReflection.FieldAccessor<?> lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
+            IReflection.FieldAccessor<?> plugins = IReflection.getField(SimplePluginManager.class, "plugins");
 
             Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
             List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
@@ -438,14 +437,5 @@ public class API {
 
     public JavaPlugin getMainPlugin() {
         return this.plugins.isEmpty() ? null : this.plugins.get(0);
-    }
-
-    public static PluginCommand getPluginCommand(String name) {
-        for(JavaPlugin plugin : getInstance().plugins) {
-            PluginCommand command;
-            if((command = plugin.getCommand(name)) != null) return command;
-        }
-
-        return null;
     }
 }
