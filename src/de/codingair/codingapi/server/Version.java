@@ -17,7 +17,7 @@ public enum Version {
     ;
 
     public static Version version = null;
-    private int id;
+    private final int id;
 
     Version(int id) {
         this.id = id;

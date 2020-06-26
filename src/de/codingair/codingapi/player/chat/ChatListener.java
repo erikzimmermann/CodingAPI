@@ -58,7 +58,11 @@ public class ChatListener implements Listener {
                             for(SimpleMessage message : messageList) {
                                 ChatButton button = message.getButton(uniqueId);
                                 if(button != null) {
-                                    button.onClick(player);
+                                    if(button.canClick()) {
+                                        if(button.getSound() != null) button.getSound().play(player);
+                                        button.onClick(player);
+                                    }
+
                                     clicked = true;
                                     break;
                                 }

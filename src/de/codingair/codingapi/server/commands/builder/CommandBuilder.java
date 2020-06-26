@@ -5,6 +5,8 @@ import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
 import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
 import de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher;
+import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
@@ -18,12 +20,14 @@ import java.util.*;
 public class CommandBuilder implements CommandExecutor, TabCompleter, Removable {
     private static SimpleCommandMap simpleCommandMap = null;
     private static Map<String, Command> knownCommands = null;
+    private static Class<?> wrapper = null;
+    private static IReflection.MethodAccessor register = null;
+    private static IReflection.MethodAccessor unregister = null;
 
     private PluginCommand fallback = null;
     private PluginCommand main;
     private final UUID uniqueId = UUID.randomUUID();
     private final JavaPlugin plugin;
-    private boolean registered = false;
 
     private final String name;
     private final String description;
@@ -42,6 +46,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         this.name = name.toLowerCase();
         this.description = description;
         this.baseComponent = baseComponent;
+        this.baseComponent.setBuilder(this);
         this.tabCompleter = tabCompleter;
 
         this.aliases = new ArrayList<>();
@@ -49,6 +54,15 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             for(String alias : aliases) {
                 this.aliases.add(alias.toLowerCase());
             }
+
+        if(wrapper == null) {
+            try {
+                wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
+                register = IReflection.getMethod(wrapper, "a", new Class[] {CommandBuilder.class});
+                unregister = IReflection.getMethod(wrapper, "unregister", new Class[]{CommandBuilder.class});
+            } catch(ClassNotFoundException ignored) {
+            }
+        }
     }
 
     @Override
@@ -57,8 +71,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     }
 
     public void register() {
-        if(isRegistered()) return;
-        registered = true;
+        if(main != null) return;
         API.addRemovable(this);
 
         //register just one command
@@ -78,14 +91,14 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         simpleCommandMap().register(plugin.getDescription().getName(), main);
 
         //Add to CommandDispatcher
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) CommandDispatcher.addCommand(this);
+        if(Version.getVersion().isBiggerThan(12)) register.invoke(null, this);
     }
 
     public void unregister() {
-        if(!isRegistered()) return;
+        if(main == null) return;
 
         //Remove from CommandDispatcher
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) CommandDispatcher.removeCommand(this);
+        if(Version.getVersion().isBiggerThan(Version.v1_12)) unregister.invoke(null, this);
 
         unregister(name);
         for(String alias : aliases) {
@@ -98,7 +111,6 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         }
 
         main = null;
-        registered = false;
         API.removeRemovable(this);
     }
 
@@ -298,10 +310,6 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
     public BaseComponent getBaseComponent() {
         return baseComponent;
-    }
-
-    public boolean isRegistered() {
-        return registered;
     }
 
     public TabCompleter getOwnTabCompleter() {

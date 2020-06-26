@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.chat;
 
+import de.codingair.codingapi.server.sounds.SoundData;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -13,8 +14,10 @@ import java.util.UUID;
 public abstract class ChatButton {
     public static final String PREFIX = "CodingAPI|ChatAPI|Button|";
     private final UUID uniqueId = UUID.randomUUID();
-    private String text, type;
+    private final String text;
+    private String type;
     private List<String> hover;
+    private SoundData sound = null;
 
     public ChatButton(String text) {
         this.text = text;
@@ -28,6 +31,10 @@ public abstract class ChatButton {
     public ChatButton(String text, List<String> hover) {
         this(text);
         setHover(hover);
+    }
+
+    public boolean canClick() {
+        return true;
     }
 
     TextComponent build() {
@@ -78,5 +85,13 @@ public abstract class ChatButton {
     public ChatButton setType(String type) {
         this.type = type;
         return this;
+    }
+
+    public SoundData getSound() {
+        return sound;
+    }
+
+    public void setSound(SoundData sound) {
+        this.sound = sound;
     }
 }

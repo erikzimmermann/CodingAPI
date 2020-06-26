@@ -34,9 +34,9 @@ import java.util.logging.Level;
  **/
 
 public class AnvilGUI implements Removable {
-    private UUID uniqueId = UUID.randomUUID();
-    private JavaPlugin plugin;
-    private Player player;
+    private final UUID uniqueId = UUID.randomUUID();
+    private final JavaPlugin plugin;
+    private final Player player;
     private AnvilListener listener;
     private HashMap<AnvilSlot, ItemStack> items = new HashMap<>();
 

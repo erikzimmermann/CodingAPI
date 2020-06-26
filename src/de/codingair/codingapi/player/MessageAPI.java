@@ -8,9 +8,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class MessageAPI {
-    private static HashMap<String, BukkitRunnable> runnables = new HashMap<>();
+    private static final HashMap<String, BukkitRunnable> runnables = new HashMap<>();
 
     public static void sendActionBar(Player p, String message) {
         if(message == null) message = "";
@@ -21,7 +22,13 @@ public class MessageAPI {
 
         Object bar;
 
-        if(Version.getVersion().isBiggerThan(Version.v1_11)) {
+        if(Version.getVersion().isBiggerThan(15)) {
+            Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
+            IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
+
+            bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
+        } else if(Version.getVersion().isBiggerThan(11)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);

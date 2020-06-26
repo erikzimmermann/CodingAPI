@@ -1,6 +1,5 @@
 package de.codingair.codingapi.server.playerdata;
 
-import de.codingair.codingapi.files.TempFile;
 import org.bukkit.entity.Player;
 
 /**

@@ -16,9 +16,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 public abstract class SignGUI {
-    private Player player;
-    private JavaPlugin plugin;
-    private Sign sign;
+    private final Player player;
+    private final JavaPlugin plugin;
+    private final Sign sign;
 
     public SignGUI(Player player, JavaPlugin plugin) {
         this(player, null, plugin);
@@ -41,10 +41,11 @@ public abstract class SignGUI {
             throw new IllegalStateException("The SignEditor does not work with 1.7!");
         }
 
+        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
         new PacketReader(this.player, "SignEditor", this.plugin) {
             @Override
             public boolean readPacket(Object packet) {
-                if(packet.getClass().getSimpleName().equalsIgnoreCase("PacketPlayInUpdateSign")) {
+                if(packet.getClass().equals(packetClass)) {
                     IReflection.FieldAccessor<?> b = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
                     Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
 
@@ -100,26 +101,25 @@ public abstract class SignGUI {
                 tileEntity = field.get(this.sign);
             }
 
-            IReflection.FieldAccessor<?> editable = IReflection.getField(tileEntity.getClass(), "isEditable");
+            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), "isEditable");
             editable.set(tileEntity, true);
 
             IReflection.FieldAccessor<?> owner;
-
-            switch(Version.getVersion()) {
-                case v1_15:
+            switch(Version.getVersion().getId()) {
+                case 16:
+                case 15:
                     owner = IReflection.getField(tileEntity.getClass(), "c");
                     break;
-                case v1_14:
+                case 14:
                     owner = IReflection.getField(tileEntity.getClass(), "j");
                     break;
-                case v1_13:
+                case 13:
                     owner = IReflection.getField(tileEntity.getClass(), "g");
                     break;
                 default:
                     owner = IReflection.getField(tileEntity.getClass(), "h");
                     break;
             }
-
             owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
         }
 
@@ -141,7 +141,7 @@ public abstract class SignGUI {
         l.clear();
 
         packetReader.unInject();
-        Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
+        Bukkit.getScheduler().runTask(plugin, this.player::closeInventory);
     }
 
 }

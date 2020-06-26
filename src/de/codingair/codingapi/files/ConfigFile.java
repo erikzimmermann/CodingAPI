@@ -2,7 +2,7 @@ package de.codingair.codingapi.files;
 
 import com.google.common.base.Charsets;
 import de.codingair.codingapi.files.loader.UTFConfig;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.util.logging.Level;
@@ -10,24 +10,24 @@ import java.util.logging.Level;
 public class ConfigFile {
     private UTFConfig config = null;
     private File configFile = null;
-    private Plugin plugin;
-    private String name;
+    private final JavaPlugin plugin;
+    private final String name;
     private String path;
     private String srcPath;
 
-    public ConfigFile(Plugin plugin, String name, String path) {
+    public ConfigFile(JavaPlugin plugin, String name, String path) {
         this(plugin, name, path, true);
     }
 
-    public ConfigFile(Plugin plugin, String name, String path, boolean removeUnused) {
+    public ConfigFile(JavaPlugin plugin, String name, String path, boolean removeUnused) {
         this(plugin, name, path, null, removeUnused);
     }
 
-    public ConfigFile(Plugin plugin, String name, String path, String srcPath) {
+    public ConfigFile(JavaPlugin plugin, String name, String path, String srcPath) {
         this(plugin, name, path, srcPath, true);
     }
 
-    public ConfigFile(Plugin plugin, String name, String path, String srcPath, boolean removeUnused) {
+    public ConfigFile(JavaPlugin plugin, String name, String path, String srcPath, boolean removeUnused) {
         this.plugin = plugin;
         this.name = name;
         this.path = path;
@@ -135,7 +135,7 @@ public class ConfigFile {
             }
 
             to.write(buf, 0, r);
-            total += (long) r;
+            total += r;
         }
     }
 
@@ -194,5 +194,9 @@ public class ConfigFile {
 
     public File getConfigFile() {
         return configFile;
+    }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
     }
 }

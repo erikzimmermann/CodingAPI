@@ -11,6 +11,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+
 public abstract class SignGUIButton extends Button {
     private Sign sign;
     private ClickType trigger;
@@ -67,12 +69,20 @@ public abstract class SignGUIButton extends Button {
             new SignGUI(player, this.sign, getInterface().getPlugin()) {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
-                    if(updateSign) {
-                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign((Sign) sign.getLocation().getBlock().getState(), lines));
+                    boolean notEmpty = false;
+                    for(String line : lines) {
+                        if(!line.isEmpty()) {
+                            notEmpty = true;
+                            break;
+                        }
+                    }
+
+                    if(notEmpty) {
+                        if(updateSign) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
+                        SignGUIButton.this.onSignChangeEvent(lines);
                     }
 
                     close();
-                    SignGUIButton.this.onSignChangeEvent(lines);
                     getInterface().reinitialize();
 
                     Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {

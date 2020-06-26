@@ -2,6 +2,7 @@ package de.codingair.codingapi.server.reflections;
 
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.server.Version;
+import net.minecraft.server.v1_15_R1.IChatBaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -98,6 +99,7 @@ public class PacketUtils {
     public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInteractManager");
 
     public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent$ChatSerializer");
+    public static final Class<?> IChatMutableComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatMutableComponent");
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent");
     public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
     public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatComponentText");
@@ -191,9 +193,9 @@ public class PacketUtils {
     public static Object getIChatBaseComponent(String text) {
         String jsonFormat = "{\"text\":\"" + text +"\"}";
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
-            IReflection.MethodAccessor b = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
-            return b.invoke(IChatBaseComponentClass, jsonFormat);
+        if(Version.getVersion().isBiggerThan(15)) {
+            IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[] {String.class});
+            return a.invoke(IChatBaseComponentClass, jsonFormat);
         } else {
             IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
             return a.invoke(IChatBaseComponentClass, jsonFormat);
@@ -213,7 +215,11 @@ public class PacketUtils {
     public static Object getMinecraftServer() {
         IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
         if(getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
-        return getServer.invoke(CraftServerClass.cast(Bukkit.getServer()));
+        return getServer.invoke(getCraftServer());
+    }
+
+    public static Object getCraftServer() {
+        return CraftServerClass.cast(Bukkit.getServer());
     }
 
     public static Object getWorldServer() {
@@ -231,11 +237,11 @@ public class PacketUtils {
 
         if(dataCon == null) return null;
 
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(EntityPlayerClass, "getProfile", GameProfile.class, null);
-        IReflection.FieldAccessor ping = IReflection.getField(EntityPlayerClass, "ping");
-        IReflection.FieldAccessor playerInteractManager = IReflection.getField(EntityPlayerClass, "playerInteractManager");
-        IReflection.MethodAccessor getGameMode = IReflection.getMethod(PlayerInteractManagerClass, "getGameMode", EnumGamemodeClass, null);
-        IReflection.MethodAccessor getPlayerListName = IReflection.getMethod(EntityPlayerClass, "getPlayerListName", IChatBaseComponentClass, null);
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(EntityPlayerClass, "getProfile", GameProfile.class, (Class<?>[]) null);
+        IReflection.FieldAccessor<?> ping = IReflection.getField(EntityPlayerClass, "ping");
+        IReflection.FieldAccessor<?> playerInteractManager = IReflection.getField(EntityPlayerClass, "playerInteractManager");
+        IReflection.MethodAccessor getGameMode = IReflection.getMethod(PlayerInteractManagerClass, "getGameMode", EnumGamemodeClass, (Class<?>[]) null);
+        IReflection.MethodAccessor getPlayerListName = IReflection.getMethod(EntityPlayerClass, "getPlayerListName", IChatBaseComponentClass, (Class<?>[]) null);
 
         Object data = dataCon.newInstance(tabCon.newInstance(), getProfile.invoke(entityPlayer), ping.get(entityPlayer), getGameMode.invoke(playerInteractManager.get(entityPlayer)), getPlayerListName.invoke(entityPlayer));
         Object packet = tabCon.newInstance();

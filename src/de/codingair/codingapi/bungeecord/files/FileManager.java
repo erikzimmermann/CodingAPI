@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileManager {
-    private Plugin plugin;
-    private List<ConfigFile> configList = new ArrayList<>();
+    private final Plugin plugin;
+    private final List<ConfigFile> configList = new ArrayList<>();
 
     public FileManager(Plugin plugin) {
         this.plugin = plugin;
