@@ -4,9 +4,7 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.Version;
 import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
 import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
-import de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
@@ -51,11 +49,12 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         this.aliases = new ArrayList<>();
         if(aliases != null)
+
             for(String alias : aliases) {
                 this.aliases.add(alias.toLowerCase());
             }
 
-        if(wrapper == null) {
+        if(Version.getVersion().isBiggerThan(12) && wrapper == null) {
             try {
                 wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
                 register = IReflection.getMethod(wrapper, "a", new Class[] {CommandBuilder.class});

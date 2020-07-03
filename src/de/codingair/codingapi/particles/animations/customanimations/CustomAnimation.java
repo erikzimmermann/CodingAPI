@@ -37,7 +37,7 @@ public abstract class CustomAnimation extends Animation {
     private int rainbow = 0;
 
     private final MovableMid mid;
-    private Player viewer;
+    private Player[] viewers;
     private final Location zero;
 
     public CustomAnimation(Particle particle, MovableMid mid, double radius, double height, int speed) {
@@ -164,7 +164,7 @@ public abstract class CustomAnimation extends Animation {
         adjustLocations(locations);
 
         if(locations != null) {
-            if(viewer == null) {
+            if(viewers == null) {
                 for(Location location : locations) {
                     getParticle().send(location, color == null ? null :
                             (getParticle() == Particle.NOTE ?
@@ -179,7 +179,7 @@ public abstract class CustomAnimation extends Animation {
                             (getParticle() == Particle.NOTE ?
                                     Color.RED.getColor() :
                                     color == Color.RAINBOW ? Color.values()[rainbow++].getColor() : color.getColor()
-                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), true, getMaxDistance(), viewer);
+                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), true, getMaxDistance(), viewers);
                     if(rainbow == (getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH)) rainbow = 0;
                 }
             }
@@ -297,12 +297,12 @@ public abstract class CustomAnimation extends Animation {
         return (C) this;
     }
 
-    public Player getViewer() {
-        return viewer;
+    public Player[] getViewers() {
+        return viewers;
     }
 
-    public CustomAnimation setViewer(Player viewer) {
-        this.viewer = viewer;
+    public CustomAnimation setViewers(Player[] viewers) {
+        this.viewers = viewers;
         return this;
     }
 

@@ -206,6 +206,19 @@ public class Location extends org.bukkit.Location implements Serializable {
         }
     }
 
+    @Override
+    public World getWorld() {
+        try {
+            if(super.getWorld() == null) {
+                if(worldName != null) setWorld(Bukkit.getWorld(worldName));
+            } else if(Bukkit.getWorld(worldName) == null) setWorld(null);
+        } catch(IllegalArgumentException ex) {
+            //unloaded
+            setWorld(Bukkit.getWorld(worldName));
+        }
+        return super.getWorld();
+    }
+
     public boolean isEmpty() {
         return worldName == null && getWorld() == null && getX() == 0 && getY() == 0 && getZ() == 0 && getYaw() == 0 && getPitch() == 0;
     }
