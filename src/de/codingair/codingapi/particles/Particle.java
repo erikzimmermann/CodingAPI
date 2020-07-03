@@ -63,6 +63,7 @@ public enum Particle {
     WATER_SPLASH("splash", "splash", 5),
     WATER_WAKE("wake", "fishing", 6);
 
+    private static final Particle[] values = Particle.values();
     private String name;
     private String name_v1_13;
     private int id;
@@ -158,7 +159,6 @@ public enum Particle {
         ParticlePacket packet = new ParticlePacket(this);
         if(packet.available()) {
             packet.setLongDistance(true);
-            System.out.println("setMaxDistance to " + maxDistance);
             packet.setMaxDistance(maxDistance);
             packet.initialize(loc);
             packet.send();
@@ -317,34 +317,23 @@ public enum Particle {
     }
 
     public static Particle next(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
+        Particle p = getById(id);
+
         if(skipCharacter) {
-            Particle p = getById(id);
-
-            int last = -1;
-            for(int i = 0; i < values().length; i++) {
-                if(values()[i] == p) {
-                    last = i;
-                } else if(last >= 0 && values()[i].name().charAt(0) != p.name().charAt(0)) {
-                    Particle next = values()[i];
+            for(int i = p.ordinal() + 1; i < values.length; i++) {
+                if(values[i].name().charAt(0) != p.name().charAt(0)) {
+                    Particle next = values[i];
                     if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
                 }
             }
-
-            return values()[0];
         } else {
-            boolean found = false;
-
-            for(int i = 0; i < values().length; i++) {
-                Particle next;
-                if(values()[i].getId() == id || found) {
-                    found = true;
-                    next = i + 1 == values().length ? values()[0] : values()[i + 1];
-                    if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                }
+            for(int i = p.ordinal() + 1; i < values.length; i++) {
+                Particle next = values[i];
+                if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
             }
-
-            throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
         }
+        
+        return values[0];
     }
 
     public Particle previous(boolean checkAnimationPurpose) {
@@ -360,39 +349,22 @@ public enum Particle {
     }
 
     public static Particle previous(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
-        int foundAt = -1;
+        Particle p = getById(id);
 
         if(skipCharacter) {
-            Particle p = getById(id);
-
-            for(int i = 0; i < values().length; i++) {
-                if(values()[i].name().charAt(0) == p.name().charAt(0) || foundAt >= 0) {
-                    if(foundAt == -1) foundAt = i;
-                    Particle next = i == 0 ? values()[values().length - 1] : values()[foundAt - 1];
+            for(int i = p.ordinal() - 1; i >= 0; i--) {
+                if(values[i].name().charAt(0) != p.name().charAt(0)) {
+                    Particle next = values[i];
                     if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                    else {
-                        foundAt--;
-                        if(foundAt < 0) foundAt = values().length - 1;
-                    }
                 }
             }
-
-            throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
         } else {
-            for(int i = 0; i < values().length; i++) {
-                if(values()[i].getId() == id || foundAt >= 0) {
-                    if(foundAt == -1) foundAt = i;
-
-                    Particle next = i - 1 < 0 ? values()[values().length - 1] : values()[foundAt - 1];
-                    if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                    else {
-                        foundAt--;
-                        if(foundAt < 0) foundAt = values().length - 1;
-                    }
-                }
+            for(int i = p.ordinal() - 1; i >= 0; i--) {
+                Particle previous = values[i];
+                if(!checkAnimationPurpose || !previous.noAnimationPurpose()) return previous;
             }
-
-            throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
         }
+
+        return values[values.length - 1];
     }
 }

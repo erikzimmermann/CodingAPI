@@ -134,9 +134,9 @@ public class ParticlePacket {
                     IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[] {packetData[0] | (packetData[1] << 12)});
                 }
 
-                IReflection.setValue(packet, "b", (float) loc.getX());
-                IReflection.setValue(packet, "c", (float) loc.getY());
-                IReflection.setValue(packet, "d", (float) loc.getZ());
+                IReflection.setValue(packet, "b", (float) this.location.getX());
+                IReflection.setValue(packet, "c", (float) this.location.getY());
+                IReflection.setValue(packet, "d", (float) this.location.getZ());
                 IReflection.setValue(packet, "e", e);
                 IReflection.setValue(packet, "f", f);
                 IReflection.setValue(packet, "g", g);
@@ -150,7 +150,7 @@ public class ParticlePacket {
         return this;
     }
 
-    boolean available() {
+    public boolean available() {
         if(Version.getVersion().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
         Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
         return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();

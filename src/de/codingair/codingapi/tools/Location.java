@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.text.DecimalFormat;
+
 public class Location extends org.bukkit.Location implements Serializable {
     private String worldName;
 
@@ -154,11 +156,21 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     private double trim(double d, int decimalPlaces) {
-        return ((double) (int) (d * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces);
+        StringBuilder b = new StringBuilder();
+        for(int i = 0; i < decimalPlaces; i++) {
+            b.append("#");
+        }
+
+        return Double.parseDouble(new DecimalFormat("#." + b.toString()).format(d).replace(",", "."));
     }
 
     private float trim(float d, int decimalPlaces) {
-        return (float) (((double) (int) (d * Math.pow(10, decimalPlaces))) / Math.pow(10, decimalPlaces));
+        StringBuilder b = new StringBuilder();
+        for(int i = 0; i < decimalPlaces; i++) {
+            b.append("#");
+        }
+
+        return Float.parseFloat(new DecimalFormat("#." + b.toString()).format(d).replace(",", "."));
     }
 
     public String toJSONString(int decimalPlaces) {

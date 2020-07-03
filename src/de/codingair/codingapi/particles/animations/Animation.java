@@ -6,7 +6,7 @@ import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Location;
 
 public abstract class Animation implements Ticker {
-    private Particle particle;
+    private final Particle particle;
     private double maxDistance = 30;
 
     public Animation(Particle particle) {

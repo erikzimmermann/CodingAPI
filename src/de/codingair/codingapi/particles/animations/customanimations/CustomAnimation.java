@@ -16,15 +16,15 @@ public abstract class CustomAnimation extends Animation {
     public static final int MAX_SPEED = 10;
     public static final int MIN_SPEED = 1;
     private static final int MAX_TICKS = 10;
-    private static final int MIN_TICKS = 1;
 
     static final double CALCULATE_RADIUS = 2;
     static final double MAX_STANDARD_RADIUS = 3;
 
-    private List<List<Location>> CACHE = new ArrayList<>();
+    private final List<List<Location>> CACHE = new ArrayList<>();
     private int playId = 0;
 
-    private double radius, height;
+    private final double radius;
+    private final double height;
     private int xRotation = 0, yRotation = 0, zRotation = 0;
     private double sinX, sinY, sinZ, cosX, cosY, cosZ;
     private boolean calculateSinCos = true;
@@ -36,9 +36,9 @@ public abstract class CustomAnimation extends Animation {
     private Color color;
     private int rainbow = 0;
 
-    private MovableMid mid;
+    private final MovableMid mid;
     private Player viewer;
-    private Location zero;
+    private final Location zero;
 
     public CustomAnimation(Particle particle, MovableMid mid, double radius, double height, int speed) {
         super(particle);
