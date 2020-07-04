@@ -22,13 +22,16 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     private static IReflection.MethodAccessor register = null;
     private static IReflection.MethodAccessor unregister = null;
 
-    private PluginCommand fallback = null;
+    private final HashMap<String, Command> fallback = new HashMap<>();
+    private Object wrapperInstance = null;
+
     private PluginCommand main;
     private final UUID uniqueId = UUID.randomUUID();
     private final JavaPlugin plugin;
 
     private final String name;
     private final String description;
+    private final String[] importantAliases;
     private final List<String> aliases;
 
     private final BaseComponent baseComponent;
@@ -40,25 +43,38 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     }
 
     public CommandBuilder(JavaPlugin plugin, String name, String description, BaseComponent baseComponent, boolean tabCompleter, String... aliases) {
+        this(plugin, name, description, baseComponent, tabCompleter, null, aliases);
+    }
+
+    public CommandBuilder(JavaPlugin plugin, String name, String description, BaseComponent baseComponent, boolean tabCompleter, String[] importantAliases, String... aliases) {
         this.plugin = plugin;
-        this.name = name.toLowerCase();
+        this.name = name.toLowerCase(Locale.ENGLISH).trim();
         this.description = description;
         this.baseComponent = baseComponent;
         this.baseComponent.setBuilder(this);
         this.tabCompleter = tabCompleter;
 
         this.aliases = new ArrayList<>();
-        if(aliases != null)
+        if(importantAliases == null) this.importantAliases = new String[0];
+        else {
+            this.importantAliases = new String[importantAliases.length];
+            for(int i = 0; i < importantAliases.length; i++) {
+                String s = importantAliases[i].toLowerCase(Locale.ENGLISH).trim();
+                this.importantAliases[i] = s;
+                this.aliases.add(s);
+            }
+        }
 
+        if(aliases != null)
             for(String alias : aliases) {
-                this.aliases.add(alias.toLowerCase());
+                this.aliases.add(alias.toLowerCase(Locale.ENGLISH).trim());
             }
 
         if(Version.getVersion().isBiggerThan(12) && wrapper == null) {
             try {
                 wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
-                register = IReflection.getMethod(wrapper, "a", new Class[] {CommandBuilder.class});
-                unregister = IReflection.getMethod(wrapper, "unregister", new Class[]{CommandBuilder.class});
+                register = IReflection.getMethod(wrapper, "a", wrapper, new Class[] {CommandBuilder.class});
+                unregister = IReflection.getMethod(wrapper, "unregister");
             } catch(ClassNotFoundException ignored) {
             }
         }
@@ -73,11 +89,20 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         if(main != null) return;
         API.addRemovable(this);
 
-        //register just one command
-        fallback = Bukkit.getPluginCommand(this.name);
-        if(fallback != null) {
-            //remove from SimpleCommandMap
-            getKnownCommands().remove(fallback.getName().toLowerCase(Locale.ENGLISH).trim());
+        //unregister foreign main command
+        Command c = getKnownCommands().remove(this.name);
+        if(c != null) {
+            //add to fallback commands
+            fallback.put(this.name, c);
+        }
+
+        //unregister foreign commands which block important aliases
+        for(String importantAlias : importantAliases) {
+            c = getKnownCommands().remove(importantAlias);
+            if(c != null) {
+                //add to fallback commands
+                fallback.put(importantAlias, c);
+            }
         }
 
         main = new CustomCommand(plugin, name, description).invoke();
@@ -85,29 +110,29 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         main.setExecutor(this);
         main.setAliases(aliases);
         main.setPermission(null);
+        main.setLabel(name);
 
-        //Register command in SimpleCommandMap.class
+        //Register main command in SimpleCommandMap.class
         simpleCommandMap().register(plugin.getDescription().getName(), main);
 
         //Add to CommandDispatcher
-        if(Version.getVersion().isBiggerThan(12)) register.invoke(null, this);
+        if(Version.getVersion().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
     }
 
     public void unregister() {
         if(main == null) return;
 
         //Remove from CommandDispatcher
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) unregister.invoke(null, this);
+        if(Version.getVersion().isBiggerThan(12)) unregister.invoke(wrapperInstance);
 
         unregister(name);
         for(String alias : aliases) {
             unregister(alias);
         }
 
-        if(fallback != null) {
-            //add to SimpleCommandMap
-            getKnownCommands().put(fallback.getName().toLowerCase(Locale.ENGLISH).trim(), fallback);
-        }
+        //revive overwritten commands to SimpleCommandMap
+        fallback.forEach((key, command) -> getKnownCommands().put(key, command));
+        fallback.clear();
 
         main = null;
         API.removeRemovable(this);
@@ -321,5 +346,9 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
     public PluginCommand getMain() {
         return main;
+    }
+
+    public String[] getImportantAliases() {
+        return importantAliases;
     }
 }

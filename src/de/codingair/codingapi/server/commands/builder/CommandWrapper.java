@@ -3,23 +3,31 @@ package de.codingair.codingapi.server.commands.builder;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.RootCommandNode;
 import de.codingair.codingapi.server.commands.builder.brigadier.CommandListenerWrapper;
-import de.codingair.codingapi.server.commands.builder.special.SpecialCommandComponent;
+import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.Bukkit;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class CommandWrapper implements Predicate<Object>, Command<Object>, SuggestionProvider<Object> {
+    private static CommandDispatcher<Object> dispatcher = null;
+    private static Map<String, CommandNode<?>> CHILDREN = null;
+    private static Map<String, CommandNode<?>> LITERALS = null;
+    private static Map<String, CommandNode<?>> ARGUMENTS = null;
     private final CommandListenerWrapper wrapper;
+
     private final CommandBuilder builder;
 
     private CommandWrapper(CommandBuilder builder) {
@@ -27,36 +35,26 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         this.wrapper = new CommandListenerWrapper();
     }
 
-    public static void a(CommandBuilder builder) {
-        new CommandWrapper(builder).register();
+    public static CommandWrapper a(CommandBuilder builder) {
+        return new CommandWrapper(builder).register();
     }
 
-    private void register() {
-        CommandDispatcher<Object> dispatcher = (CommandDispatcher<Object>) de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher.dispatcher();
+    private CommandWrapper register() {
+        CommandDispatcher<Object> dispatcher = dispatcher();
         LiteralArgumentBuilder<Object> l = LiteralArgumentBuilder.literal(builder.getName());
         l.requires(this).executes(this);
         RequiredArgumentBuilder<Object, ?> r = RequiredArgumentBuilder.argument("args", StringArgumentType.greedyString());
         l.then(r.suggests(this).executes(this));
 
         dispatcher.register(l);
+        return this;
     }
 
-    public static void unregister(CommandBuilder builder) {
-        de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher.removeCommand(builder.getName());
-    }
+    public void unregister() {
+        removeCommand(builder.getName(), false);
 
-    private void then(ArgumentBuilder<Object, ?> builder, CommandComponent c) {
-        //does not work properly
-        if(c instanceof SpecialCommandComponent) {
-            RequiredArgumentBuilder<Object, ?> r = RequiredArgumentBuilder.argument("args", StringArgumentType.greedyString());
-            builder.then(r.suggests(this).executes(this));
-        } else {
-            LiteralArgumentBuilder<Object> l = LiteralArgumentBuilder.literal(c.getArgument());
-            builder.then(l.requires(this).executes(this));
-        }
-
-        for(CommandComponent child : c.getChildren()) {
-            then(builder, child);
+        for(String alias : builder.getMain().getAliases()) {
+            removeCommand(alias, false);
         }
     }
 
@@ -77,5 +75,46 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         }
 
         return builder.buildFuture();
+    }
+
+    private Backup removeCommand(String command, boolean backup) {
+        if(CHILDREN == null) {
+            RootCommandNode<?> root = dispatcher().getRoot();
+
+            IReflection.FieldAccessor<Map<String, CommandNode<?>>> children = IReflection.getField(CommandNode.class, "children");
+            CHILDREN = children.get(root);
+
+            IReflection.FieldAccessor<Map<String, CommandNode<?>>> literals = IReflection.getField(CommandNode.class, "literals");
+            LITERALS = literals.get(root);
+
+            IReflection.FieldAccessor<Map<String, CommandNode<?>>> arguments = IReflection.getField(CommandNode.class, "arguments");
+            ARGUMENTS = arguments.get(root);
+        }
+
+        if(!backup) return null;
+        return new Backup(new CommandNode[] {CHILDREN.remove(command), LITERALS.remove(command), ARGUMENTS.remove(command)}, command);
+    }
+
+    public static CommandDispatcher<Object> dispatcher() {
+        if(dispatcher == null) {
+            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
+            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "CommandDispatcher");
+            Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+
+            IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", commandDispatcherBrigadierClass, new Class[] {});
+            dispatcher = (CommandDispatcher<Object>) a.invoke(getCommandDispatcher.invoke(PacketUtils.getMinecraftServer()));
+        }
+
+        return dispatcher;
+    }
+
+    protected static class Backup {
+        protected CommandNode<?>[] commands;
+        protected String label;
+
+        public Backup(CommandNode<?>[] commands, String label) {
+            this.commands = commands;
+            this.label = label;
+        }
     }
 }
