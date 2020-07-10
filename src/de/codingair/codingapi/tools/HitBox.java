@@ -23,7 +23,6 @@ public class HitBox {
     }
 
     public HitBox(Location l, double width, double height) {
-
         this(l.getX() - width, l.getY(), l.getZ() - width, l.getX() + width, l.getY() + height, l.getZ() + width);
     }
 
