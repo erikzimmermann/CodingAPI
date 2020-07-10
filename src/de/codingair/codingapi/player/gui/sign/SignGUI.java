@@ -2,7 +2,7 @@ package de.codingair.codingapi.player.gui.sign;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -37,7 +37,7 @@ public abstract class SignGUI {
     }
 
     public void open() {
-        if(Version.getVersion().equals(Version.v1_7)) {
+        if(Version.get().equals(Version.v1_7)) {
             throw new IllegalStateException("The SignEditor does not work with 1.7!");
         }
 
@@ -51,7 +51,7 @@ public abstract class SignGUI {
 
                     String[] lines;
 
-                    if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+                    if(Version.get().isBiggerThan(Version.v1_8)) {
                         lines = (String[]) b.get(p);
                     } else {
                         lines = sign == null ? new String[4] : sign.getLines();
@@ -93,7 +93,7 @@ public abstract class SignGUI {
         if(this.sign != null) {
             Object tileEntity;
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) {
+            if(Version.get().isBiggerThan(Version.v1_11)) {
                 IReflection.FieldAccessor<?> field = IReflection.getField(this.sign.getClass(), "tileEntity");
                 tileEntity = field.get(this.sign);
             } else {
@@ -105,7 +105,7 @@ public abstract class SignGUI {
             editable.set(tileEntity, true);
 
             IReflection.FieldAccessor<?> owner;
-            switch(Version.getVersion().getId()) {
+            switch(Version.get().getId()) {
                 case 16:
                 case 15:
                     owner = IReflection.getField(tileEntity.getClass(), "c");

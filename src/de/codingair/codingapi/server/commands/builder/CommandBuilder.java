@@ -1,7 +1,7 @@
 package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
 import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -70,7 +70,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                 this.aliases.add(alias.toLowerCase(Locale.ENGLISH).trim());
             }
 
-        if(Version.getVersion().isBiggerThan(12) && wrapper == null) {
+        if(Version.get().isBiggerThan(12) && wrapper == null) {
             try {
                 wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
                 register = IReflection.getMethod(wrapper, "a", wrapper, new Class[] {CommandBuilder.class});
@@ -116,14 +116,14 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         simpleCommandMap().register(plugin.getDescription().getName(), main);
 
         //Add to CommandDispatcher
-        if(Version.getVersion().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
+        if(Version.get().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
     }
 
     public void unregister() {
         if(main == null) return;
 
         //Remove from CommandDispatcher
-        if(Version.getVersion().isBiggerThan(12)) unregister.invoke(wrapperInstance);
+        if(Version.get().isBiggerThan(12)) unregister.invoke(wrapperInstance);
 
         unregister(name);
         for(String alias : aliases) {

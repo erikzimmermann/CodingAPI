@@ -1,6 +1,6 @@
 package de.codingair.codingapi.particles;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.Bukkit;
@@ -44,7 +44,7 @@ public class ParticlePacket {
         Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
         Constructor packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+        if(Version.get().isBiggerThan(Version.v1_12)) {
             Class<?> packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
             Class<?> particleParam = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ParticleParam");
             Class<?> craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
@@ -151,7 +151,7 @@ public class ParticlePacket {
     }
 
     public boolean available() {
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
+        if(Version.get().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
         Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
         return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();
     }

@@ -4,7 +4,7 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -99,7 +99,7 @@ public abstract class HoveredItem implements Removable {
 		IReflection.FieldAccessor noDamageTicks = IReflection.getField(PacketUtils.EntityClass, "noDamageTicks");
 		IReflection.FieldAccessor onGround = IReflection.getField(PacketUtils.EntityClass, "onGround");
 		IReflection.MethodAccessor setGravity;
-		if(Version.getVersion().isBiggerThan(Version.v1_8))
+		if(Version.get().isBiggerThan(Version.v1_8))
 			setGravity = IReflection.getMethod(entityArmorStand, "setNoGravity", new Class[]{boolean.class});
 		else setGravity = IReflection.getMethod(entityArmorStand, "setGravity", new Class[]{boolean.class});
 		

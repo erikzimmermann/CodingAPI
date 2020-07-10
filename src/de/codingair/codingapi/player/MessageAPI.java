@@ -1,6 +1,6 @@
 package de.codingair.codingapi.player;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.entity.Player;
@@ -22,13 +22,13 @@ public class MessageAPI {
 
         Object bar;
 
-        if(Version.getVersion().isBiggerThan(15)) {
+        if(Version.get().isBiggerThan(15)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
-        } else if(Version.getVersion().isBiggerThan(11)) {
+        } else if(Version.get().isBiggerThan(11)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
@@ -97,7 +97,7 @@ public class MessageAPI {
         Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle$EnumTitleAction");
         IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
-        int i = Version.getVersion().isBiggerThan(Version.v1_10) ? 1 : 0;
+        int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
 
         Object resetP = !reset ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 4], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
         Object clearP = !clear ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 3], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
@@ -118,7 +118,7 @@ public class MessageAPI {
 
         Object packet;
 
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+        if(Version.get().isBiggerThan(Version.v1_12)) {
             Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass);
 

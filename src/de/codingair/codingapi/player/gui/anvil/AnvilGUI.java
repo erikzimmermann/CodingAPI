@@ -2,7 +2,7 @@ package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
@@ -15,7 +15,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -60,7 +59,7 @@ public class AnvilGUI implements Removable {
         this.title = title == null ? "Repair & Name" : title;
 
         registerBukkitListener();
-        if(Version.getVersion().isBiggerThan(8)) Bukkit.getPluginManager().registerEvents(prepareListener = new PrepareAnvilEventHelp(), this.plugin);
+        if(Version.get().isBiggerThan(8)) Bukkit.getPluginManager().registerEvents(prepareListener = new PrepareAnvilEventHelp(), this.plugin);
     }
 
     public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener) {
@@ -184,7 +183,7 @@ public class AnvilGUI implements Removable {
         Class<?> chatMessageClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
 
         IReflection.ConstructorAccessor anvilContainerCon;
-        if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+        if(Version.get().isBiggerThan(Version.v1_13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
             anvilContainerCon = IReflection.getConstructor(containerAnvilClass, int.class, playerInventoryClass, containerAccessClass);
         } else {
@@ -212,7 +211,7 @@ public class AnvilGUI implements Removable {
         int c = (int) nextContainerCounter.invoke(entityPlayer);
 
         Object container;
-        if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+        if(Version.get().isBiggerThan(Version.v1_13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
             IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, "at", containerAccessClass, new Class[] {worldClass, blockPositionClass});
 
@@ -232,7 +231,7 @@ public class AnvilGUI implements Removable {
         }
 
         try {
-            if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+            if(Version.get().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
                 IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "ANVIL");
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
@@ -245,7 +244,7 @@ public class AnvilGUI implements Removable {
             }
         } catch(Exception e) {
             e.printStackTrace();
-            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.getVersion().name() + "!");
+            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.get().name() + "!");
         }
 
 

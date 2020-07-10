@@ -7,10 +7,11 @@ import de.codingair.codingapi.utils.Ticker;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class TimeList<E> extends ArrayList<E> implements Ticker {
-    private HashMap<E, Integer> time = new HashMap<>();
+    private final HashMap<E, Long> time = new HashMap<>();
 
     public TimeList() {
         super();
@@ -27,26 +28,36 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     }
 
     @Override
-    public void onTick() {}
+    public void onTick() {
+    }
 
     @Override
     public void onSecond() {
-        HashMap<E, Integer> time = new HashMap<>(this.time);
+        List<E> keys = new ArrayList<>();
 
         for(E key : time.keySet()) {
-            setExpire(key, getExpire(key) - 1);
+            long t = getExpire(key);
+            if(t <= System.currentTimeMillis()) keys.add(key);
         }
 
-        time.clear();
+        for(E key : keys) {
+            remove(key);
+            timeout(key);
+        }
+
+        keys.clear();
+    }
+
+    public void timeout(E value) {
     }
 
     public boolean add(E e, int expire) {
-        this.time.put(e, expire);
+        this.time.put(e, System.currentTimeMillis() + expire * 1000);
         return super.add(e);
     }
 
     public void add(int index, E e, int expire) {
-        this.time.put(e, expire);
+        this.time.put(e, System.currentTimeMillis() + expire * 1000);
         super.add(index, e);
     }
 
@@ -68,7 +79,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
 
     @Override
     public boolean remove(Object o) {
-        if(this.time.containsKey(o)) this.time.remove(o);
+        this.time.remove(o);
         return super.remove(o);
     }
 
@@ -82,7 +93,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     @Override
     protected void removeRange(int fromIndex, int toIndex) {
         for(int i = fromIndex; i < toIndex; i++) {
-            if(this.time.containsKey(super.get(i))) this.time.remove(super.get(i));
+            this.time.remove(super.get(i));
         }
 
         super.removeRange(fromIndex, toIndex);
@@ -91,7 +102,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
     @Override
     public boolean removeAll(Collection<?> c) {
         for(Object o : c) {
-            if(this.time.containsKey(o)) this.time.remove(o);
+            this.time.remove(o);
         }
 
         return super.removeAll(c);
@@ -108,22 +119,10 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
 
     @Override
     public boolean removeIf(Predicate<? super E> filter) {
-        if(super.removeIf(filter)) {
-            HashMap<E, Integer> time = new HashMap<>(this.time);
-
-            for(E key : time.keySet()) {
-                if(!super.contains(key)) this.time.remove(key);
-            }
-
-            time.clear();
-
-            return true;
-        }
-
-        return false;
+        throw new IllegalStateException("removeIf not supported");
     }
 
-    public int getExpire(E e) {
+    public long getExpire(E e) {
         return this.time.get(e);
     }
 
@@ -133,7 +132,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
 
     public boolean setExpire(E e, int expire) {
         if(hasExpire(e)) {
-            if(expire > 0) this.time.replace(e, expire);
+            if(expire > 0) this.time.replace(e, System.currentTimeMillis() + expire * 1000);
             else {
                 remove(e);
             }

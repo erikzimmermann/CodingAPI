@@ -1,6 +1,6 @@
 package de.codingair.codingapi.server.reflections;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.Potion;
@@ -23,7 +23,7 @@ public class PotionData {
     }
 
     public PotionData(ItemStack item) {
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             if(item.getItemMeta() instanceof PotionMeta) {
                 PotionMeta meta = (PotionMeta) item.getItemMeta();
                 org.bukkit.potion.PotionData data = meta.getBasePotionData();

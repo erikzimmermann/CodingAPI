@@ -2,7 +2,7 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.sounds.Sound;
 import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.tools.Callback;
@@ -544,7 +544,7 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public static boolean updateInventory(Player player) {
-        if(Version.getVersion().isBiggerThan(Version.v1_13)) return false;
+        if(Version.get().isBiggerThan(Version.v1_13)) return false;
         player.updateInventory();
         return true;
     }

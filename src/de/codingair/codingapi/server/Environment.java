@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.sounds.Sound;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -80,7 +81,7 @@ public class Environment {
         Object block = getBlock.invoke(blockType);
 
         String key;
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
             Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "SoundEffectType");
@@ -90,7 +91,7 @@ public class Environment {
             Object soundEffectType = getSoundEffectType.get(block);
 
             String f;
-            switch(Version.getVersion()) {
+            switch(Version.get()) {
                 case v1_15:
                     f = "z";
                     break;
@@ -108,7 +109,7 @@ public class Environment {
             IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, f);
             Object soundEffect = getSoundEffect.get(soundEffectType);
 
-            switch(Version.getVersion()) {
+            switch(Version.get()) {
                 case v1_15:
                 case v1_14:
                 case v1_13:
@@ -122,7 +123,7 @@ public class Environment {
             IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, f);
             Object mcKey = getMCKey.get(soundEffect);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_14)) f = "key";
+            if(Version.get().isBiggerThan(Version.v1_14)) f = "key";
             else f = "a";
 
             IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, f);

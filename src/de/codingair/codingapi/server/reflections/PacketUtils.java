@@ -1,8 +1,7 @@
 package de.codingair.codingapi.server.reflections;
 
 import com.mojang.authlib.GameProfile;
-import de.codingair.codingapi.server.Version;
-import net.minecraft.server.v1_15_R1.IChatBaseComponent;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -93,7 +92,7 @@ public class PacketUtils {
 
     public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumItemSlot");
     public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
-    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, (Version.getVersion().equals(Version.v1_8) || Version.getVersion().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
+    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
     public static final Class<?> EnumEntityUseActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUseEntity$EnumEntityUseAction");
 
     public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInteractManager");
@@ -195,7 +194,7 @@ public class PacketUtils {
     }
 
     public static Object getRawIChatBaseComponent(String jsonFormat) {
-        if(Version.getVersion().isBiggerThan(15)) {
+        if(Version.get().isBiggerThan(15)) {
             IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[] {String.class});
             return a.invoke(IChatBaseComponentClass, jsonFormat);
         } else {
@@ -304,7 +303,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -340,7 +339,7 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, passenger);
                 return packet;
             } else {
@@ -352,7 +351,7 @@ public class PacketUtils {
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {

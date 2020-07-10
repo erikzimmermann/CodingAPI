@@ -18,16 +18,13 @@ public class TimeMap<K, V> extends HashMap<K, V> {
     private void initTimeList() {
         time = new TimeList<K>() {
             @Override
-            public boolean setExpire(K k, int expire) {
-                boolean res = super.setExpire(k, expire);
-
-                if(res && !time.contains(k)) {
-                    remove(k);
-                }
-
-                return res;
+            public void timeout(K value) {
+                TimeMap.this.timeout(value, TimeMap.this.remove(value));
             }
         };
+    }
+
+    public void timeout(K key, V value) {
     }
 
     public V put(K key, V value, int expire) {
@@ -54,10 +51,10 @@ public class TimeMap<K, V> extends HashMap<K, V> {
 
     @Override
     public boolean remove(Object key, Object value) {
-        return super.remove(key, value) ? time.remove(key) : false;
+        return super.remove(key, value) && time.remove(key);
     }
 
-    public int getExpire(K key) {
+    public long getExpire(K key) {
         return this.time.getExpire(key);
     }
 

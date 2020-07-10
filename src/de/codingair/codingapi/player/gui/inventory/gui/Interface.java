@@ -2,7 +2,7 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.OldItemBuilder;
@@ -63,7 +63,7 @@ public class Interface {
     @Deprecated
     public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
         this.title = title;
-        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.get().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
 
         this.inventory = Bukkit.createInventory(owner, size, this.oldTitle = getTitle());
         if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
@@ -279,7 +279,7 @@ public class Interface {
     void rebuildInventory() {
         Inventory inventory = Bukkit.createInventory(getHolder(), getSize(), getTitle());
         inventory.setContents(this.inventory.getContents());
-        if(Version.getVersion().isBiggerThan(Version.v1_9)) inventory.setStorageContents(this.inventory.getStorageContents());
+        if(Version.get().isBiggerThan(Version.v1_9)) inventory.setStorageContents(this.inventory.getStorageContents());
         inventory.setMaxStackSize(this.inventory.getMaxStackSize());
         this.inventory = inventory;
     }
@@ -292,7 +292,7 @@ public class Interface {
         if(title == null || title.equals(this.title)) return;
 
         this.title = title;
-        if(this.title.length() > 32 && !Version.getVersion().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.get().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
 
         if(update) updateTitle();
     }
@@ -325,7 +325,7 @@ public class Interface {
             Object active = activeContainer.get(ep);
             int id = windowId.get(active);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+            if(Version.get().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
                 IReflection.FieldAccessor<?> title = IReflection.getField(containerClass, "title");
 

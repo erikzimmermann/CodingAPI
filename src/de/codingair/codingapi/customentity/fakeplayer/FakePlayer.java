@@ -13,7 +13,7 @@ import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerM
 import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerMotionPosition;
 import de.codingair.codingapi.player.data.Skin;
 import de.codingair.codingapi.server.Environment;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Callback;
@@ -127,7 +127,7 @@ public class FakePlayer implements Removable {
         setLocation.invoke(player, this.location.getX(), this.location.getY(), this.location.getZ(), this.location.getYaw(), this.location.getPitch());
 
         Object dataWatcher;
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             //1.9 and bigger
             dataWatcher = getDataWatcher.invoke(player);
 
@@ -219,7 +219,7 @@ public class FakePlayer implements Removable {
 
         a.set(packet, this.getEntityId());
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             //new
             b.set(packet, location.getX());
             c.set(packet, location.getY());
@@ -486,7 +486,7 @@ public class FakePlayer implements Removable {
         status = changeMask(status, 4, dataWatcher.isUsingItem()); //USE_ITEM
         status = changeMask(status, 5, dataWatcher.isInvisible()); //INVISIBLE
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             status = changeMask(status, 6, dataWatcher.isGlowing()); //GLOWING
             status = changeMask(status, 7, dataWatcher.isUsingElytra()); //USING ELYTRA
         }
@@ -510,7 +510,7 @@ public class FakePlayer implements Removable {
         if(dataWatcher == null) dataWatcher = getDataWatcher();
         if(dataWatcher == null) throw new NullPointerException("No DataWatcher found!");
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+        if(Version.get().isBiggerThan(Version.v1_8)) {
             //1.9 and bigger
             IReflection.MethodAccessor set = IReflection.getMethod(PacketUtils.DataWatcherClass, "set", new Class[] {PacketUtils.DataWatcherObjectClass, Object.class});
             IReflection.FieldAccessor a = IReflection.getField(PacketUtils.DataWatcherRegistryClass, "a");
@@ -597,7 +597,7 @@ public class FakePlayer implements Removable {
     }
 
     public void setSleeping(boolean isSleeping) {
-        if(!Version.getVersion().isBiggerThan(Version.v1_7)) {
+        if(!Version.get().isBiggerThan(Version.v1_7)) {
             throw new IllegalStateException("This version does not support Fakeplayers in Sleep-Mode! (Rquires 1.8 or bigger!)");
         }
 

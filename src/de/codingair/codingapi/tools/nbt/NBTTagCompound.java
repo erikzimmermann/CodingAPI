@@ -1,6 +1,6 @@
 package de.codingair.codingapi.tools.nbt;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +37,7 @@ public class NBTTagCompound {
 
         TAG = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTBase");
 
-        if(Version.getVersion().isBiggerThan(Version.v1_13)) {
+        if(Version.get().isBiggerThan(Version.v1_13)) {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", TAG, new Class[] {String.class, TAG});
         } else {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", new Class[] {String.class, TAG});

@@ -1,6 +1,6 @@
 package de.codingair.codingapi.server.blocks.data;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.blocks.utils.Axis;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.block.Block;
@@ -22,7 +22,7 @@ public class Orientable extends BlockData {
 
     @Override
     public Object getData(Block block) {
-        if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+        if(Version.get().isBiggerThan(Version.v1_12)) {
             Class<?> orientable = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "block.data.Orientable");
             Class<?> axis = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Axis");
             IReflection.MethodAccessor setAxis = IReflection.getMethod(orientable, "setAxis", new Class[]{axis});

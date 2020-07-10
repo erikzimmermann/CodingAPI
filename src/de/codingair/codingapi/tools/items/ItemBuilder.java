@@ -3,7 +3,7 @@ package de.codingair.codingapi.tools.items;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
@@ -96,8 +96,8 @@ public class ItemBuilder implements Serializable {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
-            if(Version.getVersion().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
+            if(Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
+            if(Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
                 this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
             }
 
@@ -176,9 +176,9 @@ public class ItemBuilder implements Serializable {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
             if(potionData != null) {
-                if(Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                if(Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
-                } else if(!Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                } else if(!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     Potion potion = this.potionData.getPotion();
                     meta.setMainEffect(potion.getType().getEffectType());
                 }
@@ -232,8 +232,8 @@ public class ItemBuilder implements Serializable {
                 }
             }
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
-            if(Version.getVersion().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+            if(Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
+            if(Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
             item.setItemMeta(meta);
         }
@@ -319,7 +319,7 @@ public class ItemBuilder implements Serializable {
                         try {
                             material = Material.valueOf(name);
                         } catch(IllegalArgumentException ex) {
-                            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                            if(Version.get().isBiggerThan(Version.v1_12)) {
                                 obj = d.get("Data");
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(d.get("Data") + "");
