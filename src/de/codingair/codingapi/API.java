@@ -46,7 +46,6 @@ public class API {
 
     private final List<JavaPlugin> plugins = new ArrayList<>();
     private BukkitTask tickerTimer = null;
-    private BukkitTask tickerSecondTimer = null;
 
     public void onEnable(JavaPlugin plugin) {
         if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
@@ -133,7 +132,6 @@ public class API {
     private void removePlugin(JavaPlugin plugin) {
         HandlerList.unregisterAll(plugin);
         if(this.tickerTimer.getOwner() == plugin) this.tickerTimer.cancel();
-        if(this.tickerSecondTimer.getOwner() == plugin) this.tickerSecondTimer.cancel();
 
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
@@ -151,27 +149,9 @@ public class API {
         Bukkit.getPluginManager().registerEvents(new BookListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
-
-            /** PlayerDataListener */
             @EventHandler(priority = EventPriority.HIGH)
             public void onQuit(PlayerQuitEvent e) {
                 Bukkit.getScheduler().runTaskLater(getMainPlugin(), () -> removeRemovables(e.getPlayer()), 1L);
-            }
-
-            /** FakePlayerListener */
-            @EventHandler
-            public void onMove(PlayerWalkEvent e) {
-                Player p = e.getPlayer();
-                Location from = e.getFrom();
-                Location to = e.getTo();
-
-                List<FakePlayer> l = API.getRemovables(null, FakePlayer.class);
-                for(FakePlayer fakePlayer : l) {
-                    if(!fakePlayer.isInRange(from) && fakePlayer.isInRange(to)) {
-                        fakePlayer.updatePlayer(p);
-                    }
-                }
-                l.clear();
             }
         }, plugin);
 
@@ -181,25 +161,26 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if(this.tickerTimer != null) return;
 
-        this.tickerSecondTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            List<Ticker> tickers = new ArrayList<>(TICKERS);
-            for(Ticker ticker : tickers) {
-                ticker.onSecond();
-            }
-            tickers.clear();
-        }, 0, 20);
+        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if(i == 20) {
+                    for(Iterator<Ticker> i = TICKERS.iterator(); i.hasNext();) {
+                        Ticker t = i.next();
+                        t.onTick();
+                        t.onSecond();
+                    }
 
-        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            List<FakePlayer> l = API.getRemovables(null, FakePlayer.class);
-            l.forEach(FakePlayer::onTick);
-            l.clear();
-            GUIListener.onTick();
+                    i = 0;
+                } else {
+                    for(Iterator<Ticker> i = TICKERS.iterator(); i.hasNext();) {
+                        i.next().onTick();
+                    }
 
-            List<Ticker> tickers = new ArrayList<>(TICKERS);
-            for(Ticker ticker : tickers) {
-                ticker.onTick();
+                    i++;
+                }
             }
-            tickers.clear();
         }, 0, 1);
     }
 

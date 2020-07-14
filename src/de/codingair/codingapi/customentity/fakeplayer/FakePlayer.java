@@ -13,12 +13,14 @@ import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerM
 import de.codingair.codingapi.customentity.fakeplayer.extras.motions.FakePlayerMotionPosition;
 import de.codingair.codingapi.player.data.Skin;
 import de.codingair.codingapi.server.Environment;
+import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
+import de.codingair.codingapi.utils.Ticker;
 import gnu.trove.map.TIntObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -26,6 +28,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -41,10 +46,10 @@ import java.util.UUID;
  * @verions: 1.0.0
  **/
 
-public class FakePlayer implements Removable {
+public class FakePlayer implements Removable, Ticker {
     private static int ID = 0;
 
-    private UUID uniqueId = UUID.randomUUID();
+    private final UUID uniqueId = UUID.randomUUID();
     private static final double MOVE_SPEED = 4.3D / 20;
     private static final double SPRINT_SPEED = 6.5D / 20;
     private static final double MOVE_TICKS = 0.429D;
@@ -53,18 +58,18 @@ public class FakePlayer implements Removable {
     private static final long TABLIST_REMOVE_TIME = 20L;
     private static final int VIEW_RADIUS = 160;
 
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
     private final int id = FakePlayer.ID++;
 
     private Object player;
     private Location location;
-    private Location oldLocation;
+    private final Location oldLocation;
 
     private GameProfile gameProfile;
     private boolean onTablist;
 
-    private List<Player> visible = new ArrayList<>();
+    private final List<Player> visible = new ArrayList<>();
 
     private boolean isSprinting = false;
     private boolean isSleeping = false;
@@ -75,7 +80,8 @@ public class FakePlayer implements Removable {
     private int jumpTicks = 0;
 
     private FakePlayerListener listener;
-    private List<Module> modules = new ArrayList<>();
+    private final List<Module> modules = new ArrayList<>();
+    private Listener bukkitListener;
 
     private FakePlayerMotionLook motionLook = null;
     private FakePlayerMotionPosition motionPosition = null;
@@ -92,6 +98,24 @@ public class FakePlayer implements Removable {
         this.oldLocation = location.clone();
 
         this.plugin = plugin;
+    }
+
+    private void initListener() {
+        this.bukkitListener = new Listener() {
+            @EventHandler
+            public void onWalk(PlayerWalkEvent e) {
+                if(!isInRange(e.getFrom()) && isInRange(e.getTo())) {
+                    updatePlayer(e.getPlayer());
+                }
+            }
+        };
+    }
+
+    private void unregisterBukkitListener() {
+        if(this.bukkitListener != null) {
+            HandlerList.unregisterAll(this.bukkitListener);
+            this.bukkitListener = null;
+        }
     }
 
     @Override
@@ -147,9 +171,17 @@ public class FakePlayer implements Removable {
         setDataWatcher.set(player, dataWatcher);
 
         this.player = player;
+        initListener();
+
         API.addRemovable(this);
+        API.addTicker(this);
     }
 
+    @Override
+    public void onSecond() {
+    }
+
+    @Override
     public void onTick() {
         if(hasModule(Type.TargetModule)) getModule(Type.TargetModule).onEvent();
         if(hasModule(Type.FollowModule)) getModule(Type.FollowModule).onEvent();
@@ -547,6 +579,7 @@ public class FakePlayer implements Removable {
             unregister();
 
             API.removeRemovable(this);
+            API.removeTicker(this);
 
             this.player = null;
         } else {
@@ -752,6 +785,7 @@ public class FakePlayer implements Removable {
 
     public void unregister() {
         if(hasModule(Type.InteractModule)) ((InteractModule) getModule(Type.InteractModule)).unRegister();
+        unregisterBukkitListener();
     }
 
     public void updateModules(Player... player) {

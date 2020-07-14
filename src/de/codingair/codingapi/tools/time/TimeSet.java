@@ -7,24 +7,25 @@ import de.codingair.codingapi.utils.Ticker;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Predicate;
 
-public class TimeList<E> extends ArrayList<E> implements Ticker {
+public class TimeSet<E> extends HashSet<E> implements Ticker {
     private final HashMap<E, Long> time = new HashMap<>();
     private final ReentrantLock lock = new ReentrantLock();
 
-    public TimeList(int initialCapacity) {
+    public TimeSet(int initialCapacity) {
         super(initialCapacity);
         API.addTicker(this);
     }
 
-    public TimeList() {
+    public TimeSet() {
         API.addTicker(this);
     }
 
-    public TimeList(Collection<? extends E> c) {
+    public TimeSet(Collection<? extends E> c) {
         super(c);
         API.addTicker(this);
     }
@@ -74,20 +75,6 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
         return add(e, expire * 1000L);
     }
 
-    public void add(int index, E e, long expire) {
-        lock.lock();
-        try {
-            this.time.put(e, System.currentTimeMillis() + expire);
-        } finally {
-            lock.unlock();
-        }
-        super.add(index, e);
-    }
-
-    public void add(int index, E e, int expire) {
-        add(index, e, expire * 1000L);
-    }
-
     public boolean addAll(Collection<? extends E> c, int expire) {
         boolean suc = true;
 
@@ -96,12 +83,6 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
         }
 
         return suc;
-    }
-
-    public void addAll(int index, Collection<? extends E> c, int expire) {
-        for(E e : c) {
-            add(index, e, expire);
-        }
     }
 
     @Override
@@ -113,33 +94,6 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
             lock.unlock();
         }
         return super.remove(o);
-    }
-
-    @Override
-    public E remove(int index) {
-        E e = super.remove(index);
-        if(e != null) {
-            lock.lock();
-            try {
-                time.remove(e);
-            } finally {
-                lock.unlock();
-            }
-        }
-        return e;
-    }
-
-    @Override
-    protected void removeRange(int fromIndex, int toIndex) {
-        lock.lock();
-        try {
-            for(int i = fromIndex; i < toIndex; i++) {
-                this.time.remove(super.get(i));
-            }
-        } finally {
-            super.removeRange(fromIndex, toIndex);
-            lock.unlock();
-        }
     }
 
     @Override
@@ -197,6 +151,7 @@ public class TimeList<E> extends ArrayList<E> implements Ticker {
         } finally {
             lock.unlock();
         }
+
         return super.contains(o);
     }
 

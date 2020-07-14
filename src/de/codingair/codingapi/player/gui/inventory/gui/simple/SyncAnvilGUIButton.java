@@ -7,7 +7,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
-    private ItemStack anvilItem;
     private boolean onlyOutputTrigger = true;
     private AnvilGUI gui;
 
@@ -34,7 +33,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
         getInterface().setClosingByButton(true);
         getInterface().setClosingForGUI(true);
 
-        this.anvilItem = craftAnvilItem(trigger);
+        ItemStack anvilItem = craftAnvilItem(trigger);
 
         gui = AnvilGUI.openAnvil(getInterface().getPlugin(), player, new AnvilListener() {
             @Override
@@ -57,7 +56,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
                     e.setPost(() -> getInterface().open());
                 }
             }
-        }, this.anvilItem);
+        }, anvilItem);
     }
 
     public boolean canTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
