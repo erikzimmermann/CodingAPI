@@ -1,10 +1,11 @@
 package de.codingair.codingapi.files.loader;
 
 import com.google.common.base.Charsets;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.apache.commons.lang.Validate;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -17,17 +18,44 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
-    private List<Extra> extras = new ArrayList<>();
+    private final List<Extra> extras = new ArrayList<>();
     private boolean deployedExtras = false;
+    private final Cache<String, String> caseSensitive = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
 
     private UTFConfig() {
     }
 
     public void destroy() {
         this.extras.clear();
+    }
+
+    @Override
+    public Object get(String path, Object def) {
+         Object value = super.get(path, null);
+
+         if(value == null) {
+             //search for case sensitive
+             path = path.toLowerCase();
+             String key = caseSensitive.getIfPresent(path);
+
+             if(key == null) {
+                 for(String s : getKeys(true)) {
+                     if(s.toLowerCase().equals(path)) {
+                         key = s;
+                         caseSensitive.put(path, s);
+                         break;
+                     }
+                 }
+             }
+
+             if(key != null) value = super.get(key, def);
+         }
+
+         return value;
     }
 
     @Override
@@ -136,13 +164,6 @@ public class UTFConfig extends YamlConfiguration {
         for(String key : toRemove) {
             set(key, null);
         }
-    }
-
-    public boolean isSameType(String key, UTFConfig origin) {
-        Object obj = get(key);
-        Object objOrigin = origin.get(key);
-
-        return obj == null || objOrigin == null || obj.getClass().equals(objOrigin.getClass());
     }
 
     public void deployExtras(String contents) {

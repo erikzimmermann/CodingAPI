@@ -28,9 +28,9 @@ public enum AnimationType {
         this.displayName = displayName;
     }
 
-    public CustomAnimation build(Particle particle, Player player, MovableMid mid, double radius, double height, int speed) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    public CustomAnimation build(Particle particle, Player[] players, MovableMid mid, double radius, double height, int speed) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         return clazz.getConstructor(Particle.class, MovableMid.class, double.class, double.class, int.class)
-                .newInstance(particle, mid, radius, height, speed).setViewer(player);
+                .newInstance(particle, mid, radius, height, speed).setViewers(players);
     }
 
     public int getId() {

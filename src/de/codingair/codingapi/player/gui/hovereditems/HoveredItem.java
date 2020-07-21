@@ -4,13 +4,14 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.TextAlignment;
+import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -28,19 +29,19 @@ import java.util.UUID;
  * @verions: 1.0.0
  **/
 
-public abstract class HoveredItem implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
+public abstract class HoveredItem implements Removable, Ticker {
+	private final UUID uniqueId = UUID.randomUUID();
 	private static int ID_COUNTER = 0;
 	private static final double ARMORSTAND_HEIGHT = 1.2D;
 	private static final double HOLOGRAM_HEIGHT = 0.6D;
 	
 	public static final String EMPTY = "$EMPTY$";
 	
-	private int ID = ID_COUNTER++;
+	private final int ID = ID_COUNTER++;
 	private String name = null;
 	
-	private JavaPlugin plugin;
-	private Player player;
+	private final JavaPlugin plugin;
+	private final Player player;
 	
 	private Object item;
 	private Object armorStand;
@@ -67,7 +68,25 @@ public abstract class HoveredItem implements Removable {
 		this(player, item, location, plugin);
 		this.name = name;
 	}
-	
+
+	@Override
+	public void onTick() {
+		boolean lookingAt = isLookingAt(getPlayer());
+
+		if(lookingAt && !isLookAt()) {
+			onLookAt(getPlayer());
+			setLookAt(true);
+		} else if(!lookingAt && isLookAt()) {
+			onUnlookAt(getPlayer());
+			setLookAt(false);
+		}
+	}
+
+	@Override
+	public void onSecond() {
+
+	}
+
 	@Override
 	public UUID getUniqueId() {
 		return uniqueId;
@@ -99,7 +118,7 @@ public abstract class HoveredItem implements Removable {
 		IReflection.FieldAccessor noDamageTicks = IReflection.getField(PacketUtils.EntityClass, "noDamageTicks");
 		IReflection.FieldAccessor onGround = IReflection.getField(PacketUtils.EntityClass, "onGround");
 		IReflection.MethodAccessor setGravity;
-		if(Version.getVersion().isBiggerThan(Version.v1_8))
+		if(Version.get().isBiggerThan(Version.v1_8))
 			setGravity = IReflection.getMethod(entityArmorStand, "setNoGravity", new Class[]{boolean.class});
 		else setGravity = IReflection.getMethod(entityArmorStand, "setGravity", new Class[]{boolean.class});
 		
@@ -190,6 +209,7 @@ public abstract class HoveredItem implements Removable {
 		
 		this.packetReader.inject();
 		API.addRemovable(this);
+		API.addTicker(this);
 		spawned = true;
 	}
 	
@@ -206,6 +226,7 @@ public abstract class HoveredItem implements Removable {
 		
 		this.packetReader.unInject();
 		API.removeRemovable(this);
+		API.removeTicker(this);
 		spawned = false;
 	}
 	
@@ -262,7 +283,7 @@ public abstract class HoveredItem implements Removable {
 		double size = -1;
 
 		for(String s : getText()) {
-			double next = (double) DefaultFontInfo.getExactLength(s);
+			double next = DefaultFontInfo.getExactLength(s);
 			if(size == -1 || size < next) size = next;
 		}
 

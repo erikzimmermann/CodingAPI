@@ -1,7 +1,7 @@
 package de.codingair.codingapi.server.reflections;
 
 import com.mojang.authlib.GameProfile;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -92,12 +92,13 @@ public class PacketUtils {
 
     public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumItemSlot");
     public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
-    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, (Version.getVersion().equals(Version.v1_8) || Version.getVersion().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
+    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
     public static final Class<?> EnumEntityUseActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUseEntity$EnumEntityUseAction");
 
     public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInteractManager");
 
     public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent$ChatSerializer");
+    public static final Class<?> IChatMutableComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatMutableComponent");
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent");
     public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
     public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatComponentText");
@@ -189,11 +190,13 @@ public class PacketUtils {
     }
 
     public static Object getIChatBaseComponent(String text) {
-        String jsonFormat = "{\"text\":\"" + text +"\"}";
+        return getRawIChatBaseComponent("{\"text\":\"" + text +"\"}");
+    }
 
-        if(Version.getVersion().isBiggerThan(Version.v1_8)) {
-            IReflection.MethodAccessor b = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
-            return b.invoke(IChatBaseComponentClass, jsonFormat);
+    public static Object getRawIChatBaseComponent(String jsonFormat) {
+        if(Version.get().isBiggerThan(15)) {
+            IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[] {String.class});
+            return a.invoke(IChatBaseComponentClass, jsonFormat);
         } else {
             IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
             return a.invoke(IChatBaseComponentClass, jsonFormat);
@@ -213,7 +216,11 @@ public class PacketUtils {
     public static Object getMinecraftServer() {
         IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
         if(getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
-        return getServer.invoke(CraftServerClass.cast(Bukkit.getServer()));
+        return getServer.invoke(getCraftServer());
+    }
+
+    public static Object getCraftServer() {
+        return CraftServerClass.cast(Bukkit.getServer());
     }
 
     public static Object getWorldServer() {
@@ -231,11 +238,11 @@ public class PacketUtils {
 
         if(dataCon == null) return null;
 
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(EntityPlayerClass, "getProfile", GameProfile.class, null);
-        IReflection.FieldAccessor ping = IReflection.getField(EntityPlayerClass, "ping");
-        IReflection.FieldAccessor playerInteractManager = IReflection.getField(EntityPlayerClass, "playerInteractManager");
-        IReflection.MethodAccessor getGameMode = IReflection.getMethod(PlayerInteractManagerClass, "getGameMode", EnumGamemodeClass, null);
-        IReflection.MethodAccessor getPlayerListName = IReflection.getMethod(EntityPlayerClass, "getPlayerListName", IChatBaseComponentClass, null);
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(EntityPlayerClass, "getProfile", GameProfile.class, (Class<?>[]) null);
+        IReflection.FieldAccessor<?> ping = IReflection.getField(EntityPlayerClass, "ping");
+        IReflection.FieldAccessor<?> playerInteractManager = IReflection.getField(EntityPlayerClass, "playerInteractManager");
+        IReflection.MethodAccessor getGameMode = IReflection.getMethod(PlayerInteractManagerClass, "getGameMode", EnumGamemodeClass, (Class<?>[]) null);
+        IReflection.MethodAccessor getPlayerListName = IReflection.getMethod(EntityPlayerClass, "getPlayerListName", IChatBaseComponentClass, (Class<?>[]) null);
 
         Object data = dataCon.newInstance(tabCon.newInstance(), getProfile.invoke(entityPlayer), ping.get(entityPlayer), getGameMode.invoke(playerInteractManager.get(entityPlayer)), getPlayerListName.invoke(entityPlayer));
         Object packet = tabCon.newInstance();
@@ -296,7 +303,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -332,7 +339,7 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, passenger);
                 return packet;
             } else {
@@ -344,7 +351,7 @@ public class PacketUtils {
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_8)) {
+            if(Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {

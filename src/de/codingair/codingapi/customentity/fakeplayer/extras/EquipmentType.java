@@ -1,6 +1,6 @@
 package de.codingair.codingapi.customentity.fakeplayer.extras;
 
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 
 /**
  * Removing of this disclaimer is forbidden.
@@ -27,7 +27,7 @@ public enum EquipmentType {
 	}
 	
 	public int getId() {
-		if(Version.getVersion().equals(Version.v1_9) || Version.getVersion().equals(Version.v1_10) || Version.getVersion().equals(Version.v1_11)) return this.newer;
+		if(Version.get().equals(Version.v1_9) || Version.get().equals(Version.v1_10) || Version.get().equals(Version.v1_11)) return this.newer;
 		else return older;
 	}
 }

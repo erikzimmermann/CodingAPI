@@ -10,10 +10,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import java.util.Arrays;
+
 public abstract class SyncSignGUIButton extends SyncButton {
-    private Sign sign;
-    private ClickType trigger;
-    private boolean updateSign;
+    private final Sign sign;
+    private final ClickType trigger;
+    private final boolean updateSign;
 
     public SyncSignGUIButton(int slot, Location signLocation) {
         this(slot, signLocation, null, false);
@@ -66,11 +68,19 @@ public abstract class SyncSignGUIButton extends SyncButton {
             new SignGUI(player, this.sign, getInterface().getPlugin()) {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
-                    if(updateSign) {
-                        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
+                    boolean notEmpty = false;
+                    for(String line : lines) {
+                        if(!line.isEmpty()) {
+                            notEmpty = true;
+                            break;
+                        }
                     }
 
-                    SyncSignGUIButton.this.onSignChangeEvent(lines);
+                    if(notEmpty) {
+                        if(updateSign) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
+                        SyncSignGUIButton.this.onSignChangeEvent(lines);
+                    }
+
                     getInterface().reinitialize();
                     close();
 

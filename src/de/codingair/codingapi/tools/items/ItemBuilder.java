@@ -3,7 +3,7 @@ package de.codingair.codingapi.tools.items;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
@@ -71,7 +71,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseItem(true));
+        this(xMaterial.parseItem(true, XMaterial.STONE.parseMaterial()));
     }
 
     public ItemBuilder(Material type) {
@@ -96,8 +96,8 @@ public class ItemBuilder implements Serializable {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
-            if(Version.getVersion().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
+            if(Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
+            if(Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
                 this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
             }
 
@@ -176,9 +176,9 @@ public class ItemBuilder implements Serializable {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
             if(potionData != null) {
-                if(Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                if(Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
-                } else if(!Version.getVersion().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                } else if(!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     Potion potion = this.potionData.getPotion();
                     meta.setMainEffect(potion.getType().getEffectType());
                 }
@@ -232,8 +232,8 @@ public class ItemBuilder implements Serializable {
                 }
             }
 
-            if(Version.getVersion().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
-            if(Version.getVersion().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+            if(Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
+            if(Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
             item.setItemMeta(meta);
         }
@@ -247,7 +247,7 @@ public class ItemBuilder implements Serializable {
     @Override
     public boolean read(DataWriter d) throws Exception {
         try {
-            for(Object key : d.keySet()) {
+            for(Object key : d.keySet(false)) {
                 String keyName = (String) key;
 
                 switch(keyName) {
@@ -282,7 +282,7 @@ public class ItemBuilder implements Serializable {
                         JSON jsonEnchantments = d.get("Enchantments");
                         if(jsonEnchantments == null) break;
 
-                        for(Object keySet : jsonEnchantments.keySet()) {
+                        for(Object keySet : jsonEnchantments.keySet(false)) {
                             String name = (String) keySet;
                             Enchantment enchantment = Enchantment.getByName(name);
                             int level = Integer.parseInt(jsonEnchantments.get(name) + "");
@@ -319,14 +319,14 @@ public class ItemBuilder implements Serializable {
                         try {
                             material = Material.valueOf(name);
                         } catch(IllegalArgumentException ex) {
-                            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+                            if(Version.get().isBiggerThan(Version.v1_12)) {
                                 obj = d.get("Data");
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(d.get("Data") + "");
 
                                 Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
 
-                                if(mat.isPresent()) material = mat.get().parseMaterial(true);
+                                if(mat.isPresent()) material = mat.get().parseMaterial(true, false);
                                 else {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
@@ -335,7 +335,7 @@ public class ItemBuilder implements Serializable {
                                 Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
 
                                 if(mat.isPresent()) {
-                                    material = mat.get().parseMaterial(true);
+                                    material = mat.get().parseMaterial(true, false);
                                     setData(mat.get().getData());
                                 }
                             }
@@ -712,7 +712,8 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder setType(XMaterial type) {
-        return setType(type.parseMaterial());
+        setType(type.parseMaterial(true, true, XMaterial.STONE.parseMaterial()));
+        return this;
     }
 
     public ItemBuilder setType(Material type) {
@@ -726,7 +727,7 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setData(byte data) {
         this.data = data;
-        if(getType() != null && getType().equals(Material.POTION)) setDurability(getData());
+        if(getType() != null && (getType() == XMaterial.POTION.parseMaterial(true, true) || getType() == XMaterial.PLAYER_HEAD.parseMaterial(true, true))) setDurability(getData());
         return this;
     }
 
@@ -934,7 +935,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true), 1, (short) 3);
+        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true, false), 1, (short) 3);
         if(gameProfile == null) return item;
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();

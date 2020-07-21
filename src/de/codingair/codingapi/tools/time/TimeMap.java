@@ -1,88 +1,141 @@
 package de.codingair.codingapi.tools.time;
 
+import de.codingair.codingapi.API;
+import de.codingair.codingapi.utils.Ticker;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class TimeMap<K, V> extends HashMap<K, V> {
-    private TimeList<K> time;
+public class TimeMap<K, V> extends HashMap<K, V> implements Ticker {
+    private final HashMap<K, Long> time = new HashMap<>();
+    private final ReentrantLock lock = new ReentrantLock();
+
+    public TimeMap(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
+        API.addTicker(this);
+    }
+
+    public TimeMap(int initialCapacity) {
+        super(initialCapacity);
+        API.addTicker(this);
+    }
 
     public TimeMap() {
-        initTimeList();
+        API.addTicker(this);
     }
 
     public TimeMap(Map<? extends K, ? extends V> m) {
         super(m);
-        initTimeList();
+        API.addTicker(this);
     }
 
-    public void addListener(TimeListener e) {
-        this.time.addListener(e);
+    public void unregister() {
+        API.removeTicker(this);
     }
 
-    public void removeListener(TimeListener e) {
-        this.time.removeListener(e);
+    @Override
+    public void onTick() {
+
     }
 
-    private void initTimeList() {
-        time = new TimeList<>();
+    @Override
+    public void onSecond() {
+        try {
+            lock.tryLock(100, TimeUnit.MILLISECONDS);
 
-        time.addListener(new TimeListener() {
-            @Override
-            public void onRemove(Object item) {
-                TimeMap.this.remove(item);
+            try {
+                time.entrySet().removeIf(entry -> {
+                    if(entry.getValue() <= System.currentTimeMillis()) {
+                        timeout(entry.getKey());
+                        super.remove(entry.getKey());
+                        return true;
+                    } else return false;
+                });
+            } finally {
+                lock.unlock();
             }
-
-            @Override
-            public void onTick(Object item, int timeLeft) {
-            }
-        });
+        } catch(InterruptedException ignored) {
+        }
     }
 
-    public V put(K key, V value, int expire) {
-        this.time.add(key, expire);
+    public void timeout(K key) {
+    }
+
+    public V put(K key, V value, long expire) {
+        lock.lock();
+        try {
+            this.time.put(key, System.currentTimeMillis() + expire);
+        } finally {
+            lock.unlock();
+        }
         return super.put(key, value);
     }
 
-    public void putAll(Map<? extends K, ? extends V> m, int expire) {
-        this.time.addAll(m.keySet(), expire);
-        super.putAll(m);
+    private boolean checkValue(Object key) {
+        lock.lock();
+        try {
+            Long t = time.get(key);
+            if(t != null) {
+                if(t < System.currentTimeMillis()) {
+                    //remove
+                    remove(key);
+                    return true;
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+
+
+        return false;
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        if(checkValue(key)) return false;
+        return super.containsKey(key);
+    }
+
+    @Override
+    public V get(Object key) {
+        if(checkValue(key)) return null;
+        return super.get(key);
     }
 
     @Override
     public V remove(Object key) {
-        time.remove(key);
+        lock.lock();
+        try {
+            time.remove(key);
+        } finally {
+            lock.unlock();
+        }
         return super.remove(key);
     }
 
     @Override
     public void clear() {
-        time.clear();
+        lock.lock();
+        try {
+            time.clear();
+        } finally {
+            lock.unlock();
+        }
         super.clear();
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        return super.remove(key, value) ? time.remove(key) : false;
-    }
-
-    public int getExpire(K key) {
-        return this.time.getExpire(key);
-    }
-
-    public boolean hasExpire(K key) {
-        return this.time.hasExpire(key);
-    }
-
-    public boolean setExpire(K key, int expire) {
-        if(hasExpire(key)) {
-            if(expire > 0) this.time.setExpire(key, expire);
-            else {
-                remove(key);
+        if(super.remove(key, value)) {
+            lock.lock();
+            try {
+                this.time.remove(key);
+            } finally {
+                lock.unlock();
             }
-
             return true;
-        }
-
-        return false;
+        } else return false;
     }
 }

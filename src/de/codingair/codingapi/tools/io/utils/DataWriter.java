@@ -36,7 +36,7 @@ public interface DataWriter {
         throw new IllegalStateException("Only for spigot purpose! (SpigotDataWriter)");
     }
 
-    Set keySet();
+    Set<String> keySet(boolean depth);
 
     Object remove(String key);
 

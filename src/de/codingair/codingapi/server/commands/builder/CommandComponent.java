@@ -1,7 +1,6 @@
 package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.server.commands.builder.special.SpecialCommandComponent;
-import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -9,12 +8,12 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class CommandComponent {
-    private CommandComponent parent;
-    private List<CommandComponent> children = new ArrayList<>();
-    private String argument;
-    private String permission;
-    private Boolean onlyPlayers = null;
-    private Boolean onlyConsole = null;
+    protected CommandComponent parent;
+    protected final List<CommandComponent> children = new ArrayList<>();
+    protected final String argument;
+    protected final String permission;
+    protected Boolean onlyPlayers = null;
+    protected Boolean onlyConsole = null;
 
     public CommandComponent(String argument) {
         this(argument, null);
@@ -60,26 +59,42 @@ public abstract class CommandComponent {
         return this;
     }
 
-    public Object buildLiteralArgument() {
-        try {
-            Class<?> lArgBuilder = Class.forName("com.mojang.brigadier.builder.LiteralArgumentBuilder");
-            Class<?> argBuilder = Class.forName("com.mojang.brigadier.builder.ArgumentBuilder");
-            IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[] {String.class});
-            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[] {argBuilder});
-
-            Object l = literal.invoke(null, argument);
-
-            for(CommandComponent child : getChildren()) {
-                if(child instanceof SpecialCommandComponent) continue;
-                Object o = child.buildLiteralArgument();
-                if(o != null) then.invoke(l, o);
-            }
-
-            return l;
-        } catch(ClassNotFoundException e) {
-            e.printStackTrace();
+    public Object buildArgument() {
+//        try {
+//            Object l;
+//            if(this instanceof SpecialCommandComponent) {
+//                Class<?> rArgBuilder = Class.forName("com.mojang.brigadier.builder.RequiredArgumentBuilder");
+//                Class<?> argType = Class.forName("com.mojang.brigadier.arguments.ArgumentType");
+//                Class<?> argChat = IReflection.getSaveClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ArgumentChatComponent");
+//
+//                IReflection.MethodAccessor required = IReflection.getMethod(rArgBuilder, "argument", rArgBuilder, new Class[] {String.class, argType});
+//                Object o = IReflection.getConstructor(argChat).newInstance();
+//                l = required.invoke(null, ((SpecialCommandComponent) this).getType(), o);
+//
+//                IReflection.FieldAccessor<?> suggestionsProvider = IReflection.getField(rArgBuilder, "suggestionsProvider");
+//                suggestionsProvider.set(l, getBukkitCommandWrapper());
+//            } else {
+//                Class<?> lArgBuilder = Class.forName("com.mojang.brigadier.builder.LiteralArgumentBuilder");
+//                IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[] {String.class});
+//                l = literal.invoke(null, argument);
+//            }
+//
+//            Class<?> argBuilder = Class.forName("com.mojang.brigadier.builder.ArgumentBuilder");
+//            Class<?> command = Class.forName("com.mojang.brigadier.Command");
+//            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[] {argBuilder});
+//            IReflection.MethodAccessor executes = IReflection.getMethod(argBuilder, "executes", argBuilder, new Class[] {command});
+//            executes.invoke(l, getBukkitCommandWrapper());
+//
+//            for(CommandComponent child : getChildren()) {
+//                Object o = child.buildArgument();
+//                if(o != null) then.invoke(l, o);
+//            }
+//
+//            return l;
+//        } catch(ClassNotFoundException e) {
+//            e.printStackTrace();
             return null;
-        }
+//        }
     }
 
     public CommandComponent getChild(String arg) {

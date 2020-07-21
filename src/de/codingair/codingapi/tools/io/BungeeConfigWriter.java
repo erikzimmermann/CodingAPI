@@ -9,7 +9,10 @@ import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 import net.md_5.bungee.config.Configuration;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class BungeeConfigWriter implements DataWriter {
     private String prefix;
@@ -41,13 +44,20 @@ public class BungeeConfigWriter implements DataWriter {
     }
 
     @Override
-    public Set<?> keySet() {
+    public Set<String> keySet(boolean depth) {
         Collection<String> o = c().getKeys();
         Set<String> data = new HashSet<>();
 
-        for(String s : o) {
-            if(prefix.isEmpty()) data.add(s);
-            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+        if(depth) {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+            }
+        } else {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+            }
         }
 
         return data;

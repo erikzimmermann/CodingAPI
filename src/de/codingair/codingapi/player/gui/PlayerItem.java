@@ -9,13 +9,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
 import java.util.UUID;
 
 public abstract class PlayerItem extends ItemStack implements Removable {
-    private UUID uniqueId = UUID.randomUUID();
-    private JavaPlugin plugin;
-    private Player player;
+    private final UUID uniqueId = UUID.randomUUID();
+    private final JavaPlugin plugin;
+    private final Player player;
     private boolean freezed = true;
     private long lastClick = 0;
 
@@ -27,8 +26,6 @@ public abstract class PlayerItem extends ItemStack implements Removable {
 
         API.addRemovable(this);
         GUIListener.register(plugin);
-
-        //remove();
     }
 
     @Override

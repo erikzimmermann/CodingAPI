@@ -39,7 +39,7 @@ public class JSON extends JSONObject implements SpigotDataWriter {
         Set<String> set = new HashSet<>();
 
         for(Object o : map.entrySet()) {
-            Entry e = (Entry) o;
+            Entry<Object, Object> e = (Entry<Object, Object>) o;
 
             if(e.getValue() instanceof String) {
                 try {
@@ -59,27 +59,20 @@ public class JSON extends JSONObject implements SpigotDataWriter {
     }
 
     @Override
-    public Set<?> keySet() {
-        Collection<String> o = keySet("", this);
+    public Set<String> keySet(boolean depth) {
         Set<String> data = new HashSet<>();
-
-        for(String s : o) {
-            if(prefix.isEmpty()) data.add(s);
-            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
-        }
-
-        return data;
-    }
-
-    public Set<?> keySet(boolean depth) {
-        if(depth) return keySet();
-
         Collection<String> o = keySet("", this);
-        Set<String> data = new HashSet<>();
 
-        for(String s : o) {
-            if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
-            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+        if(depth) {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+            }
+        } else {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+            }
         }
 
         return data;
@@ -199,8 +192,8 @@ public class JSON extends JSONObject implements SpigotDataWriter {
     }
 
     public Long getLong(String key, Long def) {
-        Object i = get(key, 0L, true);
-        return i == null ? def : (i instanceof Number ? ((Number) i).longValue() : def);
+        Number d = get(key);
+        return d == null ? def : (Long) d.longValue();
     }
 
     public Double getDouble(String key, Double def) {

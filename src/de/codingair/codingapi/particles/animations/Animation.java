@@ -6,7 +6,7 @@ import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Location;
 
 public abstract class Animation implements Ticker {
-    private Particle particle;
+    private final Particle particle;
     private double maxDistance = 30;
 
     public Animation(Particle particle) {
@@ -14,7 +14,7 @@ public abstract class Animation implements Ticker {
     }
 
     public boolean isRunning() {
-        return API.getTicker(this) != null;
+        return API.isRunning(this);
     }
 
     public void setRunning(boolean running) {
@@ -32,11 +32,6 @@ public abstract class Animation implements Ticker {
 
     @Override
     public void onSecond() { }
-
-    @Override
-    public Object getInstance() {
-        return this;
-    }
 
     public double getMaxDistance() {
         return maxDistance;

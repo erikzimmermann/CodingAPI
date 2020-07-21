@@ -1,9 +1,6 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.gui.hotbar.HotbarGUI;
-import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
-import de.codingair.codingapi.player.gui.hovereditems.HoveredItem;
 import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.Interface;
@@ -22,7 +19,6 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,42 +32,20 @@ import java.util.List;
 
 public class GUIListener implements Listener {
     private static GUIListener instance = null;
-    private Plugin plugin;
 
-    private GUIListener(Plugin plugin) {
+    private GUIListener() {
         if(instance != null) HandlerList.unregisterAll(instance);
-
-        this.plugin = plugin;
         instance = this;
     }
 
     public static void register(Plugin plugin) {
         if(isRegistered()) return;
-        Bukkit.getPluginManager().registerEvents(new GUIListener(plugin), plugin);
+        Bukkit.getPluginManager().registerEvents(new GUIListener(), plugin);
     }
 
     public static boolean isRegistered() {
         return instance != null;
     }
-
-    public static void onTick() {
-        for(Player player : Bukkit.getOnlinePlayers()) {
-            List<HoveredItem> l = API.getRemovables(player, HoveredItem.class);
-            for(HoveredItem item : l) {
-                boolean lookingAt = item.isLookingAt(item.getPlayer());
-
-                if(lookingAt && !item.isLookAt()) {
-                    item.onLookAt(item.getPlayer());
-                    item.setLookAt(true);
-                } else if(!lookingAt && item.isLookAt()) {
-                    item.onUnlookAt(item.getPlayer());
-                    item.setLookAt(false);
-                }
-            }
-            l.clear();
-        }
-    }
-
 
     /*
      * PlayerItem
@@ -295,12 +269,11 @@ public class GUIListener implements Listener {
             if(inv instanceof GUI) {
                 GUI gui = (GUI) inv;
 
+                e.setCancelled(!gui.isMoveOwnItems());
                 if(gui.isMoveOwnItems() && e.getClickedInventory().equals(e.getView().getBottomInventory())) {
                     ItemStack current = e.getCurrentItem();
-
                     switch(e.getAction()) {
                         case MOVE_TO_OTHER_INVENTORY:
-
                             if(inv.isEditableItems()) {
                                 e.setCancelled(false);
                             } else {

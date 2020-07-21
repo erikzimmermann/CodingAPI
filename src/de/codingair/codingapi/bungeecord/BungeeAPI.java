@@ -66,51 +66,8 @@ public class BungeeAPI {
         getInstance().runTicker();
     }
 
-    public static Ticker removeTicker(Ticker ticker) {
-        int index = getTickerIndex(ticker);
-        if(index == -999) return null;
-
-        Ticker t = TICKERS.remove(index);
-
-        if(TICKERS.size() == 0) {
-            getInstance().tickerTimer.cancel();
-            getInstance().tickerTimer = null;
-        }
-
-        return t;
-    }
-
-    public static Ticker getTicker(Object instance) {
-        List<Ticker> tickers = new ArrayList<>(TICKERS);
-        Ticker ticker = null;
-
-        for(Ticker t : tickers) {
-            if(t.getInstance().equals(instance)) {
-                ticker = t;
-                break;
-            }
-        }
-
-        tickers.clear();
-        return ticker;
-    }
-
-    public static int getTickerIndex(Ticker ticker) {
-        List<Ticker> tickers = new ArrayList<>(TICKERS);
-        boolean contains = false;
-        int i = 0;
-
-        for(Ticker t : tickers) {
-            if(t.getInstance().equals(ticker.getInstance())) {
-                contains = true;
-                break;
-            }
-
-            i++;
-        }
-
-        tickers.clear();
-        return contains ? i : -999;
+    public static boolean removeTicker(Ticker ticker) {
+        return TICKERS.remove(ticker);
     }
 
     public static BungeeAPI getInstance() {
@@ -120,10 +77,6 @@ public class BungeeAPI {
 
     public static boolean isEnabled() {
         return instance != null;
-    }
-
-    public Timer getTickerTimer() {
-        return tickerTimer;
     }
 
     public Plugin getPlugin() {

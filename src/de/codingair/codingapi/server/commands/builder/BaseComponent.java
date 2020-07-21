@@ -1,10 +1,11 @@
 package de.codingair.codingapi.server.commands.builder;
 
-import de.codingair.codingapi.server.commands.builder.special.SpecialCommandComponent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.command.CommandSender;
 
 public abstract class BaseComponent extends CommandComponent {
+    private CommandBuilder builder;
+
     public BaseComponent() {
         super(null);
     }
@@ -39,8 +40,7 @@ public abstract class BaseComponent extends CommandComponent {
             Object l = literal.invoke(null, argument);
 
             for(CommandComponent child : getChildren()) {
-                if(child instanceof SpecialCommandComponent) continue;
-                Object o = child.buildLiteralArgument();
+                Object o = child.buildArgument();
                 if(o != null) then.invoke(l, o);
             }
 
@@ -49,5 +49,13 @@ public abstract class BaseComponent extends CommandComponent {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public CommandBuilder getBuilder() {
+        return builder;
+    }
+
+    void setBuilder(CommandBuilder builder) {
+        this.builder = builder;
     }
 }

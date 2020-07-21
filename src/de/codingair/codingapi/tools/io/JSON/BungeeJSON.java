@@ -59,27 +59,20 @@ public class BungeeJSON extends JSONObject implements DataWriter {
     }
 
     @Override
-    public Set<?> keySet() {
-        Collection<String> o = keySet("", this);
+    public Set<String> keySet(boolean depth) {
         Set<String> data = new HashSet<>();
-
-        for(String s : o) {
-            if(prefix.isEmpty()) data.add(s);
-            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
-        }
-
-        return data;
-    }
-
-    public Set<?> keySet(boolean depth) {
-        if(depth) return keySet();
-
         Collection<String> o = keySet("", this);
-        Set<String> data = new HashSet<>();
 
-        for(String s : o) {
-            if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
-            else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+        if(depth) {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+            }
+        } else {
+            for(String s : o) {
+                if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
+                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+            }
         }
 
         return data;
@@ -199,8 +192,8 @@ public class BungeeJSON extends JSONObject implements DataWriter {
     }
 
     public Long getLong(String key, Long def) {
-        Object i = get(key, def, true);
-        return i == null ? def : (i instanceof Number ? ((Number) i).longValue() : def);
+        Number d = get(key);
+        return d == null ? def : (Long) d.longValue();
     }
 
     public Double getDouble(String key, Double def) {

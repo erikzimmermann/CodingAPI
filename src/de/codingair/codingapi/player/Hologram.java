@@ -2,7 +2,7 @@ package de.codingair.codingapi.player;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
@@ -533,13 +533,13 @@ public class Hologram implements Removable {
         public static void setGravity(Object armorStand, boolean gravity) {
             IReflection.MethodAccessor setGravity;
 
-            if(Version.getVersion().isBiggerThan(Version.v1_9)) {
+            if(Version.get().isBiggerThan(Version.v1_9)) {
                 setGravity = IReflection.getMethod(armorStand.getClass(), "setNoGravity", new Class[] {boolean.class});
             } else {
                 setGravity = IReflection.getMethod(armorStand.getClass(), "setGravity", new Class[] {boolean.class});
             }
 
-            if(Version.getVersion().isBiggerThan(Version.v1_9)) gravity = !gravity;
+            if(Version.get().isBiggerThan(Version.v1_9)) gravity = !gravity;
             setGravity.invoke(armorStand, gravity);
         }
 
@@ -549,7 +549,7 @@ public class Hologram implements Removable {
         }
 
         public static void setInvulnerable(Object armorStand, boolean invulnerable) {
-            if(Version.getVersion().isBiggerThan(Version.v1_9)) {
+            if(Version.get().isBiggerThan(Version.v1_9)) {
                 IReflection.MethodAccessor setInvulnerable = IReflection.getMethod(armorStand.getClass(), "setInvulnerable", new Class[] {boolean.class});
                 setInvulnerable.invoke(armorStand, invulnerable);
             }
@@ -559,13 +559,13 @@ public class Hologram implements Removable {
             Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
             IReflection.MethodAccessor setCustomName;
 
-            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+            if(Version.get().isBiggerThan(Version.v1_12)) {
                 setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {PacketUtils.IChatBaseComponentClass});
             } else {
                 setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
             }
 
-            if(Version.getVersion().isBiggerThan(Version.v1_12)) {
+            if(Version.get().isBiggerThan(Version.v1_12)) {
                 setCustomName.invoke(armorStand, PacketUtils.getIChatBaseComponent(text));
             } else {
                 setCustomName.invoke(armorStand, text);
@@ -599,7 +599,7 @@ public class Hologram implements Removable {
             Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass).newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
 
-            if(Version.getVersion().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
+            if(Version.get().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {

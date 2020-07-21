@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomCommand {
-    private Plugin owner;
-    private String name;
+    private final Plugin owner;
+    private final String name;
     protected String description;
-    private List<String> aliases;
+    private final List<String> aliases;
 
     private CommandExecutor executor;
     private TabCompleter tabCompleter;

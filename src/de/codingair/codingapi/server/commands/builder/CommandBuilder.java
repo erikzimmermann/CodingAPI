@@ -1,217 +1,152 @@
 package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
 import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
-import de.codingair.codingapi.server.commands.dispatcher.CommandDispatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
-public class CommandBuilder implements CommandExecutor, TabCompleter {
-    public static final HashMap<String, CommandBuilder> REGISTERED = new HashMap<>();
-    private static Listener listener;
-    private List<CommandBackup> backups = new ArrayList<>();
+public class CommandBuilder implements CommandExecutor, TabCompleter, Removable {
+    private static SimpleCommandMap simpleCommandMap = null;
+    private static Map<String, Command> knownCommands = null;
+    private static Class<?> wrapper = null;
+    private static IReflection.MethodAccessor register = null;
+    private static IReflection.MethodAccessor unregister = null;
+
+    private final HashMap<String, Command> fallback = new HashMap<>();
+    private Object wrapperInstance = null;
+
     private PluginCommand main;
-    private boolean temp = false; //must be 'true' if command will be created after JavaPlugin#onEnable()
+    private final UUID uniqueId = UUID.randomUUID();
+    private final JavaPlugin plugin;
 
-    private static void registerListener(JavaPlugin plugin) {
-        if(listener != null) return;
+    private final String name;
+    private final String description;
+    private final String[] importantAliases;
+    private final List<String> aliases;
 
-        Bukkit.getPluginManager().registerEvents(listener = new Listener() {
-
-            @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-            public void onPreProcess(PlayerCommandPreprocessEvent e) {
-                String label = e.getMessage().split(" ")[0].replaceFirst("/", "");
-                Command command = API.getPluginCommand(label);
-
-                if(command == null || command.getName() == null) return;
-
-                CommandBuilder builder = REGISTERED.get(command.getName().toLowerCase());
-
-                if(builder == null) return;
-                if(!builder.isHighestPriority()) return;
-
-                e.setCancelled(true);
-                builder.onCommand(e.getPlayer(), command, label, e.getMessage().replaceFirst("/" + label + " ", "").split(" "));
-            }
-
-        }, plugin);
-    }
-
-    private String name;
-    private String description;
-    private List<String> aliases;
-
-    private BaseComponent baseComponent;
+    private final BaseComponent baseComponent;
     private TabCompleter ownTabCompleter = null;
-    private boolean tabCompleter;
-    private boolean highestPriority = false;
+    private final boolean tabCompleter;
 
-    public CommandBuilder(String name, BaseComponent baseComponent, boolean tabCompleter) {
-        this(name, null, baseComponent, tabCompleter, (String[]) null);
+    public CommandBuilder(JavaPlugin plugin, String name, BaseComponent baseComponent, boolean tabCompleter) {
+        this(plugin, name, null, baseComponent, tabCompleter, (String[]) null);
     }
 
-    public CommandBuilder(String name, String description, BaseComponent baseComponent, boolean tabCompleter, String... aliases) {
-        this.name = name.toLowerCase();
+    public CommandBuilder(JavaPlugin plugin, String name, String description, BaseComponent baseComponent, boolean tabCompleter, String... aliases) {
+        this(plugin, name, description, baseComponent, tabCompleter, null, aliases);
+    }
+
+    public CommandBuilder(JavaPlugin plugin, String name, String description, BaseComponent baseComponent, boolean tabCompleter, String[] importantAliases, String... aliases) {
+        this.plugin = plugin;
+        this.name = name.toLowerCase(Locale.ENGLISH).trim();
         this.description = description;
         this.baseComponent = baseComponent;
+        this.baseComponent.setBuilder(this);
         this.tabCompleter = tabCompleter;
 
         this.aliases = new ArrayList<>();
+        if(importantAliases == null) this.importantAliases = new String[0];
+        else {
+            this.importantAliases = new String[importantAliases.length];
+            for(int i = 0; i < importantAliases.length; i++) {
+                String s = importantAliases[i].toLowerCase(Locale.ENGLISH).trim();
+                this.importantAliases[i] = s;
+                this.aliases.add(s);
+            }
+        }
+
         if(aliases != null)
             for(String alias : aliases) {
-                this.aliases.add(alias.toLowerCase());
+                this.aliases.add(alias.toLowerCase(Locale.ENGLISH).trim());
             }
+
+        if(Version.get().isBiggerThan(12) && wrapper == null) {
+            try {
+                wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
+                register = IReflection.getMethod(wrapper, "a", wrapper, new Class[] {CommandBuilder.class});
+                unregister = IReflection.getMethod(wrapper, "unregister");
+            } catch(ClassNotFoundException ignored) {
+            }
+        }
     }
 
-    public void register(JavaPlugin plugin) {
-        if(isRegistered()) return;
+    @Override
+    public void destroy() {
+        unregister();
+    }
 
-        List<String> names = new ArrayList<>(aliases);
-        names.add(0, this.name);
+    public void register() {
+        if(main != null) return;
+        API.addRemovable(this);
 
-        PluginCommand command = Bukkit.getPluginCommand(this.name);
-
-        main = plugin.getCommand(this.name);
-        //alias of other command blocks this command > create command and block alias
-        if(main != null && !main.getName().equalsIgnoreCase(this.name)) {
-            if(command != null && command.equals(main)) command = null;
-            main = null;
+        //unregister foreign main command
+        Command c = getKnownCommands().remove(this.name);
+        if(c != null) {
+            //add to fallback commands
+            fallback.put(this.name, c);
         }
 
-        if(main == null) {
-            //unregister existing command
-            if(command != null) {
-                //remove from SimpleCommandMap
-                Map<String, Command> commands = getKnownCommands();
-                commands.remove(command.getName().toLowerCase(Locale.ENGLISH).trim());
-                commands.remove(command.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + command.getName().toLowerCase(Locale.ENGLISH).trim());
-
-                //Remove from CommandDispatcher
-                if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.removeCommand(this);
-            }
-
-            //Create PluginCommand using CustomCommand.class
-            main = new CustomCommand(plugin, this.name, this.description).invoke();
-
-            //Register command in SimpleCommandMap.class
-            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-            IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
-            SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
-
-            if(tabCompleter) main.setTabCompleter(this);
-            main.setExecutor(this);
-            main.setAliases(aliases);
-            main.setPermission(null);
-
-            scm.register(plugin.getDescription().getName(), main);
-
-            //Add to CommandDispatcher
-            if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.addCommand(this);
-        }
-
-        for(String s : names) {
-            command = Bukkit.getPluginCommand(s);
-
-            //overwrite only if same
-            if(command != null && (plugin.getName().equals(command.getPlugin().getName()) && command.getName().equalsIgnoreCase(this.name))) {
-                //alias matches original command > continue
-                if(command.getExecutor().equals(this)) continue;
-
-                if(highestPriority) {
-                    //going to overwrite existing command > create backup
-                    backups.add(new CommandBackup(command));
-
-                    try {
-                        //1.9+
-                        command.setName(main.getName());
-                    } catch(Throwable ignored) {
-                    }
-
-                    command.setExecutor(this);
-                    command.setTabCompleter(this);
-                    command.setDescription(main.getDescription());
-                    command.setAliases(main.getAliases());
-                    command.setPermission(null);
-                    command.setUsage(main.getUsage());
-
-                    try {
-                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                        owningPlugin.setAccessible(true);
-                        owningPlugin.set(command, plugin);
-                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
-                    }
-                } else if(command.getPlugin().getName().equals(plugin.getName())) {
-                    command.setExecutor(this);
-                    command.setTabCompleter(this);
-
-                    try {
-                        final Field owningPlugin = PluginCommand.class.getDeclaredField("owningPlugin");
-                        owningPlugin.setAccessible(true);
-                        owningPlugin.set(command, plugin);
-                    } catch(NoSuchFieldException | IllegalAccessException ignored) {
-                    }
-                }
+        //unregister foreign commands which block important aliases
+        for(String importantAlias : importantAliases) {
+            c = getKnownCommands().remove(importantAlias);
+            if(c != null) {
+                //add to fallback commands
+                fallback.put(importantAlias, c);
             }
         }
 
-        names.clear();
+        main = new CustomCommand(plugin, name, description).invoke();
+        main.setTabCompleter(this.tabCompleter ? this : null);
         main.setExecutor(this);
-        if(tabCompleter) main.setTabCompleter(this);
+        main.setAliases(aliases);
+        main.setPermission(null);
+        main.setLabel(name);
 
-        REGISTERED.put(this.name.toLowerCase(), this);
+        //Register main command in SimpleCommandMap.class
+        simpleCommandMap().register(plugin.getDescription().getName(), main);
 
-        registerListener(plugin);
+        //Add to CommandDispatcher
+        if(Version.get().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
     }
 
-    public void unregister(JavaPlugin plugin) {
-        if(!isRegistered()) return;
+    public void unregister() {
+        if(main == null) return;
 
-        List<String> names = new ArrayList<>(aliases);
-        names.add(0, this.name);
+        //Remove from CommandDispatcher
+        if(Version.get().isBiggerThan(12)) unregister.invoke(wrapperInstance);
 
-        this.backups.forEach(CommandBackup::restore);
-        this.backups.clear();
-
-        for(String s : names) {
-            PluginCommand command = plugin.getCommand(s);
-
-            //command backup was restored > command is being owned by another plugin
-            if(command == null) continue;
-
-            //remove executor
-            command.setExecutor(null);
-            command.setTabCompleter(null);
-
-            //remove from SimpleCommandMap
-            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-            IReflection.FieldAccessor<?> commandMap = IReflection.getField(SimplePluginManager.class, "commandMap");
-            SimpleCommandMap scm = (SimpleCommandMap) commandMap.get(spm);
-
-            IReflection.FieldAccessor<Map<String, Command>> knownCommands = IReflection.getField(SimpleCommandMap.class, "knownCommands");
-            Map<String, Command> commands = knownCommands.get(scm);
-            commands.remove(s.toLowerCase(Locale.ENGLISH).trim());
-            commands.remove(plugin.getName().toLowerCase(Locale.ENGLISH).trim() + ":" + s.toLowerCase(Locale.ENGLISH).trim());
-
-            //1.13+
-            //Remove from CommandDispatcher
-            if(Version.getVersion().isBiggerThan(Version.v1_12) && temp) CommandDispatcher.removeCommand(this);
+        unregister(name);
+        for(String alias : aliases) {
+            unregister(alias);
         }
 
-        names.clear();
-        REGISTERED.remove(this.name.toLowerCase());
+        //revive overwritten commands to SimpleCommandMap
+        fallback.forEach((key, command) -> getKnownCommands().put(key, command));
+        fallback.clear();
+
+        main = null;
+        API.removeRemovable(this);
+    }
+
+    private void unregister(String label) {
+        //remove from SimpleCommandMap
+        label = label.toLowerCase(Locale.ENGLISH).trim();
+
+        Map<String, Command> commands = getKnownCommands();
+        Command c = commands.get(label);
+
+        if(c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName())) commands.remove(label);
+        commands.remove(main.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + label);
     }
 
     public static Command getCommand(String name) {
@@ -224,20 +159,39 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
     }
 
     public static Map<String, Command> getKnownCommands() {
-        SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+        if(knownCommands == null) {
+            try {
+                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+                knownCommands.setAccessible(true);
 
-        try {
-            Field commandMap = SimplePluginManager.class.getDeclaredField("commandMap");
-            Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-
-            commandMap.setAccessible(true);
-            knownCommands.setAccessible(true);
-
-            return (Map<String, Command>) knownCommands.get(commandMap.get(spm));
-        } catch(NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-            return new HashMap<>();
+                CommandBuilder.knownCommands = (Map<String, Command>) knownCommands.get(simpleCommandMap());
+            } catch(NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+                return new HashMap<>();
+            }
         }
+
+        return knownCommands;
+    }
+
+    public static SimpleCommandMap simpleCommandMap() {
+        if(simpleCommandMap == null) {
+            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+
+            try {
+                Field commandMap = SimplePluginManager.class.getDeclaredField("commandMap");
+                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+
+                commandMap.setAccessible(true);
+                knownCommands.setAccessible(true);
+
+                simpleCommandMap = (SimpleCommandMap) commandMap.get(spm);
+            } catch(NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return simpleCommandMap;
     }
 
     @Override
@@ -338,6 +292,21 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         return sug;
     }
 
+    @Override
+    public Player getPlayer() {
+        return null;
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uniqueId;
+    }
+
+    @Override
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+
     public CommandComponent getComponent(String... args) {
         if(args.length == 0) return this.baseComponent;
         return getComponent(Arrays.asList(args));
@@ -367,23 +336,6 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         return baseComponent;
     }
 
-    public boolean isTabCompleter() {
-        return tabCompleter;
-    }
-
-    public boolean isRegistered() {
-        return REGISTERED.containsKey(this.name.toLowerCase());
-    }
-
-    public boolean isHighestPriority() {
-        return highestPriority;
-    }
-
-    public CommandBuilder setHighestPriority(boolean highestPriority) {
-        this.highestPriority = highestPriority;
-        return this;
-    }
-
     public TabCompleter getOwnTabCompleter() {
         return ownTabCompleter;
     }
@@ -396,11 +348,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter {
         return main;
     }
 
-    public boolean isTemp() {
-        return temp;
-    }
-
-    public void setTemporarily(boolean temp) {
-        this.temp = temp;
+    public String[] getImportantAliases() {
+        return importantAliases;
     }
 }

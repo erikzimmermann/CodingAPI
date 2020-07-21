@@ -1,32 +1,34 @@
 package de.codingair.codingapi.files;
 
-import org.bukkit.plugin.Plugin;
+import com.google.common.base.Preconditions;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class FileManager {
-    private Plugin plugin;
-    private List<ConfigFile> configList = new ArrayList<>();
+    private final JavaPlugin plugin;
+    private final HashMap<String, ConfigFile> cache = new HashMap<>();
 
-    public FileManager(Plugin plugin) {
+    public FileManager(JavaPlugin plugin) {
         this.plugin = plugin;
     }
 
-    public ConfigFile getFile(String name) {
-        return getFile(name, null);
+    private String key(ConfigFile file) {
+        return key(file.getName());
     }
 
-    public ConfigFile getFile(String name, String path) {
-        for (ConfigFile file : configList) {
-            if (file.getName().equalsIgnoreCase(name) && (path == null || path.equalsIgnoreCase(file.getPath()))) return file;
-        }
+    private String key(String name) {
+        Preconditions.checkNotNull(name);
+        return name.toLowerCase().trim();
+    }
 
-        return null;
+    public ConfigFile getFile(String name) {
+        return cache.get(key(name));
     }
 
     public void unloadFile(ConfigFile file) {
-        this.configList.remove(file);
+        this.cache.remove(key(file));
         file.destroy();
     }
 
@@ -43,29 +45,16 @@ public class FileManager {
     }
 
     public ConfigFile loadFile(String name, String path, String srcPath, boolean removeUnused) {
-        ConfigFile cf = getFile(name, path);
-        if(cf != null) return cf;
+        ConfigFile c = getFile(name);
+        if(c != null) return c;
 
-        cf = new ConfigFile(plugin, name, path, srcPath, removeUnused);
-        this.configList.add(cf);
-        return cf;
+        c = new ConfigFile(plugin, name, path, srcPath, removeUnused);
+        this.cache.put(key(c), c);
+        return c;
     }
 
-    public void reloadAll() {
-        for (ConfigFile file : this.configList) {
-            file.reloadConfig();
-        }
-    }
-
-    public void loadAll() {
-        for (ConfigFile file : this.configList) {
-            file.loadConfig();
-        }
-    }
-
-    public void saveAll() {
-        for (ConfigFile file : this.configList) {
-            file.saveConfig();
-        }
+    public void destroy() {
+        this.cache.values().forEach(ConfigFile::destroy);
+        this.cache.clear();
     }
 }

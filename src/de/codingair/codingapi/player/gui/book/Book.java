@@ -1,7 +1,7 @@
 package de.codingair.codingapi.player.gui.book;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.Version;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.tools.items.ItemBuilder;
@@ -74,7 +74,7 @@ public class Book implements Removable {
 
     private void callOpenPacket() {
         //open
-        if(!Version.getVersion().isBiggerThan(Version.v1_13)) {
+        if(!Version.get().isBiggerThan(Version.v1_13)) {
             Class<?> PacketDataSerializerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketDataSerializer");
             IReflection.ConstructorAccessor dataSCon = IReflection.getConstructor(PacketDataSerializerClass, ByteBuf.class);
 
