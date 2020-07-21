@@ -4,11 +4,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
 import de.codingair.codingapi.player.data.Skin;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_10;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_11;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_8;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_9;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Callback;
@@ -26,28 +21,6 @@ import java.net.URLConnection;
 import java.util.*;
 
 public class GameProfileUtils {
-
-    public static void updateGameProfile(Plugin plugin, Player p, Skin skin, String nickName) {
-        if(Version.get().equals(Version.v1_8))
-            GameProfileUtils_v1_8.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_9))
-            GameProfileUtils_v1_9.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_10))
-            GameProfileUtils_v1_10.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_11))
-            GameProfileUtils_v1_11.updateGameProfile(plugin, p, skin, nickName);
-    }
-
-    public static void updateOtherGameProfile(Plugin plugin, Player p, Player other, Skin skin, String nickName) {
-        if(Version.get().equals(Version.v1_8))
-            GameProfileUtils_v1_8.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_9))
-            GameProfileUtils_v1_9.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_10))
-            GameProfileUtils_v1_10.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_11))
-            GameProfileUtils_v1_11.updateOtherGameProfile(plugin, p, other, skin, nickName);
-    }
 
     public static GameProfile getGameProfile(Player p) {
         Class<?> entityPlayerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
