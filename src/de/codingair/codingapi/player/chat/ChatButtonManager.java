@@ -5,7 +5,7 @@ import java.util.List;
 
 public class ChatButtonManager {
     private static ChatButtonManager instance;
-    private List<ChatButtonListener> listeners = new ArrayList<>();
+    private final List<ChatButtonListener> listeners = new ArrayList<>();
 
     public boolean addListener(ChatButtonListener l) {
         return this.listeners.add(l);
