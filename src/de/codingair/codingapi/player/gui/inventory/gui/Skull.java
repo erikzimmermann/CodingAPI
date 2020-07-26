@@ -1,8 +1,8 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
 import com.mojang.authlib.GameProfile;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
-import de.codingair.codingapi.tools.OldItemBuilder;
+import de.codingair.codingapi.player.data.GameProfileUtils;
+import de.codingair.codingapi.tools.items.ItemBuilder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -28,7 +28,7 @@ public enum Skull {
 	}
 	
 	public ItemStack getItemStack() {
-		return OldItemBuilder.getHead(getGameProfile());
+		return ItemBuilder.getHead(getGameProfile());
 	}
 
 	public ItemMeta getItemMeta() {

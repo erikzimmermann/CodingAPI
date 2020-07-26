@@ -1,13 +1,13 @@
 package de.codingair.codingapi.utils;
 
 import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.tools.Converter;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,7 +32,7 @@ public enum TextAlignment {
     }
 
     public List<String> apply(String... lines) {
-        return apply(Converter.fromArrayToList(lines));
+        return apply(Arrays.asList(lines));
     }
 
     private static int getLength(String text) {

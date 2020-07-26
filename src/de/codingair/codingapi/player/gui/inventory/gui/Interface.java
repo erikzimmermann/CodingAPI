@@ -5,7 +5,6 @@ import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
-import de.codingair.codingapi.tools.OldItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.HumanEntity;
@@ -148,7 +147,7 @@ public class Interface {
 
         int i = 0;
         for(ItemStack item : getContents()) {
-            if(item == null) backup[i] = OldItemBuilder.getItem(Material.AIR);
+            if(item == null) backup[i] = new ItemStack(Material.AIR);
             else backup[i] = item.clone();
             i++;
         }
@@ -374,7 +373,7 @@ public class Interface {
     }
 
     public void clearContent() {
-        this.setBackground(OldItemBuilder.getItem(Material.AIR));
+        this.setBackground(new ItemStack(Material.AIR));
     }
 
     public boolean isEditableItems() {
@@ -566,7 +565,7 @@ public class Interface {
         for(int i = 0; i < 6; i++) {
             if(row == i && this.getSize() >= 9 + 9 * i) {
                 for(int slot = 9 * i; slot < 9 + 9 * i; slot++) {
-                    setItem(slot, OldItemBuilder.getItem(Material.AIR));
+                    setItem(slot, new ItemStack(Material.AIR));
                 }
             }
         }

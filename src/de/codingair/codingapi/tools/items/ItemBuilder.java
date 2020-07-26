@@ -1,13 +1,12 @@
 package de.codingair.codingapi.tools.items;
 
 import com.mojang.authlib.GameProfile;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
+import de.codingair.codingapi.player.data.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.server.specification.Version;
-import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
@@ -151,7 +150,7 @@ public class ItemBuilder implements Serializable {
      * @param profile GameProfile
      */
     public ItemBuilder(GameProfile profile) {
-        this(OldItemBuilder.getHead(profile));
+        this(getHead(profile));
     }
 
     /**

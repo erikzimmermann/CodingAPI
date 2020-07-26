@@ -2,7 +2,6 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;

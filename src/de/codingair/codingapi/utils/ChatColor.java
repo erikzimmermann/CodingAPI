@@ -116,15 +116,6 @@ public enum ChatColor {
         return null;
     }
 
-    public <T> T toOriginal() {
-        return toSpigotCode() == null ? toBungeeCode() : toSpigotCode();
-    }
-
-    public Object toOriginal(boolean bukkit) {
-        if(bukkit) return toSpigotCode();
-        else return toBungeeCode();
-    }
-
     public static String getLastColor(String text, char colorChar) {
         if(!text.contains("" + colorChar)) return null;
         String[] data = text.split("" + colorChar);
