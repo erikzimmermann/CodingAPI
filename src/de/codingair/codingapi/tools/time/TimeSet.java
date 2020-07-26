@@ -152,14 +152,4 @@ public class TimeSet<E> extends HashSet<E> implements Ticker {
 
         return super.contains(o);
     }
-
-    public void setExpire(E e, int expire) {
-        lock.lock();
-        try {
-            if(expire > 0) this.time.replace(e, System.currentTimeMillis() + expire * 1000);
-            else remove(e);
-        } finally {
-            lock.unlock();
-        }
-    }
 }

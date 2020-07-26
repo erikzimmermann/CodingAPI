@@ -1,4 +1,4 @@
-package de.codingair.codingapi.time;
+package de.codingair.codingapi.tools.time;
 
 import java.util.Date;
 
