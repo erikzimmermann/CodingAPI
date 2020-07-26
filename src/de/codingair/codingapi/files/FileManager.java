@@ -31,6 +31,10 @@ public class FileManager {
         file.destroy();
     }
 
+    public ConfigFile loadFile(String name) {
+        return loadFile(name, "/", true);
+    }
+
     public ConfigFile loadFile(String name, String path) {
         return loadFile(name, path, true);
     }
