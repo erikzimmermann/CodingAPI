@@ -18,14 +18,14 @@ public abstract class HotbarGUI implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
     private final ItemComponent[] menu = new ItemComponent[9];
 
-    private Player player;
+    private final Player player;
     private PlayerInventory backup;
 
     private SoundData clickSound;
     private SoundData openSound;
     private SoundData closeSound;
 
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
     private long lastClick = 0;
     private boolean waiting = false;
     private int startSlot = -1;

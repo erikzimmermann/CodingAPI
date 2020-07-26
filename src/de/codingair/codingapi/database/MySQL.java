@@ -5,11 +5,11 @@ import org.bukkit.plugin.Plugin;
 import java.sql.*;
 
 public class MySQL {
-    private String host;
-    private int port;
-    private String database;
-    private String user;
-    private String password;
+    private final String host;
+    private final int port;
+    private final String database;
+    private final String user;
+    private final String password;
 
     private boolean autoReconnect = false;
     private boolean allowMultiQueries = false;

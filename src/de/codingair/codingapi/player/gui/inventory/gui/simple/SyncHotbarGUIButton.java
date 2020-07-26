@@ -7,7 +7,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public abstract class SyncHotbarGUIButton extends SyncTriggerButton {
-    private Node<ClickType, HotbarGUI>[] hotbars;
+    private final Node<ClickType, HotbarGUI>[] hotbars;
 
     public SyncHotbarGUIButton(int slot, HotbarGUI gui) {
         super(slot);

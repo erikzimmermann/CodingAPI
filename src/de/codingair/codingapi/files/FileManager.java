@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class FileManager {
     private final JavaPlugin plugin;

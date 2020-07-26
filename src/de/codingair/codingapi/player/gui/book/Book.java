@@ -1,9 +1,9 @@
 package de.codingair.codingapi.player.gui.book;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.items.ItemBuilder;
 import de.codingair.codingapi.tools.items.XMaterial;
 import de.codingair.codingapi.utils.Removable;
@@ -20,14 +20,14 @@ import java.util.UUID;
 
 public class Book implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
-    private Player player;
-    private JavaPlugin plugin;
+    private final Player player;
+    private final JavaPlugin plugin;
 
-    private String author;
-    private String title;
-    private List<Page> pages = new ArrayList<>();
+    private final String author;
+    private final String title;
+    private final List<Page> pages = new ArrayList<>();
 
-    private ItemStack bookItem;
+    private final ItemStack bookItem;
 
     public Book(Player player, JavaPlugin plugin) {
         this(player, "PLUGIN", "TITLE", plugin);

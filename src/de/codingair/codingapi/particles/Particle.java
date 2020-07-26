@@ -64,9 +64,9 @@ public enum Particle {
     WATER_WAKE("wake", "fishing", 6);
 
     private static final Particle[] values = Particle.values();
-    private String name;
-    private String name_v1_13;
-    private int id;
+    private final String name;
+    private final String name_v1_13;
+    private final int id;
     private List<ParticleProperty> properties = null;
 
     Particle(String name, int id) {

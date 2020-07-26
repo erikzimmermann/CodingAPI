@@ -10,8 +10,8 @@ import de.codingair.codingapi.customentity.fakeplayer.FakePlayer;
  **/
 
 public abstract class Module {
-	private FakePlayer player;
-	private Type type;
+	private final FakePlayer player;
+	private final Type type;
 	
 	public Module(FakePlayer player, Type type) {
 		this.player = player;

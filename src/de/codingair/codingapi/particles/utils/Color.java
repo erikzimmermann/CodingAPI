@@ -19,10 +19,10 @@ public enum Color {
 
     public static int RAINBOW_COLOR_LENGTH = 8;
     public static int RAINBOW_NOTE_COLOR_LENGTH = 24;
-    private java.awt.Color c;
-    private String name;
-    private String noteName;
-    private int noteColor;
+    private final java.awt.Color c;
+    private final String name;
+    private final String noteName;
+    private final int noteColor;
 
     Color(java.awt.Color c, String name, int noteColor) {
         this.c = c;

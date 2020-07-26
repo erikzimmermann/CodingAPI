@@ -19,11 +19,11 @@ import java.util.UUID;
  **/
 
 public class FallingBlock implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
-	private Location location;
-	private MaterialData data;
+	private final UUID uniqueId = UUID.randomUUID();
+	private final Location location;
+	private final MaterialData data;
 	private Object fallingBlock;
-	private JavaPlugin plugin;
+	private final JavaPlugin plugin;
 	
 	public FallingBlock(Location location, MaterialData data, JavaPlugin plugin) {
 		this.location = location;

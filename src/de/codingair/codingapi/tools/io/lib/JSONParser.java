@@ -22,7 +22,7 @@ public class JSONParser {
     public static final int S_END = 6;
     public static final int S_IN_ERROR = -1;
     private LinkedList handlerStatusStack;
-    private Yylex lexer = new Yylex((Reader)null);
+    private final Yylex lexer = new Yylex((Reader)null);
     private Yytoken token = null;
     private int status = 0;
 
@@ -61,7 +61,7 @@ public class JSONParser {
         StringReader in = new StringReader(s);
 
         try {
-            return this.parse((Reader)in, (ContainerFactory)containerFactory);
+            return this.parse(in, containerFactory);
         } catch (IOException var5) {
             throw new ParseException(-1, 2, var5);
         }
@@ -230,7 +230,7 @@ public class JSONParser {
     private void nextToken() throws ParseException, IOException {
         this.token = this.lexer.yylex();
         if (this.token == null) {
-            this.token = new Yytoken(-1, (Object)null);
+            this.token = new Yytoken(-1, null);
         }
 
     }
@@ -240,7 +240,7 @@ public class JSONParser {
             return new JSONObject();
         } else {
             Map m = containerFactory.createObjectContainer();
-            return (Map)(m == null ? new JSONObject() : m);
+            return m == null ? new JSONObject() : m;
         }
     }
 
@@ -249,7 +249,7 @@ public class JSONParser {
             return new JSONArray();
         } else {
             List l = containerFactory.creatArrayContainer();
-            return (List)(l == null ? new JSONArray() : l);
+            return l == null ? new JSONArray() : l;
         }
     }
 
@@ -261,7 +261,7 @@ public class JSONParser {
         StringReader in = new StringReader(s);
 
         try {
-            this.parse((Reader)in, contentHandler, isResume);
+            this.parse(in, contentHandler, isResume);
         } catch (IOException var6) {
             throw new ParseException(-1, 2, var6);
         }

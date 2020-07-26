@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class MusicData extends SoundData {
-    private int delay;
+    private final int delay;
     private MusicData follower;
 
     public MusicData(Sound sound, float volume, float pitch, int delay) {

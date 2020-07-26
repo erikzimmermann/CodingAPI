@@ -7,7 +7,7 @@ import net.md_5.bungee.api.connection.Connection;
  * Furthermore you can use aliases.
  */
 public abstract class CommandExecutor {
-    private String label;
+    private final String label;
     private String[] aliases = null;
 
     public CommandExecutor(String label) {

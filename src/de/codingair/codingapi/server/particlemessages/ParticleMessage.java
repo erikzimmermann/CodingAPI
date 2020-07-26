@@ -16,15 +16,16 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class ParticleMessage {
 	
-	private Plugin plugin;
-	private String message;
-	private Particle particle;
-	private ParticleFont font;
+	private final Plugin plugin;
+	private final String message;
+	private final Particle particle;
+	private final ParticleFont font;
 	private Player player;
-	private ParticleChar.Direction direction;
-	private de.codingair.codingapi.tools.Location loc;
+	private final ParticleChar.Direction direction;
+	private final de.codingair.codingapi.tools.Location loc;
 	private int scheduler;
-	private double height, length;
+	private final double height;
+    private final double length;
 	
 	
 	public ParticleMessage(Plugin plugin, String message, Particle particle, de.codingair.codingapi.tools.Location loc, double height, double length, ParticleFont font, ParticleChar.Direction direction) {

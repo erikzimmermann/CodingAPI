@@ -4,11 +4,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class QueryUpdate {
-	private MySQL MySQL;
-	private String table;
+	private final MySQL MySQL;
+	private final String table;
 	private String where = null;
 	private String value = null;
-	private HashMap<String, Object> entries = new HashMap<>();
+	private final HashMap<String, Object> entries = new HashMap<>();
 	
 	public QueryUpdate(MySQL MySQL, String table) {
 		this.MySQL = MySQL;

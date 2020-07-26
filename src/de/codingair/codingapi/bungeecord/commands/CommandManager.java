@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    private static List<CommandExecutor> commandExecutors = new ArrayList<>();
+    private static final List<CommandExecutor> commandExecutors = new ArrayList<>();
     private static CommandListener listener;
 
     public static void enable(Plugin plugin) {

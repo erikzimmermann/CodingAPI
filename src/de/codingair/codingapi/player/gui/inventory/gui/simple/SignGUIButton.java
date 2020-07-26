@@ -11,12 +11,10 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-
 public abstract class SignGUIButton extends Button {
-    private Sign sign;
-    private ClickType trigger;
-    private boolean updateSign;
+    private final Sign sign;
+    private final ClickType trigger;
+    private final boolean updateSign;
 
     public SignGUIButton(int slot, ItemStack item, Location signLocation) {
         this(slot, item, signLocation, null, false);

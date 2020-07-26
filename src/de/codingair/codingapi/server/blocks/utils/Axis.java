@@ -5,8 +5,8 @@ public enum Axis {
     Y(1, (byte) 0),
     Z(2, (byte) 2);
 
-    private int id;
-    private byte byteId;
+    private final int id;
+    private final byte byteId;
 
     Axis(int id, byte byteId) {
         this.id = id;

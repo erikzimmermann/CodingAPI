@@ -5,10 +5,10 @@ import de.codingair.codingapi.particles.animations.Animation;
 import org.bukkit.Location;
 
 public class SinusAnimation extends Animation {
-    private Location location;
+    private final Location location;
 
     private boolean minimize = true;
-    private double radius;
+    private final double radius;
     private final double fixedHeight;
     private double height;
     private double degrees = 0;

@@ -8,7 +8,7 @@ import org.bukkit.event.HandlerList;
 
 public class PlayerWalkEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private Player player;
+    private final Player player;
     private Location from;
     private Location to;
     private boolean cancelled = false;

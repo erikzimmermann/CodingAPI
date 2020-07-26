@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
  **/
 
 public class TargetModule extends Module {
-	private double radius;
+	private final double radius;
 	
 	public TargetModule(FakePlayer fakePlayer, double radius) {
 		super(fakePlayer, Type.TargetModule);

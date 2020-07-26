@@ -19,7 +19,7 @@ import java.util.List;
 
 public class FancyMessage {
     private Player player;
-    private List<String> messages = new ArrayList<>();
+    private final List<String> messages = new ArrayList<>();
     private MessageTypes type;
     private boolean autoSize = true;
     private TextAlignment alignment = TextAlignment.LEFT;

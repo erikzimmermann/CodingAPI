@@ -6,9 +6,9 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashMap;
 
 public class InterfaceBackup {
-	private ItemStack[] contents;
-	private HashMap<Integer, ItemButton> buttons;
-	private String wrappersName;
+	private final ItemStack[] contents;
+	private final HashMap<Integer, ItemButton> buttons;
+	private final String wrappersName;
 	
 	public InterfaceBackup(ItemStack[] contents, HashMap<Integer, ItemButton> buttons, String wrappersName) {
 		this.contents = contents;

@@ -13,16 +13,16 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BufferedScoreboard {
-    private static HashMap<Player, BufferedScoreboard> bufferedScoreboards = new HashMap<>();
-    private static Map<String, OfflinePlayer> cache = new HashMap<>();
+    private static final HashMap<Player, BufferedScoreboard> bufferedScoreboards = new HashMap<>();
+    private static final Map<String, OfflinePlayer> cache = new HashMap<>();
 
-    private Scoreboard scoreboard;
+    private final Scoreboard scoreboard;
     private String title;
-    private Map<String, Integer> scores;
+    private final Map<String, Integer> scores;
     private Objective obj;
-    private List<Team> teams;
-    private List<Integer> removed;
-    private Set<String> updated;
+    private final List<Team> teams;
+    private final List<Integer> removed;
+    private final Set<String> updated;
 
     public BufferedScoreboard(String title) {
         this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();

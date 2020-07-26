@@ -1,8 +1,8 @@
 package de.codingair.codingapi.particles;
 
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,7 +19,7 @@ import java.lang.reflect.Constructor;
  **/
 
 public class ParticlePacket {
-    private Particle particle;
+    private final Particle particle;
     private Object packet;
     private Color color = null;
     private boolean longDistance = false;

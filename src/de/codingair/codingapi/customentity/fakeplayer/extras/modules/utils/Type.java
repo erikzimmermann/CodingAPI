@@ -15,7 +15,7 @@ public enum Type {
 	ParticleModule(de.codingair.codingapi.customentity.fakeplayer.extras.modules.ParticleModule.class),
 	TargetModule(de.codingair.codingapi.customentity.fakeplayer.extras.modules.TargetModule.class);
 
-	private Class<? extends Module> clazz;
+	private final Class<? extends Module> clazz;
 
 	Type(Class<? extends Module> clazz) {
 		this.clazz = clazz;

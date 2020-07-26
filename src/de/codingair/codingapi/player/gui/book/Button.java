@@ -10,8 +10,8 @@ import java.util.UUID;
 
 public abstract class Button {
     private final UUID uniqueId = UUID.randomUUID();
-    private String text;
-    private String hover;
+    private final String text;
+    private final String hover;
 
     public Button(String text) {
         this(text, null);

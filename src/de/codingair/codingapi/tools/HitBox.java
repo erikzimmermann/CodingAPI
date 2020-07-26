@@ -84,9 +84,7 @@ public class HitBox {
                     lower = this;
                 }
 
-                if((higher.lZ <= lower.lZ && higher.hZ >= lower.lZ) || (higher.lZ <= lower.hZ && higher.hZ >= lower.hZ) || (higher.lZ > lower.lZ && higher.hZ < lower.hZ)) {
-                    return true;
-                }
+                return (higher.lZ <= lower.lZ && higher.hZ >= lower.lZ) || (higher.lZ <= lower.hZ && higher.hZ >= lower.hZ) || (higher.lZ > lower.lZ && higher.hZ < lower.hZ);
             }
         }
 

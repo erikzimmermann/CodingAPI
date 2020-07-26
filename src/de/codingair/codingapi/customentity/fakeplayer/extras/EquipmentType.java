@@ -18,8 +18,8 @@ public enum EquipmentType {
 	BOOTS(4, 2),
 	ALL(-999, -999);
 	
-	private int older;
-	private int newer;
+	private final int older;
+	private final int newer;
 	
 	EquipmentType(int older, int newer) {
 		this.older = older;

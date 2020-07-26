@@ -12,10 +12,10 @@ import org.bukkit.Location;
  **/
 
 public class FakePlayerMotionLook {
-	private FakePlayer fakePlayer;
-	private Location look;
-	private Callback<Boolean> callback;
-	private double divide;
+	private final FakePlayer fakePlayer;
+	private final Location look;
+	private final Callback<Boolean> callback;
+	private final double divide;
 	
 	public FakePlayerMotionLook(FakePlayer fakePlayer, Location look, Callback<Boolean> callback, double divide) {
 		this.fakePlayer = fakePlayer;

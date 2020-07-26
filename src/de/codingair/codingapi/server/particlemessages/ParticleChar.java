@@ -18,7 +18,7 @@ import java.util.List;
 
 public class ParticleChar {
 	
-	private List<Point> points = new ArrayList<>();
+	private final List<Point> points = new ArrayList<>();
 	private ParticleFont font;
 	private double height, length;
 	

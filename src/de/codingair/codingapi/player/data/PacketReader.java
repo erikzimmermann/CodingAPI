@@ -14,11 +14,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public abstract class PacketReader implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
-	private Player player;
+	private final UUID uniqueId = UUID.randomUUID();
+	private final Player player;
 	private Channel channel;
-	private String name;
-	private JavaPlugin plugin;
+	private final String name;
+	private final JavaPlugin plugin;
 	
 	public PacketReader(Player player, String name, JavaPlugin plugin) {
 		this.player = player;

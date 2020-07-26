@@ -25,7 +25,7 @@ public class JSONValue {
 
     public static Object parse(String s) {
         StringReader in = new StringReader(s);
-        return parse((Reader)in);
+        return parse(in);
     }
 
     public static Object parseWithException(Reader in) throws IOException, ParseException {

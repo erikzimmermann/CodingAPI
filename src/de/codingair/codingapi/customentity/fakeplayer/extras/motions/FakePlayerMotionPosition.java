@@ -12,10 +12,10 @@ import org.bukkit.Location;
  **/
 
 public class FakePlayerMotionPosition {
-	private FakePlayer fakePlayer;
-	private Location position;
-	private boolean gravity;
-	private Callback<Boolean> callback;
+	private final FakePlayer fakePlayer;
+	private final Location position;
+	private final boolean gravity;
+	private final Callback<Boolean> callback;
 	
 	public FakePlayerMotionPosition(FakePlayer fakePlayer, Location position, boolean gravity, Callback<Boolean> callback) {
 		this.fakePlayer = fakePlayer;

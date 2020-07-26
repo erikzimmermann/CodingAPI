@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class Table {
-	private MySQL MySQL;
-	private String table;
-	private HashMap<Integer, Object> entry_key = new HashMap<>();
-	private HashMap<Integer, Object> entry_value = new HashMap<>();
+	private final MySQL MySQL;
+	private final String table;
+	private final HashMap<Integer, Object> entry_key = new HashMap<>();
+	private final HashMap<Integer, Object> entry_value = new HashMap<>();
 	private int entryID = 0;
 	
 	public Table(MySQL MySQL, String table) {

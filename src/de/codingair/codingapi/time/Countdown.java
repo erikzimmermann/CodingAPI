@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Countdown {
-	private Plugin plugin;
+	private final Plugin plugin;
 	private TimeFetcher.Time time;
 	private int time_value;
 	private List<CountdownListener> listener = new ArrayList<>();

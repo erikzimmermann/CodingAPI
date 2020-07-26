@@ -21,7 +21,7 @@ public enum AnimationType {
 	SHIELD_BREAK(30, true),
 	THORNS(33, true);
 	
-	private int id;
+	private final int id;
 	private boolean sound = false;
 	
 	AnimationType(int id) {

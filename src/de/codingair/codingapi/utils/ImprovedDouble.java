@@ -1,7 +1,7 @@
 package de.codingair.codingapi.utils;
 
 public class ImprovedDouble {
-    private Number n;
+    private final Number n;
 
     public ImprovedDouble(double n) {
         this.n = n;

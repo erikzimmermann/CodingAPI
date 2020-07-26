@@ -27,9 +27,7 @@ public class Area {
         Location height = target.clone().add(0, entity.getEyeHeight(), 0);
         if(height.getY() >= middle.getY() - 0.5 && target.getY() <= middle.getY() + 0.5) {
             if(target.getX() + radius >= middle.getX() - 0.5 && target.getX() - radius <= middle.getX() + 0.5) {
-                if(target.getZ() + radius >= middle.getZ() - 0.5 && target.getZ() - radius <= middle.getZ() + 0.5) {
-                    return true;
-                }
+                return target.getZ() + radius >= middle.getZ() - 0.5 && target.getZ() - radius <= middle.getZ() + 0.5;
             }
         }
 
@@ -63,10 +61,8 @@ public class Area {
             if(target.getX() + radius >= middle.getX() - xWidth / 2 && target.getX() - radius <= middle.getX() + xWidth / 2) {
                 //Ist in x ebene
 
-                if(target.getZ() + radius >= middle.getZ() - zWidth / 2 && target.getZ() - radius <= middle.getZ() + zWidth / 2) {
-                    //Ist in z ebene
-                    return true;
-                }
+                //Ist in z ebene
+                return target.getZ() + radius >= middle.getZ() - zWidth / 2 && target.getZ() - radius <= middle.getZ() + zWidth / 2;
             }
         }
 

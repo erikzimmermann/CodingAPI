@@ -1,10 +1,10 @@
 package de.codingair.codingapi.server.commands.builder;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.commands.builder.special.MultiCommandComponent;
 import de.codingair.codingapi.server.commands.builder.special.NaturalCommandComponent;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.command.*;

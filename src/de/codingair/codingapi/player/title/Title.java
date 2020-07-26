@@ -10,13 +10,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public class Title implements Removable {
-    private UUID uuid = UUID.randomUUID();
-    private JavaPlugin plugin;
-    private Player player;
-    private String title;
-    private int maxTime;
-    private int fadeIn;
-    private int fadeOut;
+    private final UUID uuid = UUID.randomUUID();
+    private final JavaPlugin plugin;
+    private final Player player;
+    private final String title;
+    private final int maxTime;
+    private final int fadeIn;
+    private final int fadeOut;
     private boolean sent = false;
 
     public Title(JavaPlugin plugin, Player player, String title, int maxTime, int fadeIn, int fadeOut) {

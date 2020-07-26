@@ -6,10 +6,10 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 public class VectorAnimation extends Animation {
-    private Location start;
-    private Vector direction;
+    private final Location start;
+    private final Vector direction;
     private int pos = 0;
-    private int length;
+    private final int length;
 
     private int repetitions = -1;
     private int runs = 0;

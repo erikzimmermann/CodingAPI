@@ -18,7 +18,7 @@ public class RotatingCircleAnimation extends Animation {
     private double radius;
     private double degrees;
     private double height;
-    private Location location;
+    private final Location location;
 
     private int ticksBetweenParticles = 0;
     private int skippedTicks = 0;

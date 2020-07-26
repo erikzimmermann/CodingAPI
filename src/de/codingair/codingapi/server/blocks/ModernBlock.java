@@ -1,14 +1,14 @@
 package de.codingair.codingapi.server.blocks;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.blocks.data.BlockData;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 public class ModernBlock {
-    private Block block;
+    private final Block block;
     private Material material;
     private BlockData data;
 

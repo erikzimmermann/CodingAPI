@@ -2,9 +2,9 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.sounds.Sound;
 import de.codingair.codingapi.server.sounds.SoundData;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
@@ -26,17 +26,17 @@ import java.util.*;
 
 public abstract class GUI extends Interface implements Removable {
     public static final HashMap<Player, Callback<GUI>> foreignConfirmations = new HashMap<>();
-    private UUID uniqueId = UUID.randomUUID();
-    private JavaPlugin plugin;
-    private Player player;
+    private final UUID uniqueId = UUID.randomUUID();
+    private final JavaPlugin plugin;
+    private final Player player;
     private SoundData openSound = null;
     private SoundData cancelSound = null;
     private boolean closingByButton = false;
     private boolean closingByOperation = false;
     private boolean closingForGUI = false;
     private boolean moveOwnItems = true;
-    private List<Integer> movableSlots = new ArrayList<>();
-    private List<GUIListener> listeners = new ArrayList<>();
+    private final List<Integer> movableSlots = new ArrayList<>();
+    private final List<GUIListener> listeners = new ArrayList<>();
     private boolean canDropItems = false;
     protected boolean isClosed = false;
     private boolean buffering = false;

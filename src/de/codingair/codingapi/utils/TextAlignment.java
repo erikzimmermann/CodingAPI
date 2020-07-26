@@ -49,9 +49,7 @@ public enum TextAlignment {
                 isColor = true;
             } else if(isColor) {
                 isColor = false;
-                if(c == 'l' || c == 'L') {
-                    isBold = true;
-                } else isBold = false;
+                isBold = c == 'l' || c == 'L';
             } else {
                 DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
                 length += isBold ? dFI.getBoldLength() : dFI.getLength();

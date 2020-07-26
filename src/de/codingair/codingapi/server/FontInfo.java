@@ -101,8 +101,8 @@ public enum FontInfo {
 
     public static final double CHAT_WIDTH = 1480.5;
     private static final double SPACE_BETWEEN_CHARS = 5.5;
-    private char character;
-    private double length;
+    private final char character;
+    private final double length;
 
     FontInfo(char character, double length) {
         this.character = character;

@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public abstract class Layout {
-    private ItemStack[] content;
+    private final ItemStack[] content;
 
     public Layout(int size) {
         if(size > 54) throw new IllegalArgumentException("Layout size cannot be bigger than 54!");
@@ -67,7 +67,7 @@ public abstract class Layout {
     public Layout addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
         if(item == null) throw new IllegalArgumentException("Item cannot be null!");
 
-        double cX = (double) x0, cY = (double) y0;
+        double cX = x0, cY = y0;
         Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
 
         do {

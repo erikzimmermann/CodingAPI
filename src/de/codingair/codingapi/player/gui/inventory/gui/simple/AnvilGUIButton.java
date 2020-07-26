@@ -10,8 +10,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class AnvilGUIButton extends Button {
-    private ItemStack anvilItem;
-    private ClickType trigger;
+    private final ItemStack anvilItem;
+    private final ClickType trigger;
 
     public AnvilGUIButton(int slot, ItemStack item, ItemStack anvilItem) {
         super(slot, item);

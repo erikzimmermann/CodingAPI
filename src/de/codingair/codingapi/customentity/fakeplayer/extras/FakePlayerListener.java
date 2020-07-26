@@ -15,8 +15,8 @@ import java.util.List;
  **/
 
 public abstract class FakePlayerListener {
-	private FakePlayer fakePlayer;
-	private List<String> interacting = new ArrayList<>();
+	private final FakePlayer fakePlayer;
+	private final List<String> interacting = new ArrayList<>();
 	
 	public FakePlayerListener(FakePlayer fakePlayer) {
 		this.fakePlayer = fakePlayer;
@@ -46,6 +46,6 @@ public abstract class FakePlayerListener {
 	public enum InteractAction {
 		ATTACK,
 		INTERACT_AT,
-		INTERACT;
-	}
+		INTERACT
+    }
 }

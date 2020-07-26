@@ -13,8 +13,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 public class SimpleGUI extends GUI {
-    private Layout layout;
-    private Page main;
+    private final Layout layout;
+    private final Page main;
     private Page current;
 
     public SimpleGUI(Player p, Page main, JavaPlugin plugin) {

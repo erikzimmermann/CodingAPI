@@ -24,13 +24,13 @@ import java.util.UUID;
  **/
 
 public class ItemGUI implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
+	private final UUID uniqueId = UUID.randomUUID();
 	
-	private JavaPlugin plugin;
+	private final JavaPlugin plugin;
 	
-	private List<HoveredItem> hoveredItems = new ArrayList<>();
-	private List<Item> data = new ArrayList<>();
-	private Player player;
+	private final List<HoveredItem> hoveredItems = new ArrayList<>();
+	private final List<Item> data = new ArrayList<>();
+	private final Player player;
 	private ItemGUIListener listener = null;
 	
 	private int maxItems = 14;
@@ -373,8 +373,8 @@ public class ItemGUI implements Removable {
 	}
 
 	public static class Item {
-		private String name;
-		private ItemStack item;
+		private final String name;
+		private final ItemStack item;
 		private List<String> text;
 
 		public Item(String name, ItemStack item, List<String> text) {

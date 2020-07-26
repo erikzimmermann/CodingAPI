@@ -2,9 +2,9 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.OldItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -50,7 +50,7 @@ public class Interface {
     private String oldTitle;
     private String title;
     boolean oldUsage = true;
-    private Plugin plugin;
+    private final Plugin plugin;
 
     /**
      * @param owner  (InventoryHolder) (can be null)

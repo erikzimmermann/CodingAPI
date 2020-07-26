@@ -13,7 +13,7 @@ public class Timer {
 	public void stop(){
 		this.lastStoppedTime = (double) (System.currentTimeMillis() - this.currentTime) / 1000;
 		int temp = (int) (this.lastStoppedTime * 1000);
-		this.lastStoppedTime = (double) temp;
+		this.lastStoppedTime = temp;
 		this.lastStoppedTime /= 1000;
 	}
 

@@ -1,10 +1,8 @@
 package de.codingair.codingapi.tools.time;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.bungeecord.BungeeAPI;
 import de.codingair.codingapi.utils.Ticker;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
