@@ -45,7 +45,7 @@ public abstract class HoveredItem implements Removable, Ticker {
 	
 	private Object item;
 	private Object armorStand;
-	private ItemStack stack;
+	private final ItemStack stack;
 	private boolean lookAt = false;
 	private boolean spawned = false;
 	
