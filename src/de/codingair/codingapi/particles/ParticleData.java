@@ -10,9 +10,9 @@ import org.bukkit.Material;
  **/
 
 public class ParticleData {
-	private Material material;
-	private int data;
-	private int[] packetData;
+	private final Material material;
+	private final int data;
+	private final int[] packetData;
 	
 	public ParticleData(Material material, int data) {
 		this.material = material;

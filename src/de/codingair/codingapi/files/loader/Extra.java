@@ -1,8 +1,8 @@
 package de.codingair.codingapi.files.loader;
 
 public class Extra {
-    private String text;
-    private int line;
+    private final String text;
+    private final int line;
 
     public Extra(String text, int line) {
         this.text = text;

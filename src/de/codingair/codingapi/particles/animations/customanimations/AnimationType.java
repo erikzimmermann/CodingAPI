@@ -18,9 +18,9 @@ public enum AnimationType {
     LINE(5, LineAnimation.class, "Line"),
     ;
 
-    private int id;
-    private Class<? extends CustomAnimation> clazz;
-    private String displayName;
+    private final int id;
+    private final Class<? extends CustomAnimation> clazz;
+    private final String displayName;
 
     AnimationType(int id, Class<? extends CustomAnimation> clazz, String displayName) {
         this.id = id;

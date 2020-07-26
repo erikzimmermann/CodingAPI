@@ -3,7 +3,7 @@ package de.codingair.codingapi.particles.animations.movables;
 import org.bukkit.Location;
 
 public class LocationMid extends MovableMid {
-    private Location location;
+    private final Location location;
 
     public LocationMid(Location location) {
         this.location = location;

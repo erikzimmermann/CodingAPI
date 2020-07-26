@@ -31,13 +31,13 @@ public enum ChatColor {
 
     public static final char COLOR_CHAR = getColorChar();
     public static final String ALL_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRr";
-    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + String.valueOf(COLOR_CHAR) + "[0-9A-FK-OR]");
+    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + COLOR_CHAR + "[0-9A-FK-OR]");
     private static final Map<Character, ChatColor> BY_CHAR = new HashMap();
     private final char code;
     private final String toString;
     private final String name;
 
-    private ChatColor(char code, String name) {
+    ChatColor(char code, String name) {
         this.code = code;
         this.name = name;
         this.toString = new String(new char[] {getColorChar(), code});
@@ -114,15 +114,6 @@ public enum ChatColor {
         }
 
         return null;
-    }
-
-    public <T> T toOriginal() {
-        return toSpigotCode() == null ? toBungeeCode() : toSpigotCode();
-    }
-
-    public Object toOriginal(boolean bukkit) {
-        if(bukkit) return toSpigotCode();
-        else return toBungeeCode();
     }
 
     public static String getLastColor(String text, char colorChar) {

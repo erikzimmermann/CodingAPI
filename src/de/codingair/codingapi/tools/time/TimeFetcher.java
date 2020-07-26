@@ -1,4 +1,4 @@
-package de.codingair.codingapi.time;
+package de.codingair.codingapi.tools.time;
 
 import java.util.Date;
 
@@ -213,27 +213,5 @@ public class TimeFetcher {
         }
 
         return year;
-    }
-
-    public static String[] secToTimeString(int sec) {
-        int min = sec / 60;
-        sec = sec - min * 60;
-
-        String s = "", m = "";
-
-        if(min < 0) min = 0;
-        if(min < 10) m = "0";
-        m = m + min;
-
-        if(sec < 0) sec = 0;
-        if(sec < 10) s = "0";
-        s = s + sec;
-
-        String[] a = new String[2];
-
-        a[0] = m;
-        a[1] = s;
-
-        return a;
     }
 }

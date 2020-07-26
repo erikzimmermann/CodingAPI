@@ -16,7 +16,7 @@ import java.util.Set;
 
 public class BungeeConfigWriter implements DataWriter {
     private String prefix;
-    private ConfigFile file;
+    private final ConfigFile file;
 
     public BungeeConfigWriter(ConfigFile file) {
         this(file, null);

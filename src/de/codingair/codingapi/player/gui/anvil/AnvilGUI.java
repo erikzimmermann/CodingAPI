@@ -2,9 +2,9 @@ package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

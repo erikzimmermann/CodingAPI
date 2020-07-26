@@ -12,11 +12,11 @@ import java.util.HashMap;
  **/
 
 public class Packet {
-	private Class<?> clazz;
+	private final Class<?> clazz;
 	private Object packet;
 	private Player[] players;
 	private boolean initialized = false;
-	private HashMap<String, Object> fields = new HashMap<>();
+	private final HashMap<String, Object> fields = new HashMap<>();
 	
 	public Packet(Class<?> packet) {
 		this.clazz = packet;

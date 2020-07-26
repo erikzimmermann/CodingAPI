@@ -11,10 +11,10 @@ import org.bukkit.inventory.ItemStack;
  **/
 
 public class PlayerInventory {
-    private Player player;
-    private ItemStack[] content;
-    private ItemStack[] armor;
-    private int heldSlot;
+    private final Player player;
+    private final ItemStack[] content;
+    private final ItemStack[] armor;
+    private final int heldSlot;
 
     public PlayerInventory(Player player) {
         this.player = player;

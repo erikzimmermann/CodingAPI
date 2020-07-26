@@ -13,9 +13,9 @@ public enum AnvilSlot {
 	OUTPUT(2),
 	NONE(-999);
 	
-	private int slot;
+	private final int slot;
 	
-	private AnvilSlot(int slot) {
+	AnvilSlot(int slot) {
 		this.slot = slot;
 	}
 	

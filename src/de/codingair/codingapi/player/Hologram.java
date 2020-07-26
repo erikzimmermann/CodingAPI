@@ -2,11 +2,11 @@ package de.codingair.codingapi.player;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,19 +27,19 @@ public class Hologram implements Removable {
     private static final double ARMOR_STAND_HEIGHT = 2.6;
 
     private final UUID uniqueId = UUID.randomUUID();
-    private JavaPlugin plugin;
+    private final JavaPlugin plugin;
 
-    private List<Object> entities = new ArrayList<>();
-    private List<Player> watchList = new ArrayList<>();
-    private HashMap<Player, Boolean> initedPlayers = new HashMap<>();
+    private final List<Object> entities = new ArrayList<>();
+    private final List<Player> watchList = new ArrayList<>();
+    private final HashMap<Player, Boolean> initedPlayers = new HashMap<>();
 
-    private List<String> text;
+    private final List<String> text;
     private Location source;
     private Location location;
     private boolean visible = false;
 
     private BukkitRunnable runnable;
-    private long updateInterval;
+    private final long updateInterval;
 
     public Hologram(Location location, JavaPlugin plugin, String... text) {
         this(location, plugin, 0, text);
@@ -591,7 +591,7 @@ public class Hologram implements Removable {
         }
 
         public static void destroy(Player player, Object armorStand) {
-            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class).newInstance((Object) new int[] {PacketUtils.EntityPackets.getId(armorStand)});
+            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class).newInstance(new int[] {PacketUtils.EntityPackets.getId(armorStand)});
             PacketUtils.sendPacket(packet, player);
         }
 

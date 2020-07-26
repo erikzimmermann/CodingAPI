@@ -2,7 +2,6 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import de.codingair.codingapi.player.data.gameprofile.GameProfileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -22,8 +21,8 @@ public abstract class Skin {
 		PROFILE_ID("profileId", String.class),
 		PROFILE_NAME("profileName", String.class);
 		
-		private String name;
-		private Class<?> clazz;
+		private final String name;
+		private final Class<?> clazz;
 		
 		SkinElement(String name, Class<?> clazz) {
 			this.name = name;
@@ -42,8 +41,8 @@ public abstract class Skin {
 	public static final String JSON_SKIN = "{\"timestamp\":%d,\"profileId\":\"%s\",\"profileName\":\"%s\",\"textures\":{\"SKIN\":{\"url\":\"%s\"}}}";
 	public static final String JSON_CAPE = "{\"timestamp\":%d,\"profileId\":\"%s\",\"profileName\":\"%s\",\"textures\":{\"SKIN\":{\"url\":\"%s\"},\"CAPE\":{\"url\":\"%s\"}}}";
 	
-	private UUID uuid;
-	private String name;
+	private final UUID uuid;
+	private final String name;
 	private String signature;
 	private String value;
 	private boolean loaded = false;

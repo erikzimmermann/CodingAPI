@@ -1,7 +1,7 @@
 package de.codingair.codingapi.server.blocks.data;
 
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 

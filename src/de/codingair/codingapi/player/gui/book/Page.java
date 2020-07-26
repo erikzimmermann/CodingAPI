@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class Page {
-    private List<BaseComponent> data = new ArrayList<>();
-    private List<Button> buttons = new ArrayList<>();
+    private final List<BaseComponent> data = new ArrayList<>();
+    private final List<Button> buttons = new ArrayList<>();
 
     public Page() {
     }

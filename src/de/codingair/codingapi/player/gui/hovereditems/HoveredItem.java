@@ -4,21 +4,21 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.DefaultFontInfo;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.tools.OldItemBuilder;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
-import de.codingair.codingapi.utils.TextAlignment;
 import de.codingair.codingapi.utils.Ticker;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +45,7 @@ public abstract class HoveredItem implements Removable, Ticker {
 	
 	private Object item;
 	private Object armorStand;
-	private ItemStack stack;
+	private final ItemStack stack;
 	private boolean lookAt = false;
 	private boolean spawned = false;
 	
@@ -336,7 +336,13 @@ public abstract class HoveredItem implements Removable, Ticker {
 	}
 	
 	public void setText(String... text) {
-		this.stack = OldItemBuilder.setText(this.stack, TextAlignment.LEFT, text);
+		List<String> lines = Arrays.asList(text);
+		if(!lines.isEmpty()) {
+			ItemMeta meta = stack.getItemMeta();
+			meta.setDisplayName(lines.remove(0));
+			meta.setLore(lines);
+			stack.setItemMeta(meta);
+		}
 		
 		List<String> corrected = new ArrayList<>();
 		
@@ -346,10 +352,6 @@ public abstract class HoveredItem implements Removable, Ticker {
 		}
 		
 		this.hologram.setText(corrected);
-	}
-	
-	public void setText(List<String> text) {
-		setText(text.toArray(new String[text.size()]));
 	}
 	
 	public List<String> getText() {

@@ -5,7 +5,7 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import java.util.List;
 
 public class NBTBase<T> {
-    private T value;
+    private final T value;
 
     public NBTBase(T value) {
         this.value = value;
@@ -42,8 +42,8 @@ public class NBTBase<T> {
         STRING(String.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagString")),
         UNKNOWN(null, null);
         
-        private Class<?> objectClazz;
-        private Class<?> clazz;
+        private final Class<?> objectClazz;
+        private final Class<?> clazz;
 
         Type(Class<?> objectClazz, Class<?> clazz) {
             this.objectClazz = objectClazz;

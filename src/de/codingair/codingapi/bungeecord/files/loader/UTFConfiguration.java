@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class UTFConfiguration extends ConfigurationProvider {
     private static final String COMMENT = "#";
-    private List<Extra> extras = new ArrayList<>();
+    private final List<Extra> extras = new ArrayList<>();
     private boolean deployedExtras = false;
     private Configuration config;
 

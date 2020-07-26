@@ -9,8 +9,8 @@ public enum AnimationType {
     SINUS(SinusAnimation.class, de.codingair.codingapi.particles.animations.customanimations.AnimationType.SINUS),
     VECTOR(VectorAnimation.class, de.codingair.codingapi.particles.animations.customanimations.AnimationType.VECTOR);
 
-    private Class<? extends Animation> clazz;
-    private de.codingair.codingapi.particles.animations.customanimations.AnimationType custom;
+    private final Class<? extends Animation> clazz;
+    private final de.codingair.codingapi.particles.animations.customanimations.AnimationType custom;
 
     AnimationType(Class<? extends Animation> clazz, de.codingair.codingapi.particles.animations.customanimations.AnimationType custom) {
         this.clazz = clazz;

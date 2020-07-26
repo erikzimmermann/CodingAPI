@@ -41,7 +41,7 @@ class Yylex {
     private int yycolumn;
     private boolean zzAtBOL;
     private boolean zzAtEOF;
-    private StringBuffer sb;
+    private final StringBuffer sb;
 
     private static int[] zzUnpackAction() {
         int[] result = new int[45];
@@ -131,7 +131,7 @@ class Yylex {
     }
 
     Yylex(InputStream in) {
-        this((Reader)(new InputStreamReader(in)));
+        this(new InputStreamReader(in));
     }
 
     private static char[] zzUnpackCMap(String packed) {
@@ -340,17 +340,17 @@ class Yylex {
                     this.yybegin(2);
                     break;
                 case 5:
-                    return new Yytoken(1, (Object)null);
+                    return new Yytoken(1, null);
                 case 6:
-                    return new Yytoken(2, (Object)null);
+                    return new Yytoken(2, null);
                 case 7:
-                    return new Yytoken(3, (Object)null);
+                    return new Yytoken(3, null);
                 case 8:
-                    return new Yytoken(4, (Object)null);
+                    return new Yytoken(4, null);
                 case 9:
-                    return new Yytoken(5, (Object)null);
+                    return new Yytoken(5, null);
                 case 10:
-                    return new Yytoken(6, (Object)null);
+                    return new Yytoken(6, null);
                 case 11:
                     this.sb.append(this.yytext());
                     break;
@@ -385,7 +385,7 @@ class Yylex {
                     Double val0 = Double.valueOf(this.yytext());
                     return new Yytoken(0, val0);
                 case 22:
-                    return new Yytoken(0, (Object)null);
+                    return new Yytoken(0, null);
                 case 23:
                     Boolean val1 = Boolean.valueOf(this.yytext());
                     return new Yytoken(0, val1);

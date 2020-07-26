@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class PlayerMid extends MovableMid {
-    private Player player;
+    private final Player player;
 
     public PlayerMid(Player player) {
         this.player = player;

@@ -12,7 +12,7 @@ import org.bukkit.event.HandlerList;
  **/
 
 public class AnvilCloseEvent extends Event {
-	private Player player;
+	private final Player player;
 	public static HandlerList handlers = new HandlerList();
 	private boolean cancelled = false;
 	private Runnable post = null;
@@ -20,7 +20,7 @@ public class AnvilCloseEvent extends Event {
 	private String submittedText;
 	private boolean submitted;
 
-	private AnvilGUI anvil;
+	private final AnvilGUI anvil;
 
 	public AnvilCloseEvent(Player player, AnvilGUI anvil) {
 		this.player = player;

@@ -1,8 +1,8 @@
 package de.codingair.codingapi.tools.nbt;
 
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.inventory.ItemStack;
 
 public class NBTTagCompound {

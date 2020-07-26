@@ -15,7 +15,7 @@ import java.util.Set;
 
 public class ConfigWriter implements SpigotDataWriter {
     private String prefix;
-    private ConfigFile file;
+    private final ConfigFile file;
 
     public ConfigWriter(ConfigFile file) {
         this(file, null);

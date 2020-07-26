@@ -1,10 +1,8 @@
 package de.codingair.codingapi.tools.time;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.bungeecord.BungeeAPI;
 import de.codingair.codingapi.utils.Ticker;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -153,15 +151,5 @@ public class TimeSet<E> extends HashSet<E> implements Ticker {
         }
 
         return super.contains(o);
-    }
-
-    public void setExpire(E e, int expire) {
-        lock.lock();
-        try {
-            if(expire > 0) this.time.replace(e, System.currentTimeMillis() + expire * 1000);
-            else remove(e);
-        } finally {
-            lock.unlock();
-        }
     }
 }

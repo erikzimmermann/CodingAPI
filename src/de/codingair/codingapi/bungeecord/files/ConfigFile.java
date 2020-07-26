@@ -17,11 +17,11 @@ import java.util.Map;
  **/
 
 public class ConfigFile {
-    private UTFConfiguration configuration;
-    private String name;
-    private String path;
-    private String srcPath;
-    private Plugin plugin;
+    private final UTFConfiguration configuration;
+    private final String name;
+    private final String path;
+    private final String srcPath;
+    private final Plugin plugin;
 
     public ConfigFile(String name, String path, String srcPath, Plugin plugin) {
         configuration = new UTFConfiguration();

@@ -1,14 +1,9 @@
-package de.codingair.codingapi.player.data.gameprofile;
+package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
 import de.codingair.codingapi.player.data.Skin;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_10;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_11;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_8;
-import de.codingair.codingapi.player.data.gameprofile.version.GameProfileUtils_v1_9;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.tools.Callback;
@@ -26,74 +21,10 @@ import java.net.URLConnection;
 import java.util.*;
 
 public class GameProfileUtils {
-
-    public static void updateGameProfile(Plugin plugin, Player p, Skin skin, String nickName) {
-        if(Version.get().equals(Version.v1_8))
-            GameProfileUtils_v1_8.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_9))
-            GameProfileUtils_v1_9.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_10))
-            GameProfileUtils_v1_10.updateGameProfile(plugin, p, skin, nickName);
-        else if(Version.get().equals(Version.v1_11))
-            GameProfileUtils_v1_11.updateGameProfile(plugin, p, skin, nickName);
-    }
-
-    public static void updateOtherGameProfile(Plugin plugin, Player p, Player other, Skin skin, String nickName) {
-        if(Version.get().equals(Version.v1_8))
-            GameProfileUtils_v1_8.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_9))
-            GameProfileUtils_v1_9.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_10))
-            GameProfileUtils_v1_10.updateOtherGameProfile(plugin, p, other, skin, nickName);
-        else if(Version.get().equals(Version.v1_11))
-            GameProfileUtils_v1_11.updateOtherGameProfile(plugin, p, other, skin, nickName);
-    }
-
     public static GameProfile getGameProfile(Player p) {
         Class<?> entityPlayerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
         IReflection.MethodAccessor getProfile = IReflection.getMethod(entityPlayerClass, "getProfile", GameProfile.class, new Class[] {});
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
-    }
-
-    public static void loadGameProfile(UUID uniqueId, Callback<GameProfile> callback) {
-        try {
-            try {
-                URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uniqueId.toString().replace("-", "") + "?unsigned=false");
-                URLConnection uc = url.openConnection();
-                uc.setUseCaches(false);
-                uc.setDefaultUseCaches(false);
-                uc.addRequestProperty("User-Agent", "Mozilla/5.0");
-                uc.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
-                uc.addRequestProperty("Pragma", "no-cache");
-
-                String json = new Scanner(uc.getInputStream(), "UTF-8").useDelimiter("\\A").next();
-                JSON data = (JSON) new JSONParser().parse(json);
-                JSONArray properties = data.get("properties");
-                String name = data.get("name");
-
-                for(int i = 0; i < properties.size(); i++) {
-                    try {
-                        JSON property = (JSON) properties.get(i);
-                        String propertyName = property.get("name");
-                        String value = property.get("value");
-                        String signature = property.containsKey("signature") ? (String) property.get("signature") : null;
-
-                        GameProfile gameProfile = new GameProfile(uniqueId, name);
-
-                        gameProfile.getProperties().removeAll("textures");
-                        gameProfile.getProperties().put("textures", new Property(propertyName, value, signature));
-
-                        callback.accept(gameProfile);
-                    } catch(Exception e) {
-                        callback.accept(null);
-                    }
-                }
-            } catch(IOException ex) {
-                callback.accept(null);
-            }
-        } catch(Exception e) {
-            callback.accept(null);
-        }
     }
 
     public static String extractSkinId(Player p) {
@@ -118,29 +49,6 @@ public class GameProfileUtils {
 
     public static GameProfile createBySkinId(String skinId) {
         return getGameProfile(UUID.randomUUID(), "-", 0, "", "http://textures.minecraft.net/texture/" + skinId, null);
-    }
-
-    public static String gameProfileToString(GameProfile gameProfile) {
-        if(gameProfile == null) return null;
-
-        UUID uniqueId = gameProfile.getId();
-        String name = gameProfile.getName();
-
-        Collection<Property> properties = gameProfile.getProperties().get("textures");
-        Property property = properties.toArray().length == 0 ? null : (Property) properties.toArray()[0];
-
-        String pName = property == null ? null : property.getName();
-        String pValue = property == null ? null : property.getValue();
-        String pSignature = property == null ? null : property.getSignature();
-
-        JSON json = new JSON();
-        json.put("ID", uniqueId);
-        json.put("Name", name);
-        json.put("Property_Name", pName);
-        json.put("Property_Value", pValue);
-        json.put("Property_Signature", pSignature);
-
-        return json.toJSONString();
     }
 
     public static GameProfile gameProfileFromJSON(String code) {

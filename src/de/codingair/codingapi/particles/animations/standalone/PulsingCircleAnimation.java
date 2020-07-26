@@ -13,7 +13,7 @@ import static java.lang.Math.sin;
 public class PulsingCircleAnimation extends Animation {
     private double radius;
     private double height;
-    private Location location;
+    private final Location location;
 
     private int ticksBetweenParticles = 0;
     private int skippedTicks = 0;

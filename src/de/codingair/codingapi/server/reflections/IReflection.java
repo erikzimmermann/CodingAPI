@@ -31,27 +31,27 @@ public class IReflection {
 	
 	public interface ConstructorAccessor {
 		
-		public Object newInstance(Object... args);
+		Object newInstance(Object... args);
 		
-		public Constructor<?> getConstructor();
+		Constructor<?> getConstructor();
 		
 	}
 	
 	public interface MethodAccessor {
 		
-		public Object invoke(Object target, Object... args);
+		Object invoke(Object target, Object... args);
 
-		public Method getMethod();
+		Method getMethod();
 		
 	}
 	
 	public interface FieldAccessor<T> {
 
-		public T get(Object target);
+		T get(Object target);
 
-		public void set(Object target, Object value);
+		void set(Object target, Object value);
 		
-		public Field getField();
+		Field getField();
 		
 	}
 	
@@ -285,7 +285,7 @@ public class IReflection {
 			}
 		}
 		
-		private DataType(Class<?> primitive, Class<?> reference) {
+		DataType(Class<?> primitive, Class<?> reference) {
 			this.primitive = primitive;
 			this.reference = reference;
 		}

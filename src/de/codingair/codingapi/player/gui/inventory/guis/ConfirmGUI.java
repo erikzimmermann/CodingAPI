@@ -21,12 +21,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 public class ConfirmGUI extends GUI {
-    private Callback<Boolean> callback;
+    private final Callback<Boolean> callback;
     private Runnable close;
 
-    private String accept;
-    private String message;
-    private String decline;
+    private final String accept;
+    private final String message;
+    private final String decline;
 
     public ConfirmGUI(Player p, String title, String accept, String message, String decline, JavaPlugin plugin, Callback<Boolean> callback) {
         super(p, title, 9, plugin, false);

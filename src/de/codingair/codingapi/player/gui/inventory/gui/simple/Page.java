@@ -7,8 +7,8 @@ import java.util.List;
 
 public abstract class Page {
     private String title;
-    private Layout layout;
-    private List<Button> buttons = new ArrayList<>();
+    private final Layout layout;
+    private final List<Button> buttons = new ArrayList<>();
     private SimpleGUI last;
 
     public Page(Player p, String title, Layout layout) {

@@ -9,7 +9,7 @@ import net.md_5.bungee.event.EventHandler;
 import java.util.HashMap;
 
 public class ChatButtonListener implements Listener {
-    private HashMap<Connection, String> ids = new HashMap<>();
+    private final HashMap<Connection, String> ids = new HashMap<>();
 
     @EventHandler(priority = -100)
     public void beforeChat(ChatEvent e) {

@@ -3,16 +3,15 @@ package de.codingair.codingapi.player.gui.hovereditems;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.sounds.Sound;
 import de.codingair.codingapi.server.sounds.SoundData;
-import de.codingair.codingapi.tools.Converter;
-import de.codingair.codingapi.tools.OldItemBuilder;
 import de.codingair.codingapi.utils.Removable;
-import de.codingair.codingapi.utils.TextAlignment;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,13 +23,13 @@ import java.util.UUID;
  **/
 
 public class ItemGUI implements Removable {
-	private UUID uniqueId = UUID.randomUUID();
+	private final UUID uniqueId = UUID.randomUUID();
 	
-	private JavaPlugin plugin;
+	private final JavaPlugin plugin;
 	
-	private List<HoveredItem> hoveredItems = new ArrayList<>();
-	private List<Item> data = new ArrayList<>();
-	private Player player;
+	private final List<HoveredItem> hoveredItems = new ArrayList<>();
+	private final List<Item> data = new ArrayList<>();
+	private final Player player;
 	private ItemGUIListener listener = null;
 	
 	private int maxItems = 14;
@@ -198,25 +197,6 @@ public class ItemGUI implements Removable {
 		return null;
 	}
 	
-	public void setText(HoveredItem item, String... text) {
-		item.setText(text);
-		Item data = getData(item.getName());
-		data.setText(text);
-	}
-	
-	public void setText(HoveredItem item, List<String> text) {
-		setText(item, text.toArray(new String[text.size()]));
-	}
-	
-	public void setText(Item data, String... text) {
-		if(getItem(data.getName()) != null) getItem(data.getName()).setText(text);
-		data.setText(text);
-	}
-	
-	public void setText(Item data, List<String> text) {
-		setText(data, text.toArray(new String[text.size()]));
-	}
-	
 	public boolean hasListener() {
 		return this.listener != null;
 	}
@@ -373,24 +353,32 @@ public class ItemGUI implements Removable {
 	}
 
 	public static class Item {
-		private String name;
-		private ItemStack item;
-		private List<String> text;
+		private final String name;
+		private final ItemStack item;
 
 		public Item(String name, ItemStack item, List<String> text) {
-			OldItemBuilder.setText(item, TextAlignment.LEFT, text);
+			if(!text.isEmpty()) {
+				ItemMeta meta = item.getItemMeta();
+				meta.setDisplayName(text.remove(0));
+				meta.setLore(text);
+				item.setItemMeta(meta);
+			}
 
 			this.name = name;
 			this.item = item.clone();
-			this.text = text;
 		}
 
 		public Item(String name, ItemStack item, String... text) {
-			OldItemBuilder.setText(item, TextAlignment.LEFT, text);
+			List<String> lines = Arrays.asList(text);
+			if(!lines.isEmpty()) {
+				ItemMeta meta = item.getItemMeta();
+				meta.setDisplayName(lines.remove(0));
+				meta.setLore(lines);
+				item.setItemMeta(meta);
+			}
 
 			this.name = name;
 			this.item = item.clone();
-			this.text = Converter.fromArrayToList(text);
 		}
 
 		public String getName() {
@@ -399,20 +387,6 @@ public class ItemGUI implements Removable {
 
 		public ItemStack getItem() {
 			return item;
-		}
-
-		public List<String> getText() {
-			return text;
-		}
-
-		public void setText(List<String> text) {
-			OldItemBuilder.setText(item, TextAlignment.LEFT, text);
-			this.text = text;
-		}
-
-		public void setText(String... text) {
-			OldItemBuilder.setText(item, TextAlignment.LEFT, text);
-			this.text = Converter.fromArrayToList(text);
 		}
 	}
 }
