@@ -65,8 +65,8 @@
 
     <distributionManagement>
         <repository>
-            <id>codingapi</id>
-            <url>https://maven.pkg.github.com/CodingAir/CodingAPI</url>
+            <id>codingair-api</id>
+            <url>https://maven.pkg.github.com/codingair/codingapi</url>
         </repository>
     </distributionManagement>
 
