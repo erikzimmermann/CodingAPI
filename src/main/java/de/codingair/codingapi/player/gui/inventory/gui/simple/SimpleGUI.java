@@ -12,6 +12,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
+/**
+ * Use de.codingair.codingapi.player.gui.inventory.v2.GUI instead.
+ */
+@Deprecated
 public class SimpleGUI extends GUI {
     private final Layout layout;
     private final Page main;

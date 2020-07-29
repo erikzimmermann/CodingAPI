@@ -22,6 +22,6 @@ public interface Removable {
 	JavaPlugin getPlugin();
 	
 	default boolean equals(Removable removable) {
-		return getUniqueId().toString().equals(removable.getUniqueId().toString());
+		return getUniqueId().equals(removable.getUniqueId());
 	}
 }

@@ -23,6 +23,7 @@ public class AnvilClickEvent extends Event {
     private final ItemStack item;
     private String submitted = null;
 
+    private boolean keepInventory = false; //for smoother GUI switch
     private boolean close = false;
     private boolean cancelled = true;
 
@@ -127,5 +128,13 @@ public class AnvilClickEvent extends Event {
 
     public void setSubmitted(String submitted) {
         this.submitted = submitted;
+    }
+
+    public boolean isKeepInventory() {
+        return keepInventory;
+    }
+
+    public void setKeepInventory(boolean keepInventory) {
+        this.keepInventory = keepInventory;
     }
 }

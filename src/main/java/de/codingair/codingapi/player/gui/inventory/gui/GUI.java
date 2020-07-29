@@ -19,11 +19,9 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 /**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- **/
-
+ * Use de.codingair.codingapi.player.gui.inventory.v2.GUI instead.
+ */
+@Deprecated
 public abstract class GUI extends Interface implements Removable {
     public static final HashMap<Player, Callback<GUI>> foreignConfirmations = new HashMap<>();
     private final UUID uniqueId = UUID.randomUUID();

@@ -15,7 +15,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -83,11 +82,12 @@ public class AnvilGUI implements Removable {
 
     @Override
     public void destroy() {
-        remove();
-        try {
-            this.player.closeInventory();
-        } catch(Throwable ex) {
-            Bukkit.getScheduler().runTask(plugin, () -> this.player.closeInventory());
+        if(remove()) {
+            try {
+                this.player.closeInventory();
+            } catch(Throwable ex) {
+                Bukkit.getScheduler().runTask(plugin, this.player::closeInventory);
+            }
         }
     }
 
@@ -128,7 +128,8 @@ public class AnvilGUI implements Removable {
                         }
 
                         if(clickEvent.getWillClose()) {
-                            close();
+                            close(clickEvent.isKeepInventory());
+                            if(clickEvent.isKeepInventory()) onInventoryClose(new InventoryCloseEvent(e.getView()));
                         }
 
                         if(clickEvent.getSlot() == AnvilSlot.OUTPUT && !clickEvent.isPayExp())
@@ -141,7 +142,6 @@ public class AnvilGUI implements Removable {
             public void onInventoryClose(InventoryCloseEvent e) {
                 if(e.getPlayer() instanceof Player) {
                     if(e.getInventory().equals(inv)) {
-
                         if(closeEvent == null) {
                             closeEvent = new AnvilCloseEvent(player, AnvilGUI.this);
                             Bukkit.getPluginManager().callEvent(closeEvent);
@@ -156,12 +156,6 @@ public class AnvilGUI implements Removable {
                         }
                     }
                 }
-            }
-
-            @EventHandler
-            public void onPlayerQuit(PlayerQuitEvent e) {
-                if(!player.getName().equals(e.getPlayer().getName())) return;
-                remove();
             }
         };
 
@@ -257,6 +251,10 @@ public class AnvilGUI implements Removable {
     }
 
     public void close() {
+        close(false);
+    }
+
+    public void close(boolean keep) {
         closeEvent = new AnvilCloseEvent(player, AnvilGUI.this, submitted, submittedText);
 
         Bukkit.getPluginManager().callEvent(closeEvent);
@@ -264,7 +262,7 @@ public class AnvilGUI implements Removable {
 
         if(!closeEvent.isCancelled()) {
             inv.clear();
-            getPlayer().closeInventory();
+            if(!keep) getPlayer().closeInventory();
         }
     }
 
@@ -305,7 +303,8 @@ public class AnvilGUI implements Removable {
         return this;
     }
 
-    public void remove() {
+    public boolean remove() {
+        if(listener == null) return false;
         this.clearInventory();
         this.listener = null;
         this.items = null;
@@ -315,6 +314,7 @@ public class AnvilGUI implements Removable {
         listener = null;
 
         API.removeRemovable(this);
+        return true;
     }
 
     public static AnvilGUI openAnvil(JavaPlugin plugin, Player p, AnvilListener listener, ItemStack item) {

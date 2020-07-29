@@ -2,10 +2,12 @@ package de.codingair.codingapi.player.gui.sign;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
+import de.codingair.codingapi.server.AsyncCatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
+import de.codingair.codingapi.tools.Call;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
@@ -129,6 +131,10 @@ public abstract class SignGUI {
     }
 
     public void close() {
+        close(null);
+    }
+
+    public void close(Call call) {
         PacketReader packetReader = null;
 
         List<PacketReader> l = API.getRemovables(this.player, PacketReader.class);
@@ -141,7 +147,10 @@ public abstract class SignGUI {
         l.clear();
 
         packetReader.unInject();
-        Bukkit.getScheduler().runTask(plugin, this.player::closeInventory);
+        AsyncCatcher.runSync(plugin, () -> {
+            player.closeInventory();
+            if(call != null) call.proceed();
+        });
     }
 
 }
