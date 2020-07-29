@@ -37,7 +37,6 @@ public class GUI extends InventoryBuilder {
         if(waiting) throw new IsWaitingException();
         if(isOpen()) throw new AlreadyOpenedException();
         if(active == null) throw new NoPageException();
-        System.out.println("open");
 
         this.listener = new GUIListener(this);
         Bukkit.getPluginManager().registerEvents(this.listener, plugin);
@@ -45,7 +44,6 @@ public class GUI extends InventoryBuilder {
         Callback<Player> callback = new Callback<Player>() {
             @Override
             public void accept(Player player) {
-                System.out.println("register");
                 API.addRemovable(GUI.this);
                 player.openInventory(inventory);
             }
@@ -64,7 +62,6 @@ public class GUI extends InventoryBuilder {
         if(!waiting) throw new IsNotWaitingException();
 
         waiting = false;
-        System.out.println("continueGUI");
         player.openInventory(inventory);
     }
 
@@ -76,7 +73,6 @@ public class GUI extends InventoryBuilder {
         if(!isOpen()) throw new AlreadyClosedException();
         GUIListener listener = this.listener;
         this.listener = null;
-        System.out.println("close");
 
         closing = new Callback<Player>() {
             @Override
@@ -100,7 +96,6 @@ public class GUI extends InventoryBuilder {
         HandlerList.unregisterAll(listener);
         this.listener = null;
 
-        System.out.println("unregister");
         API.removeRemovable(GUI.this);
         if(callback != null) callback.accept(player);
         closing = null;

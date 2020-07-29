@@ -27,7 +27,6 @@ public class GUIListener implements Listener {
         if(!gui.waiting && gui.getInventory().equals(e.getInventory())) {
             if(gui.closing != null) gui.closing.accept(gui.getPlayer());
             else {
-                System.out.println("Forcing by InventoryCloseEvent");
                 gui.forceClose(this, null);
             }
         }
