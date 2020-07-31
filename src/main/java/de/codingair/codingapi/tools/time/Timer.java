@@ -13,6 +13,6 @@ public class Timer {
     }
 
     public String result() {
-        return (stop() / 10000D) + "s";
+        return stop() + "ms";
     }
 }
