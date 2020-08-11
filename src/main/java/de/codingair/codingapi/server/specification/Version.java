@@ -37,9 +37,13 @@ public enum Version {
     public static void load() {
         if(VERSION == null) {
             //server type
-            String s = Bukkit.getVersion();
-            int i = s.indexOf('-') + 1;
-            TYPE = Type.getByName(Bukkit.getVersion().substring(i, s.indexOf("-", i)));
+            try {
+                String s = Bukkit.getVersion();
+                int i = s.indexOf('-') + 1;
+                TYPE = Type.getByName(Bukkit.getVersion().substring(i, s.indexOf("-", i)));
+            } catch(StringIndexOutOfBoundsException ex) {
+                TYPE = Type.UNKNOWN;
+            }
 
             //version
             NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
