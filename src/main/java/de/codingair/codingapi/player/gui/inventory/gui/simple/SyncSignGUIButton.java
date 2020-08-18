@@ -3,12 +3,15 @@ package de.codingair.codingapi.player.gui.inventory.gui.simple;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
+import de.codingair.codingapi.utils.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+
+import java.util.Arrays;
 
 public abstract class SyncSignGUIButton extends SyncButton {
     private final Sign sign;
@@ -58,7 +61,7 @@ public abstract class SyncSignGUIButton extends SyncButton {
 
             String[] lines = sign.getLines();
             for(int i = 0; i < lines.length; i++) {
-                lines[i] = lines[i].replace("§", "&");
+                lines[i] = ChatColor.toLegacy('&', lines[i]);
             }
 
             SignTools.updateSign(sign, lines, false);
@@ -75,7 +78,7 @@ public abstract class SyncSignGUIButton extends SyncButton {
                     }
 
                     if(notEmpty) {
-                        if(updateSign) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
+                        if(updateSign) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, false));
                         SyncSignGUIButton.this.onSignChangeEvent(lines);
                     }
 

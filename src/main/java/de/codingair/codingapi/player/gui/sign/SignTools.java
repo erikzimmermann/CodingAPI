@@ -1,6 +1,6 @@
 package de.codingair.codingapi.player.gui.sign;
 
-import org.bukkit.ChatColor;
+import de.codingair.codingapi.utils.ChatColor;
 import org.bukkit.block.Sign;
 
 public class SignTools {
@@ -12,7 +12,7 @@ public class SignTools {
     public static void updateSign(Sign sign, String[] text, boolean colorSupport) {
         if(colorSupport) {
             for(int i = 0; i < text.length; i++) {
-                text[i] = ChatColor.translateAlternateColorCodes('&', text[i]);
+                text[i] = ChatColor.translateAll('&', text[i]);
             }
         }
 

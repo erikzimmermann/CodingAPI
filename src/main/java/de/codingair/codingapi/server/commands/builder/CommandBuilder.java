@@ -199,6 +199,16 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) || baseComponent.getChildren().isEmpty() ? getBaseComponent() : getComponent(args);
 
         if(component == null) {
+            if(baseComponent.isOnlyConsole() && sender instanceof Player) {
+                this.baseComponent.onlyFor(false, sender, label, component);
+                return false;
+            }
+
+            if(baseComponent.isOnlyPlayers() && !(sender instanceof Player)) {
+                this.baseComponent.onlyFor(true, sender, label, component);
+                return false;
+            }
+
             this.baseComponent.unknownSubCommand(sender, label, args);
             return false;
         }

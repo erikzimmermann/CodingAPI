@@ -78,4 +78,12 @@ public enum Version {
     public boolean isBiggerThan(int version) {
         return id > version;
     }
+
+    public static boolean atLeast(int version) {
+        return get().id >= version;
+    }
+
+    public static boolean less(int version) {
+        return get().id < version;
+    }
 }

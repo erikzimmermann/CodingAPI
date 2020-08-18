@@ -8,7 +8,6 @@ import de.codingair.codingapi.server.reflections.Packet;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Call;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;

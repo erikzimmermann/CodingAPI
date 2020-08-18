@@ -1,8 +1,7 @@
 package de.codingair.codingapi.utils;
 
-import de.codingair.codingapi.server.reflections.IReflection;
-
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public enum ChatColor {
@@ -29,10 +28,11 @@ public enum ChatColor {
     ITALIC('o', "italic"),
     RESET('r', "reset");
 
-    public static final char COLOR_CHAR = getColorChar();
+    public static final char COLOR_CHAR = '\u00A7';
     public static final String ALL_CODES = "0123456789AaBbCcDdEeFfKkLlMmNnOoRr";
-    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + COLOR_CHAR + "[0-9A-FK-OR]");
-    private static final Map<Character, ChatColor> BY_CHAR = new HashMap();
+    public static final String ALL_HEX_CODES = "0123456789AaBbCcDdEeFf";
+    public static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + COLOR_CHAR + "[x0-9A-FK-OR]");
+    private static final Map<Character, ChatColor> BY_CHAR = new HashMap<>();
     private final char code;
     private final String toString;
     private final String name;
@@ -40,20 +40,7 @@ public enum ChatColor {
     ChatColor(char code, String name) {
         this.code = code;
         this.name = name;
-        this.toString = new String(new char[] {getColorChar(), code});
-    }
-
-    private static char getColorChar() {
-        try {
-            return (char) IReflection.getField(Class.forName("net.md_5.bungee.api.ChatColor"), "COLOR_CHAR").get(null);
-        } catch(ClassNotFoundException e) {
-            try {
-                return (char) IReflection.getField(Class.forName("org.bukkit.ChatColor"), "COLOR_CHAR").get(null);
-            } catch(ClassNotFoundException e1) {
-                e1.printStackTrace();
-                return '?';
-            }
-        }
+        this.toString = new String(new char[] {COLOR_CHAR, code});
     }
 
     public String toString() {
@@ -64,17 +51,66 @@ public enum ChatColor {
         return input == null ? null : STRIP_COLOR_PATTERN.matcher(input).replaceAll("");
     }
 
+    /**
+     * @author Elementeral (https://www.spigotmc.org/threads/hex-color-code-translate.449748/#post-3867804)
+     */
+    public static String translateHexColorCodes(char altColorChar, String message) {
+        final Pattern hexPattern = Pattern.compile(altColorChar + "#([A-Fa-f0-9]{6})");
+        Matcher matcher = hexPattern.matcher(message);
+        StringBuffer buffer = new StringBuffer(message.length());
+
+        while(matcher.find()) {
+            String group = matcher.group(1);
+            matcher.appendReplacement(buffer, COLOR_CHAR + "x"
+                    + COLOR_CHAR + group.charAt(0) + COLOR_CHAR + group.charAt(1)
+                    + COLOR_CHAR + group.charAt(2) + COLOR_CHAR + group.charAt(3)
+                    + COLOR_CHAR + group.charAt(4) + COLOR_CHAR + group.charAt(5)
+            );
+        }
+
+        return matcher.appendTail(buffer).toString();
+    }
+
+    public static String toLegacy(char altColorChar, String message) {
+        if(message == null) return null;
+        return hexToLegacy(altColorChar, message).replace(COLOR_CHAR, altColorChar);
+    }
+
+    public static String hexToLegacy(char altColorChar, String message) {
+        final Pattern hexPattern = Pattern.compile(COLOR_CHAR + "x" + COLOR_CHAR + "." + COLOR_CHAR + "." + COLOR_CHAR + "." + COLOR_CHAR + "." + COLOR_CHAR + "." + COLOR_CHAR + ".");
+        Matcher matcher = hexPattern.matcher(message);
+        StringBuffer buffer = new StringBuffer(message.length());
+
+        while(matcher.find()) {
+            String group = matcher.group(0);
+            matcher.appendReplacement(buffer, altColorChar + "#"
+                    + group.charAt(3)
+                    + group.charAt(5)
+                    + group.charAt(7)
+                    + group.charAt(9)
+                    + group.charAt(11)
+                    + group.charAt(13)
+            );
+        }
+
+        return matcher.appendTail(buffer).toString();
+    }
+
     public static String translateAlternateColorCodes(char altColorChar, String textToTranslate) {
         char[] b = textToTranslate.toCharArray();
 
-        for(int i = 0; i < b.length - 1; ++i) {
-            if(b[i] == altColorChar && "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(b[i + 1]) > -1) {
+        for(int i = 0; i < b.length - 1; i++) {
+            if(b[i] == altColorChar && ALL_CODES.indexOf(b[i + 1]) > -1) {
                 b[i] = 167;
                 b[i + 1] = Character.toLowerCase(b[i + 1]);
             }
         }
 
         return new String(b);
+    }
+
+    public static String translateAll(char altColorChar, String textToTranslate) {
+        return translateHexColorCodes(altColorChar, translateAlternateColorCodes(altColorChar, textToTranslate));
     }
 
     public static ChatColor getByChar(char code) {
@@ -91,29 +127,6 @@ public enum ChatColor {
         for(ChatColor colour : arr$) {
             BY_CHAR.put(colour.code, colour);
         }
-
-    }
-
-    public <T> T toBungeeCode() {
-        try {
-            for(Object o : Class.forName("net.md_5.bungee.api.ChatColor").getEnumConstants()) {
-                if(o.toString().equals(this.toString())) return (T) o;
-            }
-        } catch(ClassNotFoundException ignored) {
-        }
-
-        return null;
-    }
-
-    public <T> T toSpigotCode() {
-        try {
-            for(Object o : Class.forName("org.bukkit.ChatColor").getEnumConstants()) {
-                if(o.toString().equals(this.toString())) return (T) o;
-            }
-        } catch(ClassNotFoundException ignored) {
-        }
-
-        return null;
     }
 
     public static String getLastColor(String text, char colorChar) {
