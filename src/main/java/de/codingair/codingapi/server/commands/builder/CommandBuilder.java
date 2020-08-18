@@ -196,6 +196,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        args = repairArgs(args);
+
         CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) || baseComponent.getChildren().isEmpty() ? getBaseComponent() : getComponent(args);
 
         if(component == null) {
@@ -233,10 +235,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        args = repairArgs(args);
         List<String> sug = new ArrayList<>();
+
         if(this.ownTabCompleter != null) {
             List<String> apply = this.ownTabCompleter.onTabComplete(sender, command, label, args);
-            if(apply != null) sug.addAll(apply);
+            if(apply != null) {
+                for(String s : apply) {
+                    if(s.contains(" ")) s = "\"" + s + "\"";
+                    sug.add(s);
+                }
+            }
             return sug;
         }
 
@@ -271,7 +280,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                 List<String> suggestions = sub.get(c);
 
                 for(String subCommand : suggestions) {
-                    if(sug.contains(subCommand)) continue;
+                    if(subCommand.contains(" ")) subCommand = "\"" + subCommand + "\"";
 
                     if(c.matchTabComplete(sender, subCommand, lastArg.toLowerCase())) {
                         sug.add(subCommand);
@@ -292,7 +301,11 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             if(ncc.hasPermission(sender)) {
                 List<String> list = ncc.onTabComplete(sender, command, label, args);
                 if(list != null) {
-                    sug.addAll(list);
+                    for(String s : list) {
+                        if(s.contains(" ")) s = "\"" + s + "\"";
+                        sug.add(s);
+                    }
+
                     list.clear();
                 }
             }
@@ -336,6 +349,62 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         }
 
         return current;
+    }
+
+    private String[] repairArgs(String[] args) {
+        if(args == null || args.length == 0) return args;
+
+        StringBuilder b = new StringBuilder();
+        for(String s : args) {
+            b.append(s);
+            b.append(" ");
+        }
+
+        String s = b.toString();
+        s = s.substring(0, s.length() - 1);
+
+        if(s.isEmpty()) {
+            return new String[] {""};
+        }
+
+        List<String> nArgs = new ArrayList<>();
+
+        int parse = 0;
+        char[] cA = s.toCharArray();
+        for(int i = 0; i < cA.length; i++) {
+            char c = cA[i];
+
+            if(c == '"') {
+                //search for correct usage
+                for(int j = i + 1; j < cA.length; j++) {
+                    char c1 = cA[j];
+
+                    if(c1 == '"') {
+                        //success
+                        if(parse < i) {
+                            //parse prepending remaining chars
+                            nArgs.add(s.substring(parse, i));
+                            parse = i;
+                        }
+
+                        nArgs.add(s.substring(parse + 1, j));
+
+                        i = parse = j + 1;
+                        break;
+                    }
+                }
+            } else if(c == ' ') {
+                nArgs.add(s.substring(parse, i));
+                parse = i + 1;
+            }
+        }
+
+        if(parse < cA.length) {
+            nArgs.add(s.substring(parse, cA.length));
+        }
+
+        if(cA[cA.length - 1] == ' ') nArgs.add("");
+        return nArgs.toArray(new String[0]);
     }
 
     public String getName() {
