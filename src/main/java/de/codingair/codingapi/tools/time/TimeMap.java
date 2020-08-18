@@ -48,7 +48,7 @@ public class TimeMap<K, V> extends HashMap<K, V> implements Ticker {
             try {
                 time.entrySet().removeIf(entry -> {
                     if(entry.getValue() <= System.currentTimeMillis()) {
-                        timeout(entry.getKey());
+                        timeout(entry.getKey(), super.get(entry.getKey()));
                         super.remove(entry.getKey());
                         return true;
                     } else return false;
@@ -60,7 +60,7 @@ public class TimeMap<K, V> extends HashMap<K, V> implements Ticker {
         }
     }
 
-    public void timeout(K key) {
+    public void timeout(K key, V value) {
     }
 
     public V put(K key, V value, long expire) {
