@@ -255,6 +255,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         String lastArg = args[args.length - 1];
         if(lastArg == null) lastArg = "";
+        else lastArg = lastArg.toLowerCase();
+
         args[args.length - 1] = "";
         CommandComponent component = getComponent(args);
 
@@ -280,15 +282,29 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                 List<String> suggestions = sub.get(c);
 
                 for(String subCommand : suggestions) {
-                    if(subCommand.contains(" ")) subCommand = "\"" + subCommand + "\"";
+                    if(subCommand.contains(" ")) {
+                        String modSC = "\"" + subCommand + "\"";
 
-                    if(c.matchTabComplete(sender, subCommand, lastArg.toLowerCase())) {
-                        sug.add(subCommand);
+                        if(c.matchTabComplete(sender, modSC, lastArg)) {
+                            sug.add(modSC);
+                            continue;
+                        }
+
+                        if(lastArg.isEmpty() || modSC.toLowerCase().startsWith(lastArg)) {
+                            sug.add(modSC);
+                            continue;
+                        }
+                    }
+
+                    if(c.matchTabComplete(sender, subCommand, lastArg)) {
+                        if(subCommand.contains(" ")) sug.add("\"" + subCommand + "\"");
+                        else sug.add(subCommand);
                         continue;
                     }
 
-                    if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg.toLowerCase())) {
-                        sug.add(subCommand);
+                    if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg)) {
+                        if(subCommand.contains(" ")) sug.add("\"" + subCommand + "\"");
+                        else sug.add(subCommand);
                     }
                 }
 
