@@ -20,9 +20,9 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class SpigotDataHandler extends DataHandler {
-    private final JavaPlugin plugin;
-    private final ChannelListener listener = new ChannelListener(this);
-    private final TimeList<UUID> timeOut = new TimeList<UUID>() {
+    protected final JavaPlugin plugin;
+    protected final ChannelListener listener = new ChannelListener(this);
+    protected final TimeList<UUID> timeOut = new TimeList<UUID>() {
         @Override
         public void timeout(UUID item) {
             Callback<?> callback = callbacks.remove(item);

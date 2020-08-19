@@ -17,8 +17,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 public abstract class BungeeDataHandler extends DataHandler {
-    private final Plugin plugin;
-    private final ChannelListener listener = new ChannelListener(this);
+    protected final Plugin plugin;
+    protected final ChannelListener listener = new ChannelListener(this);
 
     public BungeeDataHandler(Plugin plugin) {
         super(plugin.getDescription().getName().toLowerCase().trim().replace(" ", "_"));
