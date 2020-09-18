@@ -81,9 +81,11 @@ public class API {
         }
 
         disablePlugin(plugin);
+        enablePlugin(plugin.getName(), plugin);
 
         for(JavaPlugin p : plugins) {
-            enablePlugin(p.getName());
+            if(p == plugin) continue;
+            enablePlugin(p.getName(), p);
         }
 
         plugins.clear();
@@ -106,7 +108,7 @@ public class API {
         }
     }
 
-    public void enablePlugin(String name) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+    public void enablePlugin(String name, JavaPlugin backup) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
         File pluginFile = new File("plugins", name + ".jar");
 
         if(!pluginFile.exists()) {
@@ -118,11 +120,10 @@ public class API {
                     break;
                 }
             }
-
-            if(pluginFile == null) throw new FileNotFoundException("Could not find any " + name + ".jar!");
         }
 
-        Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
+        if(pluginFile.exists()) Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
+        else Bukkit.getPluginManager().enablePlugin(backup);
     }
 
     private void removePlugin(JavaPlugin plugin) {

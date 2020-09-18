@@ -29,8 +29,18 @@ public class InventoryBuilder implements Removable {
 
     public void buildInventory(int size, String title) {
         Preconditions.checkState(size % 9 == 0);
-        if(title.length() > 32) title = title.substring(0, 32);
+
+        int colors = count(title, '§') * 2;
+        if(title.length() > 32 + colors) title = title.substring(0, 32 + colors);
         this.inventory = Bukkit.createInventory(null, size, title);
+    }
+
+    private int count(String s, char c) {
+        int i = 0;
+        for(char c1 : s.toCharArray()) {
+            if(c1 == c) i++;
+        }
+        return i;
     }
 
     public void clear() {

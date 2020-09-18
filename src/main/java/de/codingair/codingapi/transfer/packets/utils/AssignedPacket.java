@@ -28,8 +28,8 @@ public abstract class AssignedPacket implements Packet {
         this.uniqueId = new UUID(in.readLong(), in.readLong());
     }
 
-    public void applyAsAnswer(AssignedPacket packet) {
-        packet.uniqueId = this.uniqueId;
+    public void applyAsAnswer(AssignedPacket answer) {
+        answer.uniqueId = this.uniqueId;
     }
 
     public UUID getUniqueId() {

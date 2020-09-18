@@ -17,6 +17,7 @@ import java.util.UUID;
 public class SimpleMessage implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
     private final List<Object> components = new ArrayList<>();
+    private final Player player;
     private HoverEvent hoverEvent;
     private ClickEvent clickEvent;
     private final JavaPlugin plugin;
@@ -25,17 +26,30 @@ public class SimpleMessage implements Removable {
     private BukkitRunnable runnable = null;
 
     public SimpleMessage(JavaPlugin plugin) {
-        this.plugin = plugin;
-        API.addRemovable(this);
+        this((Player) null, plugin);
     }
 
     public SimpleMessage(String base, JavaPlugin plugin) {
-        this(plugin);
-        add(base);
+        this(null, base, plugin);
     }
 
     public SimpleMessage(TextComponent base, JavaPlugin plugin) {
-        this(plugin);
+        this(null, base, plugin);
+    }
+
+    public SimpleMessage(Player player, JavaPlugin plugin) {
+        this.plugin = plugin;
+        this.player = player;
+        API.addRemovable(this);
+    }
+
+    public SimpleMessage(Player player, String base, JavaPlugin plugin) {
+        this(player, plugin);
+        add(base);
+    }
+
+    public SimpleMessage(Player player, TextComponent base, JavaPlugin plugin) {
+        this(player, plugin);
         add(base);
     }
 
@@ -128,6 +142,11 @@ public class SimpleMessage implements Removable {
         }
 
         return base;
+    }
+
+    public void send() {
+        if(player == null) throw new NullPointerException("The message receiver is not defined!");
+        send(player);
     }
 
     public void send(Player sender) {
@@ -236,7 +255,7 @@ public class SimpleMessage implements Removable {
 
     @Override
     public Player getPlayer() {
-        return null;
+        return player;
     }
 
     @Override
