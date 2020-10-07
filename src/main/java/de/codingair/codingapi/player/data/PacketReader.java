@@ -61,7 +61,6 @@ public abstract class PacketReader implements Removable {
 				try {
 					if(!readPacket(o)) super.channelRead(ctx, o);
 				} catch(Exception ex) {
-					ex.printStackTrace();
 					super.channelRead(ctx, o);
 				}
 			}
@@ -71,7 +70,6 @@ public abstract class PacketReader implements Removable {
 				try {
 					if(!writePacket(o)) super.write(ctx, o, promise);
 				} catch(Exception ex) {
-					ex.printStackTrace();
 					super.write(ctx, o, promise);
 				}
 			}
