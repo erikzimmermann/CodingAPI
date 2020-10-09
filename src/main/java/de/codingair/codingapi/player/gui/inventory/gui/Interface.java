@@ -692,7 +692,7 @@ public class Interface {
         ItemStack old;
 
         try {
-            if((old = this.inventory.getItem(x)) != null && old.isSimilar(item)) return;
+            if((old = this.inventory.getItem(x)) != null && old.isSimilar(item) && old.getAmount() == item.getAmount()) return;
         } catch(Throwable ignored) {
         }
 
