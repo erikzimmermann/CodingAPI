@@ -1,6 +1,9 @@
 package de.codingair.codingapi.player.gui.inventory.v2;
 
 import de.codingair.codingapi.player.gui.inventory.v2.buttons.Button;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 
@@ -8,6 +11,7 @@ public abstract class Page {
     protected final GUI gui;
     protected final Page basic;
     private final HashMap<Integer, Button> items;
+    private String title = null;
 
     public Page(GUI gui, Page basic) {
         this.gui = gui;
@@ -29,6 +33,8 @@ public abstract class Page {
     private void deploy(boolean basic) {
         items.forEach((slot, item) -> gui.setItem(slot, item.buildItem()));
         if(basic && this.basic != null) this.basic.apply(basic);
+
+        gui.updateTitle(this.title);
     }
 
     public void rebuild() {
@@ -82,8 +88,36 @@ public abstract class Page {
         items.put(slot, button);
     }
 
+    public void addButtonIfAbsent(int slot, Button button) {
+        items.putIfAbsent(slot, button);
+    }
+
     public void addButton(int x, int y, Button button) {
         items.put(x + y * 9, button);
+    }
+
+    public void addButtonIfAbsent(int x, int y, Button button) {
+        items.putIfAbsent(x + y * 9, button);
+    }
+
+    public void addLine(int x0, int y0, int x1, int y1, Button button) {
+        addLine(x0, y0, x1, y1, button, false);
+    }
+
+    public void addLine(int x0, int y0, int x1, int y1, Button button, boolean overwrite) {
+        double cX = x0, cY = y0;
+        Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
+
+        do {
+            if(overwrite) addButton((int) cX, (int) cY, button);
+            else addButtonIfAbsent((int) cX, (int) cY, button);
+
+            cX += v.getX();
+            cY += v.getY();
+        } while((int) cX != x1 || (int) cY != y1);
+
+        if(overwrite) addButton((int) cX, (int) cY, button);
+        else addButtonIfAbsent((int) cX, (int) cY, button);
     }
 
     public void destroy() {
@@ -92,5 +126,13 @@ public abstract class Page {
 
     public Page getBasic() {
         return basic;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
