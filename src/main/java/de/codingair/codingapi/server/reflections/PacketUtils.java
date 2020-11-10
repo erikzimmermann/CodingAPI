@@ -254,7 +254,12 @@ public class PacketUtils {
 
     public static Object getItemStack(ItemStack item) {
         IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asNMSCopy", ItemStackClass, new Class[] {ItemStack.class});
-        return asNMSCopy.invoke(CraftItemStackClass, item);
+        return asNMSCopy.invoke(null, item);
+    }
+
+    public static ItemStack getItemStack(Object item) {
+        IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[] {ItemStackClass});
+        return (ItemStack) asNMSCopy.invoke(null, item);
     }
 
     public static Object getBlockPosition(Location location) {

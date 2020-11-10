@@ -946,4 +946,8 @@ public class ItemBuilder implements Serializable {
 
         return item;
     }
+
+    public NBTTagCompound getNbt() {
+        return nbt;
+    }
 }

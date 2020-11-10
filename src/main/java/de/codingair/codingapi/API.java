@@ -10,6 +10,7 @@ import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.book.BookListener;
 import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
+import de.codingair.codingapi.server.listeners.PickItemListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
@@ -145,6 +146,7 @@ public class API {
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new BookListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new PickItemListener(plugin), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.HIGH)
             public void onQuit(PlayerQuitEvent e) {
