@@ -31,8 +31,8 @@ public abstract class Page {
     }
 
     private void deploy(boolean basic) {
-        items.forEach((slot, item) -> gui.setItem(slot, item.buildItem()));
         if(basic && this.basic != null) this.basic.apply(basic);
+        items.forEach((slot, item) -> gui.setItem(slot, item.buildItem()));
 
         gui.updateTitle(this.title);
     }
