@@ -38,10 +38,22 @@ public class PickItemListener implements Listener {
     private void call(Player player, int slot, ItemStack item) {
         if(item.getType() == Material.AIR) return;
 
-        Block b = player.getTargetBlock(new HashSet<Material>(){{add(Material.AIR);}}, 10);
-        if(b.getType() != item.getType()) return;
+        Block b = player.getTargetBlock(new HashSet<Material>() {{
+            add(Material.AIR);
+        }}, 10);
 
-        AsyncCatcher.runSync(plugin, () -> Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getInventory().getItemInHand(), b, !new NBTTagCompound(item).getMap().isEmpty())));
+        boolean correct = b.getType() == item.getType();
+
+        if(!correct) {
+            for(ItemStack drop : b.getDrops()) {
+                if(drop.getType() == item.getType()) {
+                    correct = true;
+                    break;
+                }
+            }
+        }
+
+        if(correct) Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getInventory().getItemInHand(), b, !new NBTTagCompound(item).getMap().isEmpty()));
     }
 
     @EventHandler
@@ -51,7 +63,7 @@ public class PickItemListener implements Listener {
             @Override
             public boolean readPacket(Object packet) {
                 if(PACKET_CLASS == packet.getClass()) {
-                    call(p, slot.get(packet), PacketUtils.getItemStack(b.get(packet)));
+                    AsyncCatcher.runSync(plugin, () -> call(p, slot.get(packet), PacketUtils.getItemStack(b.get(packet))));
                 }
 
                 return false;
