@@ -37,11 +37,14 @@ public class GUI extends InventoryBuilder {
 
     public GUI(Player player, JavaPlugin plugin, int size, String title) {
         super(player, plugin);
+        buildInventory(size, title);
+    }
 
+    @Override
+    public void buildInventory(int size, String title) {
         this.size = size;
         this.originalTitle = (this.title = title);
-
-        buildInventory(size, title);
+        super.buildInventory(size, title);
     }
 
     public void open() throws AlreadyOpenedException, NoPageException, IsWaitingException {
