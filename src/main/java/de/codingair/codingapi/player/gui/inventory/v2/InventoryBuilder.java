@@ -19,6 +19,7 @@ public class InventoryBuilder implements Removable {
     protected final Player player;
     protected final UUID id = UUID.randomUUID();
     protected final JavaPlugin plugin;
+    private String title;
 
     protected Inventory inventory;
 
@@ -32,7 +33,7 @@ public class InventoryBuilder implements Removable {
 
         int colors = count(title, '§') * 2;
         if(title.length() > 32 + colors) title = title.substring(0, 32 + colors);
-        this.inventory = Bukkit.createInventory(null, size, title);
+        this.inventory = Bukkit.createInventory(null, size, this.title = title);
     }
 
     private int count(String s, char c) {
@@ -82,7 +83,7 @@ public class InventoryBuilder implements Removable {
 
     public void updateTitle(String invTitle) {
         if(invTitle.length() > 32) invTitle = invTitle.substring(0, 32);
-        if(inventory.getTitle().equals(invTitle)) return;
+        if(this.title.equals(invTitle)) return;
 
         Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
         Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
@@ -111,6 +112,7 @@ public class InventoryBuilder implements Removable {
             packet = con.newInstance(id, "minecraft:chest", icbcTitle, player.getOpenInventory().getTopInventory().getSize());
         }
 
+        this.title = invTitle;
         PacketUtils.sendPacket(player, packet);
         updateInventory.invoke(ep, active);
     }

@@ -75,7 +75,7 @@ public abstract class GUI extends Interface implements Removable {
                 if(useFallbackGUI && fallbackGUI != null) {
                     GUI fb = fallbackGUI;
                     fb.reinitialize();
-                    Bukkit.getScheduler().runTaskLater(getPlugin(), fb::open, 1);
+                    Bukkit.getScheduler().runTaskLater(getPlugin(), (Runnable) fb::open, 1);
                 }
             }
 

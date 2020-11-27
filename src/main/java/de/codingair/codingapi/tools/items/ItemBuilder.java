@@ -14,6 +14,7 @@ import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
+import de.codingair.codingapi.tools.items.expansions.DamageableValue;
 import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 import de.codingair.codingapi.utils.ChatColor;
 import de.codingair.codingapi.utils.TextAlignment;
@@ -45,6 +46,7 @@ public class ItemBuilder implements Serializable {
     private Material type = null;
     private byte data = 0;
     private short durability = 0;
+    private int damage = 0;
     private int amount = 1;
     private DyeColor color = null;
     private ItemMeta preMeta = null;
@@ -94,6 +96,10 @@ public class ItemBuilder implements Serializable {
         if(item.hasItemMeta()) {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
+
+            if(Version.get().isBiggerThan(15)) {
+                this.damage = DamageableValue.getDamage(this.preMeta);
+            }
 
             if(Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
             if(Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
@@ -233,6 +239,10 @@ public class ItemBuilder implements Serializable {
 
             if(Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
             if(Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+
+            if(Version.get().isBiggerThan(15)) {
+                meta = DamageableValue.setDamage(meta, this.damage);
+            }
 
             item.setItemMeta(meta);
         }
@@ -423,6 +433,11 @@ public class ItemBuilder implements Serializable {
                         setCustomModel(d.getInteger("CustomModel"));
                         break;
                     }
+
+                    case "Damage": {
+                        setDamage(d.getInteger("Damage"));
+                        break;
+                    }
                 }
             }
 
@@ -474,6 +489,7 @@ public class ItemBuilder implements Serializable {
 
         d.put("SkullOwner", this.skullId);
         d.put("CustomModel", this.customModel);
+        d.put("Damage", this.damage);
     }
 
     @Override
@@ -488,6 +504,7 @@ public class ItemBuilder implements Serializable {
                 hideStandardLore == builder.hideStandardLore &&
                 hideEnchantments == builder.hideEnchantments &&
                 hideName == builder.hideName &&
+                damage == builder.damage &&
                 unbreakable == builder.unbreakable &&
                 Objects.equals(name, builder.name) &&
                 type == builder.type &&
@@ -515,7 +532,7 @@ public class ItemBuilder implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, type, data, durability, amount, color, preMeta, potionData, nbt, customModel, skullId, lore, enchantments, hideStandardLore, hideEnchantments, hideName, unbreakable);
+        return Objects.hash(name, type, data, durability, amount, color, preMeta, potionData, nbt, customModel, skullId, lore, enchantments, hideStandardLore, hideEnchantments, hideName, unbreakable, damage);
     }
 
     @Override
@@ -722,6 +739,15 @@ public class ItemBuilder implements Serializable {
 
     public byte getData() {
         return data;
+    }
+
+    public ItemBuilder setDamage(int damage) {
+        this.damage = damage;
+        return this;
+    }
+
+    public int getDamage() {
+        return damage;
     }
 
     public ItemBuilder setData(byte data) {

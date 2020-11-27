@@ -228,85 +228,6 @@ public class Environment {
         return block.getType().name().contains("SLAB") || block.getType().name().contains("STEP") ? 0.5 : 1;
     }
 
-    public static void interact(Block b) {
-        //noinspection deprecation
-        byte data = b.getData();
-        byte newData;
-
-        switch(b.getType()) {
-            case DARK_OAK_DOOR:
-            case ACACIA_DOOR:
-            case BIRCH_DOOR:
-            case IRON_DOOR_BLOCK:
-            case JUNGLE_DOOR:
-            case SPRUCE_DOOR:
-            case WOODEN_DOOR: {
-                if(data < 4) newData = (byte) (data + 4);
-                else if(data >= 4 && data <= 7) newData = (byte) (data - 4);
-                else {
-                    Block other = b.getLocation().add(0, -1, 0).getBlock();
-                    interact(other);
-                    return;
-                }
-                break;
-            }
-
-            case TRAP_DOOR:
-            case IRON_TRAPDOOR: {
-                if(data == 0 || data == 1 || data == 2 || data == 3 || data == 8 || data == 9 || data == 10 || data == 11)
-                    newData = (byte) (data + 4);
-                else newData = (byte) (data - 4);
-                break;
-            }
-
-            case WOOD_BUTTON:
-            case STONE_BUTTON:
-            case LEVER: {
-                if(data < 8)
-                    newData = (byte) (data + 8);
-                else newData = (byte) (data - 8);
-                break;
-            }
-
-            case BIRCH_FENCE_GATE:
-            case DARK_OAK_FENCE_GATE:
-            case JUNGLE_FENCE_GATE:
-            case SPRUCE_FENCE_GATE:
-            case ACACIA_FENCE_GATE:
-            case FENCE_GATE: {
-                if(data < 4)
-                    newData = (byte) (data + 4);
-                else newData = (byte) (data - 4);
-                break;
-            }
-
-            default: {
-                return;
-            }
-        }
-
-        //noinspection deprecation
-        b.setData(newData);
-    }
-
-    public static boolean isPassableDoor(Block b) {
-        switch(b.getType()) {
-            case TRAP_DOOR:
-            case IRON_TRAPDOOR:
-            case FENCE_GATE:
-            case DARK_OAK_DOOR:
-            case ACACIA_DOOR:
-            case BIRCH_DOOR:
-            case IRON_DOOR_BLOCK:
-            case JUNGLE_DOOR:
-            case SPRUCE_DOOR:
-            case WOODEN_DOOR:
-                return true;
-            default:
-                return false;
-        }
-    }
-
     public static List<Block> getNearbyBlocks(Location location, int radius, boolean yAxis) {
         List<Block> blocks = new ArrayList<>();
 
@@ -404,16 +325,6 @@ public class Environment {
         }
 
         return location.getBlock();
-    }
-
-    public static Object spawnNonSolidFallingBlock(Location location, MaterialData data) {
-        Object iData = PacketUtils.getIBlockData(data);
-        IReflection.ConstructorAccessor fallingBlockCon = IReflection.getConstructor(PacketUtils.EntityFallingBlockClass, PacketUtils.WorldClass, double.class, double.class, double.class, PacketUtils.IBlockDataClass);
-
-        Object fallingBlock = fallingBlockCon.newInstance(PacketUtils.getWorldServer(), location.getX(), location.getY(), location.getZ(), iData);
-        PacketUtils.EntityPackets.spawnEntity(fallingBlock, 70, PacketUtils.getCombinedId(data.getItemTypeId(), data.getData()), Bukkit.getOnlinePlayers().toArray(new Player[Bukkit.getOnlinePlayers().size()]));
-
-        return fallingBlock;
     }
 
     public static List<Block> getBlocksBetween(Location loc, Location target, boolean ignoreTransparency) {
