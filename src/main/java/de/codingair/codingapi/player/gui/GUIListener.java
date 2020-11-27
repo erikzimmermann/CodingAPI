@@ -116,6 +116,16 @@ public class GUIListener implements Listener {
      */
 
     @EventHandler
+    public void onSwap(InventoryClickEvent e) {
+        if(e.getClick().name().startsWith("SWAP_OFFHAND") && e.getWhoClicked() instanceof Player) {
+            Player player = (Player) e.getWhoClicked();
+            if(API.getRemovable(player, GUI.class) != null || API.getRemovable(player, de.codingair.codingapi.player.gui.inventory.v2.GUI.class) != null) {
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
     public void onDropWhileInInventory(PlayerDropItemEvent e) {
         Player p = e.getPlayer();
         if(!GUI.usesGUI(p) && !GUI.usesOldGUI(p)) return;
