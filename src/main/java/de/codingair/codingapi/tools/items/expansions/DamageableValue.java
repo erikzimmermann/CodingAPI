@@ -6,7 +6,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class DamageableValue {
     public static int getDamage(ItemMeta meta) {
-        if(Version.get().isBiggerThan(15)) {
+        if(Version.get().isBiggerThan(12)) {
             if(meta instanceof Damageable) {
                 Damageable d = (Damageable) meta;
                 return d.getDamage();
@@ -17,7 +17,7 @@ public class DamageableValue {
     }
 
     public static ItemMeta setDamage(ItemMeta meta, int damage) {
-        if(Version.get().isBiggerThan(15)) {
+        if(Version.get().isBiggerThan(12)) {
             if(meta instanceof Damageable) {
                 Damageable d = (Damageable) meta;
                 d.setDamage(damage);
