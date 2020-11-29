@@ -97,7 +97,7 @@ public class ItemBuilder implements Serializable {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
 
-            if(Version.get().isBiggerThan(15)) {
+            if(Version.get().isBiggerThan(12)) {
                 this.damage = DamageableValue.getDamage(this.preMeta);
             }
 
@@ -240,7 +240,7 @@ public class ItemBuilder implements Serializable {
             if(Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
             if(Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
-            if(Version.get().isBiggerThan(15)) {
+            if(Version.get().isBiggerThan(12)) {
                 meta = DamageableValue.setDamage(meta, this.damage);
             }
 
