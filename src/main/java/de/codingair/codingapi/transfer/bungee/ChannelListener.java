@@ -20,12 +20,11 @@ public class ChannelListener implements Listener {
 
     @EventHandler
     public void onPluginMessage(PluginMessageEvent e) {
-        if(e.getTag().equals("BungeeCord")) {
+        if(e.getTag().equals(bungeeDataHandler.getRequestChannel())) {
             ServerInfo server = BungeeAPI.getProxy().getPlayer(e.getReceiver().toString()).getServer().getInfo();
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(e.getData()));
 
             try {
-                if(!in.readUTF().equals(bungeeDataHandler.getRequestChannel())) return;
                 Packet packet = bungeeDataHandler.produce(in.readUnsignedShort());
 
                 if(packet == null) return;

@@ -28,12 +28,14 @@ public abstract class BungeeDataHandler extends DataHandler {
     @Override
     public void onEnable() {
         BungeeAPI.getProxy().getPluginManager().registerListener(this.plugin, this.listener);
+        BungeeAPI.getProxy().registerChannel(requestChannel);
         BungeeAPI.getProxy().registerChannel(getChannel);
     }
 
     @Override
     public void onDisable() {
         BungeeAPI.getProxy().getPluginManager().unregisterListener(this.listener);
+        BungeeAPI.getProxy().unregisterChannel(requestChannel);
         BungeeAPI.getProxy().unregisterChannel(getChannel);
         this.listeners.clear();
     }

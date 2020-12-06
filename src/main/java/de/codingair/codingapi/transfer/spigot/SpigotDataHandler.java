@@ -37,13 +37,13 @@ public abstract class SpigotDataHandler extends DataHandler {
 
     @Override
     public void onEnable() {
-        Bukkit.getMessenger().registerOutgoingPluginChannel(this.plugin, "BungeeCord");
+        Bukkit.getMessenger().registerOutgoingPluginChannel(this.plugin, requestChannel);
         Bukkit.getMessenger().registerIncomingPluginChannel(this.plugin, getChannel, this.listener);
     }
 
     @Override
     public void onDisable() {
-        Bukkit.getMessenger().unregisterOutgoingPluginChannel(this.plugin, "BungeeCord");
+        Bukkit.getMessenger().unregisterOutgoingPluginChannel(this.plugin, requestChannel);
         Bukkit.getMessenger().unregisterIncomingPluginChannel(this.plugin, getChannel, this.listener);
 
         this.listeners.clear();
@@ -71,7 +71,6 @@ public abstract class SpigotDataHandler extends DataHandler {
             }
 
             try {
-                out.writeUTF(requestChannel);
                 out.writeShort(id);
                 packet.write(out);
             } catch(IOException e) {
@@ -84,7 +83,7 @@ public abstract class SpigotDataHandler extends DataHandler {
             }
             listeners.clear();
 
-            player.sendPluginMessage(this.plugin, "BungeeCord", b.toByteArray());
+            player.sendPluginMessage(this.plugin, requestChannel, b.toByteArray());
         }
     }
 
