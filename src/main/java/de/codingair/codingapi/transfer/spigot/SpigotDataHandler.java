@@ -49,13 +49,13 @@ public abstract class SpigotDataHandler extends DataHandler {
         this.listeners.clear();
     }
 
-    public void send(Packet packet) {
-        send(packet, -1);
+    public void send(Player player, Packet packet) {
+        send(player, packet, -1);
     }
 
-    public void send(Packet packet, int timeOut) {
+    public void send(Player player, Packet packet, int timeOut) {
         if(!Bukkit.getOnlinePlayers().isEmpty()) {
-            Player player = Bukkit.getOnlinePlayers().toArray(new Player[0])[0];
+            if(player == null) player = Bukkit.getOnlinePlayers().toArray(new Player[0])[0];
 
             ByteArrayOutputStream b = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(b);

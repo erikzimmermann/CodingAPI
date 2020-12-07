@@ -125,10 +125,7 @@ public class InventoryBuilder implements Removable {
 
     @Override
     public void destroy() {
-        if(inventory != null) {
-            player.closeInventory();
-            inventory = null;
-        }
+        if(inventory != null) player.closeInventory();
     }
 
     @Override

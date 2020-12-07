@@ -24,6 +24,8 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
+        if(gui == null || gui.getInventory() == null) return;
+
         if(!gui.waiting && gui.getInventory().equals(e.getInventory())) {
             if(gui.closing != null) gui.closing.accept(gui.getPlayer());
             else {
@@ -34,6 +36,8 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
+        if(gui == null || gui.getInventory() == null) return;
+
         if(!gui.waiting && gui.getInventory().equals(e.getInventory())) {
             if(e.getClickedInventory() != null && e.getClickedInventory().equals(e.getView().getTopInventory())) {
                 e.setCancelled(true);
@@ -101,6 +105,8 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onDrag(InventoryDragEvent e) {
+        if(gui == null || gui.getInventory() == null) return;
+        
         if(!gui.waiting && gui.getInventory().equals(e.getInventory())) {
             int max = gui.getInventory().getSize();
             for(Integer rawSlot : e.getRawSlots()) {
