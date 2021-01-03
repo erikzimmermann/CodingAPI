@@ -3,7 +3,7 @@ package de.codingair.codingapi.transfer.packets.utils;
 import de.codingair.codingapi.tools.Callback;
 
 public class RequestPacket<E> extends AssignedPacket {
-    private Callback<E> callback;
+    private final Callback<E> callback;
 
     public RequestPacket() {
         this(null);

@@ -14,6 +14,7 @@ import de.codingair.codingapi.server.listeners.PickItemListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
+import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,12 +32,13 @@ import org.bukkit.scheduler.BukkitTask;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class API {
     private static final Cache<String, HashMap<Class<?>, List<Removable>>> CACHE = CacheBuilder.newBuilder().build();
     private static final Cache<Class<?>, List<Removable>> SPECIFIC = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.SECONDS).build();
-    private static final List<Ticker> TICKERS = new ArrayList<>();
+    private static final ConcurrentHashMap.KeySetView<Ticker, Boolean> TICKERS = ConcurrentHashMap.newKeySet();
 
     private static API instance;
     private boolean initialized = false;
@@ -165,17 +167,14 @@ public class API {
             @Override
             public void run() {
                 if(i == 20) {
-                    for(Iterator<Ticker> i = TICKERS.iterator(); i.hasNext();) {
-                        Ticker t = i.next();
+                    TICKERS.forEach(t -> {
                         t.onTick();
                         t.onSecond();
-                    }
+                    });
 
                     i = 0;
                 } else {
-                    for(Iterator<Ticker> i = TICKERS.iterator(); i.hasNext();) {
-                        i.next().onTick();
-                    }
+                    TICKERS.forEach(Ticker::onTick);
 
                     i++;
                 }
