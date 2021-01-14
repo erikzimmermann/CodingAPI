@@ -2,7 +2,7 @@ package de.codingair.codingapi.tools;
 
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
-import de.codingair.codingapi.tools.io.utils.DataWriter;
+import de.codingair.codingapi.tools.io.utils.DataMask;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -76,7 +76,7 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     @Override
-    public boolean read(DataWriter d) throws Exception {
+    public boolean read(DataMask d) throws Exception {
         this.worldName = d.getString("World");
         setWorld(this.worldName == null ? null : Bukkit.getWorld(this.worldName));
         setX(d.getDouble("X"));
@@ -89,7 +89,7 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     @Override
-    public void write(DataWriter json) {
+    public void write(DataMask json) {
         try {
             json.put("World", getWorld() == null ? this.worldName : getWorld().getName());
         } catch(Throwable t) {

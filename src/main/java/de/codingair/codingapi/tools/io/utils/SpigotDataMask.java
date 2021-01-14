@@ -8,7 +8,7 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Date;
 
-public interface SpigotDataWriter extends DataWriter {
+public interface SpigotDataMask extends DataMask {
 
     @Override
     default Object put(String key, Object value) {

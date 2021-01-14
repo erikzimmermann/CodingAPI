@@ -12,7 +12,7 @@ import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
-import de.codingair.codingapi.tools.io.utils.DataWriter;
+import de.codingair.codingapi.tools.io.utils.DataMask;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 import de.codingair.codingapi.tools.items.expansions.DamageableValue;
 import de.codingair.codingapi.tools.nbt.NBTTagCompound;
@@ -254,7 +254,7 @@ public class ItemBuilder implements Serializable {
     }
 
     @Override
-    public boolean read(DataWriter d) throws Exception {
+    public boolean read(DataMask d) throws Exception {
         try {
             for(Object key : d.keySet(false)) {
                 String keyName = (String) key;
@@ -449,7 +449,7 @@ public class ItemBuilder implements Serializable {
     }
 
     @Override
-    public void write(DataWriter d) {
+    public void write(DataMask d) {
         JSON color = new JSON();
         JSON enchantments = new JSON();
         JSONArray lore = new JSONArray();

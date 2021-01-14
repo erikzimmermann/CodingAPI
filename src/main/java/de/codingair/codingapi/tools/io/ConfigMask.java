@@ -1,33 +1,32 @@
 package de.codingair.codingapi.tools.io;
 
-import de.codingair.codingapi.bungeecord.files.ConfigFile;
+import de.codingair.codingapi.files.ConfigFile;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.ParseException;
-import de.codingair.codingapi.tools.io.utils.DataWriter;
 import de.codingair.codingapi.tools.io.utils.Serializable;
-import net.md_5.bungee.config.Configuration;
+import de.codingair.codingapi.tools.io.utils.SpigotDataMask;
+import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BungeeConfigWriter implements DataWriter {
+public class ConfigMask implements SpigotDataMask {
     private String prefix;
     private final ConfigFile file;
 
-    public BungeeConfigWriter(ConfigFile file) {
+    public ConfigMask(ConfigFile file) {
         this(file, null);
     }
 
-    public BungeeConfigWriter(ConfigFile file, String prefix) {
+    public ConfigMask(ConfigFile file, String prefix) {
         this.file = file;
         this.prefix = prefix == null ? "" : prefix;
     }
 
-    private Configuration c() {
+    private FileConfiguration c() {
         return file.getConfig();
     }
 
@@ -45,7 +44,7 @@ public class BungeeConfigWriter implements DataWriter {
 
     @Override
     public Set<String> keySet(boolean depth) {
-        Collection<String> o = c().getKeys();
+        Set<String> o = c().getKeys(true);
         Set<String> data = new HashSet<>();
 
         if(depth) {
@@ -144,7 +143,7 @@ public class BungeeConfigWriter implements DataWriter {
     @Override
     public Float getFloat(String key, Float def) {
         Double d = getDouble(key);
-        return d == null ? def : (Float) d.floatValue();
+        return d == null ? def : d.floatValue();
     }
 
     @Override

@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.CodingAir</groupId>
-    <artifactId>CodingApi</artifactId>
-    <version>1.7</version>
+    <artifactId>CodingAPI</artifactId>
+    <version>1.8</version>
 
     <repositories>
         <repository>

@@ -4,11 +4,11 @@ import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.Serializable;
-import de.codingair.codingapi.tools.io.utils.SpigotDataWriter;
+import de.codingair.codingapi.tools.io.utils.SpigotDataMask;
 
 import java.util.*;
 
-public class JSON extends JSONObject implements SpigotDataWriter {
+public class JSON extends JSONObject implements SpigotDataMask {
     private String prefix;
 
     public JSON() {

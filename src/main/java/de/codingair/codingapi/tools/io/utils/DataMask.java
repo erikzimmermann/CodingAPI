@@ -1,13 +1,17 @@
 package de.codingair.codingapi.tools.io.utils;
 
+import de.codingair.codingapi.tools.io.JSON.JSON;
+import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.ParseException;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
-public interface DataWriter {
+public interface DataMask {
 
     default Object put(String key, Object value) {
         if(value == null) return remove(key);
@@ -129,5 +133,9 @@ public interface DataWriter {
         }
 
         return null;
+    }
+
+    default void clear() {
+        keySet(false).forEach(this::remove);
     }
 }

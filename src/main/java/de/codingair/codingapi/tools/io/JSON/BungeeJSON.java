@@ -3,12 +3,12 @@ package de.codingair.codingapi.tools.io.JSON;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.ParseException;
-import de.codingair.codingapi.tools.io.utils.DataWriter;
+import de.codingair.codingapi.tools.io.utils.DataMask;
 import de.codingair.codingapi.tools.io.utils.Serializable;
 
 import java.util.*;
 
-public class BungeeJSON extends JSONObject implements DataWriter {
+public class BungeeJSON extends JSONObject implements DataMask {
     private String prefix;
 
     public BungeeJSON() {
