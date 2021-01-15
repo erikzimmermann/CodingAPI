@@ -39,9 +39,10 @@ public enum Version {
             //server type
             try {
                 String s = Bukkit.getVersion();
-                int from = s.indexOf('-') + 1;
+                int from = s.indexOf('-');
 
                 if(from >= 0) {
+                    from += 1;
                     int to = s.indexOf("-", from);
 
                     if(to >= 0) {

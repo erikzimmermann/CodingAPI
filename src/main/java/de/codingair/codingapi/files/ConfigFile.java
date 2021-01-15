@@ -14,6 +14,7 @@ public class ConfigFile {
     private final String name;
     private String path;
     private String srcPath;
+    private final boolean raw;
 
     public ConfigFile(JavaPlugin plugin, String name, String path) {
         this(plugin, name, path, true);
@@ -28,19 +29,24 @@ public class ConfigFile {
     }
 
     public ConfigFile(JavaPlugin plugin, String name, String path, String srcPath, boolean removeUnused) {
+        this(plugin, name, path, srcPath, removeUnused, false);
+    }
+
+    public ConfigFile(JavaPlugin plugin, String name, String path, String srcPath, boolean removeUnused, boolean raw) {
         this.plugin = plugin;
         this.name = name;
         this.path = path;
         this.srcPath = srcPath;
-        if(this.srcPath != null) {
-            if(this.srcPath.startsWith("/")) this.srcPath = this.srcPath.replaceFirst("/", "");
-            if(!this.srcPath.endsWith("/")) this.srcPath += "/";
+        this.raw = raw;
+        if (this.srcPath != null) {
+            if (this.srcPath.startsWith("/")) this.srcPath = this.srcPath.replaceFirst("/", "");
+            if (!this.srcPath.endsWith("/")) this.srcPath += "/";
         }
 
         this.loadConfig();
 
         InputStream in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-        if(in != null) {
+        if (in != null) {
             InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
 
             BufferedReader input = new BufferedReader(reader);
@@ -49,26 +55,26 @@ public class ConfigFile {
             String line;
             try {
                 try {
-                    while((line = input.readLine()) != null) {
+                    while ((line = input.readLine()) != null) {
                         builder.append(line);
                         builder.append('\n');
                     }
                 } finally {
                     input.close();
                 }
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.printStackTrace();
             }
 
             String read;
-            if(builder.toString().startsWith("~Config\n")) read = builder.toString().replaceFirst("~Config\n", "");
+            if (builder.toString().startsWith("~Config\n")) read = builder.toString().replaceFirst("~Config\n", "");
             else read = builder.toString();
 
             this.config.deployExtras(read);
 
-            if(removeUnused) {
+            if (removeUnused) {
                 in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-                if(in != null) this.config.removeUnused(UTFConfig.loadConf(in));
+                if (in != null) this.config.removeUnused(UTFConfig.loadConf(in));
             }
 
             this.config.options().copyDefaults(true);
@@ -78,11 +84,11 @@ public class ConfigFile {
     }
 
     private void mkDir(File file) {
-        if(!file.getParentFile().exists()) mkDir(file.getParentFile());
-        if(!file.exists()) {
+        if (!file.getParentFile().exists()) mkDir(file.getParentFile());
+        if (!file.exists()) {
             try {
                 file.mkdir();
-            } catch(SecurityException ex) {
+            } catch (SecurityException ex) {
                 throw new IllegalArgumentException("Plugin is not permitted to create a folder!");
             }
         }
@@ -91,46 +97,52 @@ public class ConfigFile {
     public void loadConfig() {
         try {
             File folder = plugin.getDataFolder();
-            if(!folder.exists()) mkDir(folder);
+            if (!folder.exists()) mkDir(folder);
 
-            if(!this.path.startsWith("/")) this.path = "/" + this.path;
-            if(!this.path.endsWith("/")) this.path = this.path + "/";
+            if (!this.path.startsWith("/")) this.path = "/" + this.path;
+            if (!this.path.endsWith("/")) this.path = this.path + "/";
 
             folder = new File(this.plugin.getDataFolder() + this.path);
-            if(!this.path.isEmpty() && !this.path.equals("/") && !folder.exists()) mkDir(folder);
+            if (!this.path.isEmpty() && !this.path.equals("/") && !folder.exists()) mkDir(folder);
 
             configFile = new File(this.plugin.getDataFolder() + this.path, this.name + ".yml");
 
-            if(!configFile.exists()) {
+            if (!configFile.exists()) {
                 configFile.createNewFile();
-                try(InputStream in = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
-                    OutputStream out = new FileOutputStream(configFile)) {
+                try (InputStream in = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
+                     OutputStream out = new FileOutputStream(configFile)) {
                     copy(in, out);
                 }
             }
 
-            InputStream reader = plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
-            if(reader != null) {
+            InputStream reader = raw ? null : plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
+            if (reader != null) {
                 config = UTFConfig.loadConf(reader);
+                if (name.equalsIgnoreCase("RTPConfig")) {
+                    System.out.println("1: " + config.get("RandomTeleport.Concurrent_Teleports"));
+                }
                 config.load(configFile);
+                if (name.equalsIgnoreCase("RTPConfig")) {
+                    System.out.println("2: " + config.get("RandomTeleport.Concurrent_Teleports"));
+                }
             } else {
                 config = UTFConfig.loadConf(configFile);
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {
-        if(from == null) return -1;
-        if(to == null) throw new NullPointerException();
+        if (from == null) return -1;
+        if (to == null) throw new NullPointerException();
 
         byte[] buf = new byte[4096];
         long total = 0L;
 
-        while(true) {
+        while (true) {
             int r = from.read(buf);
-            if(r == -1) {
+            if (r == -1) {
                 return total;
             }
 
@@ -145,7 +157,7 @@ public class ConfigFile {
     }
 
     public UTFConfig getConfig() {
-        if(config == null) reloadConfig();
+        if (config == null) reloadConfig();
 
         return config;
     }
@@ -159,29 +171,29 @@ public class ConfigFile {
     }
 
     public void saveConfig(boolean destroy) {
-        if(config == null || configFile == null) {
+        if (config == null || configFile == null) {
             return;
         }
         try {
             getConfig().save(configFile);
-            if(destroy) destroy();
-        } catch(IOException ex) {
+            if (destroy) destroy();
+        } catch (IOException ex) {
             this.plugin.getLogger().log(Level.SEVERE, "Could not save config to " + configFile, ex);
         }
     }
 
     public void clearConfig() {
-        if(this.config == null) return;
+        if (this.config == null) return;
 
-        for(String key : this.config.getKeys(false)) {
+        for (String key : this.config.getKeys(false)) {
             this.config.set(key, null);
         }
     }
 
     public void delete() {
-        if(this.configFile == null) return;
+        if (this.configFile == null) return;
 
-        if(!this.configFile.delete()) this.configFile.deleteOnExit();
+        if (!this.configFile.delete()) this.configFile.deleteOnExit();
     }
 
     public String getName() {

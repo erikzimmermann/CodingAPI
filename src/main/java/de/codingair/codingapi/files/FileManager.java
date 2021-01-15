@@ -43,15 +43,23 @@ public class FileManager {
         return loadFile(name, path, null, removeUnused);
     }
 
+    public ConfigFile loadFile(String name, String path, boolean removeUnused, boolean raw) {
+        return loadFile(name, path, null, removeUnused, raw);
+    }
+
     public ConfigFile loadFile(String name, String path, String srcPath) {
         return this.loadFile(name, path, srcPath, true);
     }
 
     public ConfigFile loadFile(String name, String path, String srcPath, boolean removeUnused) {
+        return loadFile(name, path, srcPath, removeUnused, false);
+    }
+
+    public ConfigFile loadFile(String name, String path, String srcPath, boolean removeUnused, boolean raw) {
         ConfigFile c = getFile(name);
         if(c != null) return c;
 
-        c = new ConfigFile(plugin, name, path, srcPath, removeUnused);
+        c = new ConfigFile(plugin, name, path, srcPath, removeUnused, raw);
         this.cache.put(key(c), c);
         return c;
     }

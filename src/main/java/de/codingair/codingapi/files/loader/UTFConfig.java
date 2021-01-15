@@ -9,8 +9,10 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
@@ -35,27 +37,27 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public Object get(String path, Object def) {
-         Object value = super.get(path, null);
+        Object value = super.get(path, null);
 
-         if(value == null) {
-             //search for case sensitive
-             path = path.toLowerCase();
-             String key = caseSensitive.getIfPresent(path);
+        if (value == null) {
+            //search for case sensitive
+            path = path.toLowerCase();
+            String key = caseSensitive.getIfPresent(path);
 
-             if(key == null) {
-                 for(String s : getKeys(true)) {
-                     if(s.toLowerCase().equals(path)) {
-                         key = s;
-                         caseSensitive.put(path, s);
-                         break;
-                     }
-                 }
-             }
+            if (key == null) {
+                for (String s : getKeys(true)) {
+                    if (s.toLowerCase().equals(path)) {
+                        key = s;
+                        caseSensitive.put(path, s);
+                        break;
+                    }
+                }
+            }
 
-             if(key != null) value = super.get(key, def);
-         }
+            if (key != null) value = super.get(key, def);
+        }
 
-         return value;
+        return value;
     }
 
     @Override
@@ -69,7 +71,7 @@ public class UTFConfig extends YamlConfiguration {
 
         String line;
         try {
-            while((line = input.readLine()) != null) {
+            while ((line = input.readLine()) != null) {
                 builder.append(line);
                 builder.append('\n');
             }
@@ -78,14 +80,10 @@ public class UTFConfig extends YamlConfiguration {
         }
 
         String old = builder.toString();
-        if(data.equals(old)) return;
+        if (data.equals(old)) return;
 
-        Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8);
-
-        try {
+        try (Writer writer = new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8)) {
             writer.write(data);
-        } finally {
-            writer.close();
         }
     }
 
@@ -94,11 +92,9 @@ public class UTFConfig extends YamlConfiguration {
         try {
             IReflection.FieldAccessor<DumperOptions> fy = IReflection.getField(getClass(), "yamlOptions");
             IReflection.FieldAccessor<Representer> fr = IReflection.getField(getClass(), "yamlRepresenter");
-            IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), "yaml");
 
             DumperOptions yamlOptions = fy.get(this);
             Representer yamlRepresenter = fr.get(this);
-            Yaml yaml = fYaml.get(this);
             DumperOptions.FlowStyle fs = DumperOptions.FlowStyle.BLOCK;
 
             yamlOptions.setIndent(this.options().indent());
@@ -106,48 +102,68 @@ public class UTFConfig extends YamlConfiguration {
             yamlOptions.setAllowUnicode(true);
             yamlRepresenter.setDefaultFlowStyle(fs);
 
-            String dump = yaml.dump(this.getValues(false));
-            if(dump.equals("{}\n")) dump = "";
+            String dump = getYaml().dump(this.getValues(false));
+            if (dump.equals("{}\n")) dump = "";
 
             return dump;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return "Error while running this#saveToString()";
     }
 
+    private Yaml getYaml() {
+        IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), "yaml");
+        return fYaml.get(this);
+    }
+
     @Override
-    protected String parseHeader(String input) {
+    protected @NotNull String parseHeader(@NotNull String input) {
         return "";
     }
 
     @Override
-    protected String buildHeader() {
+    protected @NotNull String buildHeader() {
         return "";
     }
 
     @Override
-    public void load(File file) throws IOException, InvalidConfigurationException {
+    public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
         Validate.notNull(file, "File cannot be null");
         this.load(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
     }
 
     @Override
-    public void loadFromString(String contents) throws InvalidConfigurationException {
+    public void loadFromString(@NotNull String contents) throws InvalidConfigurationException {
+        Validate.notNull(contents, "Contents cannot be null");
         loadExtras(contents);
-        if(contents.startsWith("~Config\n")) contents = contents.replaceFirst("~Config\n", "");
+        if (contents.startsWith("~Config\n")) contents = contents.replaceFirst("~Config\n", "");
 
-        super.loadFromString(contents);
+        Map<?, ?> input;
+        try {
+            //setMaxAliasesForCollections is not available?
+            //loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE); // SPIGOT-5881: Not ideal, but was default pre SnakeYAML 1.26
+            input = getYaml().load(contents);
+        } catch (YAMLException var4) {
+            throw new InvalidConfigurationException(var4);
+        } catch (ClassCastException var5) {
+            throw new InvalidConfigurationException("Top level is not a Map.");
+        }
+
+        String header = this.parseHeader(contents);
+        if (header.length() > 0) this.options().header(header);
+        if (input != null) this.convertMapsToSections(input, this);
     }
 
     @Override
-    public void convertMapsToSections(Map<?, ?> input, ConfigurationSection section) {
-        for(Map.Entry<?, ?> entry : input.entrySet()) {
+    public void convertMapsToSections(Map<?, ?> input, @NotNull ConfigurationSection section) {
+        for (Map.Entry<?, ?> entry : input.entrySet()) {
             String key = entry.getKey().toString();
             Object value = entry.getValue();
 
-            if(value instanceof Map) {
-                this.convertMapsToSections((Map<?, ?>) value, section.getConfigurationSection(key) == null ? section.createSection(key) : section.getConfigurationSection(key));
+            if (value instanceof Map) {
+                ConfigurationSection deep = section.getConfigurationSection(key);
+                this.convertMapsToSections((Map<?, ?>) value, deep == null ? section.createSection(key) : deep);
             } else {
                 section.set(key, value);
             }
@@ -157,11 +173,11 @@ public class UTFConfig extends YamlConfiguration {
     public void removeUnused(UTFConfig origin) {
         List<String> toRemove = new ArrayList<>();
 
-        for(String key : getKeys(true)) {
-            if(!origin.contains(key)) toRemove.add(key);
+        for (String key : getKeys(true)) {
+            if (!origin.contains(key)) toRemove.add(key);
         }
 
-        for(String key : toRemove) {
+        for (String key : toRemove) {
             set(key, null);
         }
     }
@@ -172,7 +188,7 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     private void loadExtras(String contents) {
-        if(this.deployedExtras) return;
+        if (this.deployedExtras) return;
         this.extras.clear();
 
         int line = 0;
@@ -180,37 +196,37 @@ public class UTFConfig extends YamlConfiguration {
         String[] a = contents.split("\n", -1);
 
         int list = -1;
-        for(int i = 0; i < a.length - 1; i++) {
+        for (int i = 0; i < a.length - 1; i++) {
             String s = a[i];
 
             int empty = 0;
-            while(s.startsWith(" ")) {
+            while (s.startsWith(" ")) {
                 s = s.substring(1);
                 empty++;
             }
 
-            if(list > -1) {
+            if (list > -1) {
                 list = list < empty ? list : -1;
-                if(list > -1) continue;
+                if (list > -1) continue;
             }
 
-            if(s.startsWith("-")) {
+            if (s.startsWith("-")) {
                 list = empty;
                 continue;
             }
 
-            if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
+            if (isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
             line++;
         }
     }
 
     private boolean isComment(String s) {
-        while(s.startsWith(" ")) s = s.replaceFirst(" ", "");
+        while (s.startsWith(" ")) s = s.replaceFirst(" ", "");
         return s.startsWith(COMMENT);
     }
 
     private boolean isEmpty(String s) {
-        while(s.startsWith(" ")) s = s.replaceFirst(" ", "");
+        while (s.startsWith(" ")) s = s.replaceFirst(" ", "");
         return s.isEmpty() || s.equals("\n");
     }
 
@@ -221,45 +237,45 @@ public class UTFConfig extends YamlConfiguration {
         int e = 0;
         int listItems = 0;
         int list = -1;
-        for(int i = 0; i < size; i++) {
-            if(this.extras.size() == e) break;
+        for (int i = 0; i < size; i++) {
+            if (this.extras.size() == e) break;
 
-            if(lines.size() == i) {
+            if (lines.size() == i) {
                 lines.add(this.extras.get(e++).getText());
                 continue;
             }
 
             String s = lines.get(i);
             int empty = 0;
-            while(s.startsWith(" ")) {
+            while (s.startsWith(" ")) {
                 s = s.substring(1);
                 empty++;
             }
 
-            if(list > -1) {
+            if (list > -1) {
                 list = list < empty ? list : -1;
-                if(list > -1) {
+                if (list > -1) {
                     listItems++;
                     continue;
                 }
             }
 
-            if(s.startsWith("-")) {
+            if (s.startsWith("-")) {
                 listItems++;
                 list = empty;
                 continue;
             }
 
-            if(this.extras.get(e).getLine() == (i - listItems)) {
+            if (this.extras.get(e).getLine() == (i - listItems)) {
                 lines.add(i, extras.get(e++).getText());
             }
         }
 
         StringBuilder builder = new StringBuilder();
 
-        for(int j = 0; j < lines.size(); j++) {
+        for (int j = 0; j < lines.size(); j++) {
             builder.append(lines.get(j));
-            if(j < lines.size() - 1) builder.append("\n");
+            if (j < lines.size() - 1) builder.append("\n");
         }
 
         return builder.toString();
@@ -274,7 +290,7 @@ public class UTFConfig extends YamlConfiguration {
 
         try {
             loader.load(file);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -287,7 +303,7 @@ public class UTFConfig extends YamlConfiguration {
         try {
             Validate.notNull(stream, "File cannot be null");
             loader.load(new InputStreamReader(stream, Charsets.UTF_8));
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
