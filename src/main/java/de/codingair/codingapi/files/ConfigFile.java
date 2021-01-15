@@ -118,13 +118,7 @@ public class ConfigFile {
             InputStream reader = raw ? null : plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
             if (reader != null) {
                 config = UTFConfig.loadConf(reader);
-                if (name.equalsIgnoreCase("RTPConfig")) {
-                    System.out.println("1: " + config.get("RandomTeleport.Concurrent_Teleports"));
-                }
                 config.load(configFile);
-                if (name.equalsIgnoreCase("RTPConfig")) {
-                    System.out.println("2: " + config.get("RandomTeleport.Concurrent_Teleports"));
-                }
             } else {
                 config = UTFConfig.loadConf(configFile);
             }
