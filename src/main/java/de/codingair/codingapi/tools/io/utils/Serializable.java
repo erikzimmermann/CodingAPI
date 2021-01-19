@@ -4,5 +4,6 @@ public interface Serializable {
     boolean read(DataMask d) throws Exception;
     void write(DataMask d);
 
-    void destroy();
+    default void destroy() {
+    }
 }

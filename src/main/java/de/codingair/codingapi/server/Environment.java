@@ -9,6 +9,7 @@ import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
@@ -27,10 +28,22 @@ import java.util.concurrent.TimeUnit;
 public class Environment {
 
     public static boolean canBeEntered(Material m) {
-        IReflection.MethodAccessor isFuel = IReflection.getSaveMethod(Material.class, "isFuel", boolean.class);
-        boolean fuel = isFuel != null && (boolean) isFuel.invoke(m);
+        return !m.isOccluding() && !m.isSolid();
+    }
 
-        return !m.isOccluding() && (fuel || !m.isSolid());
+    public static boolean isWaterFluid(Block b) {
+        if(Version.get().isBiggerThan(12)) {
+            if (b.getBlockData() instanceof Waterlogged) {
+                Waterlogged w = (Waterlogged) b.getBlockData();
+                return w.isWaterlogged() && !b.getType().isSolid();
+            }
+        }
+
+        return b.getType() == Material.WATER;
+    }
+
+    public static boolean canBeEntered(Block b) {
+        return canBeEntered(b.getType()) || isWaterFluid(b);
     }
 
     public static void playRandomFireworkEffect(Location loc) {

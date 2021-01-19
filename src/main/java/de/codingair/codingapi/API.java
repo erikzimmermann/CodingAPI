@@ -36,8 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class API {
-    private static final Cache<String, HashMap<Class<?>, List<Removable>>> CACHE = CacheBuilder.newBuilder().build();
-    private static final Cache<Class<?>, List<Removable>> SPECIFIC = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.SECONDS).build();
+    private static final Cache<String, HashMap<Class<?>, Set<Removable>>> CACHE = CacheBuilder.newBuilder().build();
+    private static final Cache<Class<?>, Set<Removable>> SPECIFIC = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.SECONDS).build();
     private static final ConcurrentHashMap.KeySetView<Ticker, Boolean> TICKERS = ConcurrentHashMap.newKeySet();
 
     private static API instance;
@@ -52,7 +52,7 @@ public class API {
         if(this.plugins.size() == 1) initPlugin(plugin);
     }
 
-    public synchronized void onDisable(JavaPlugin plugin) {
+    public void onDisable(JavaPlugin plugin) {
         if(!initialized || !plugins.contains(plugin)) return;
 
         List<CommandBuilder> toDisable = new ArrayList<>();
@@ -152,7 +152,7 @@ public class API {
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler(priority = EventPriority.HIGH)
             public void onQuit(PlayerQuitEvent e) {
-                Bukkit.getScheduler().runTaskLater(getMainPlugin(), () -> removeRemovables(e.getPlayer()), 1L);
+                removeRemovables(e.getPlayer());
             }
         }, plugin);
 
@@ -216,20 +216,20 @@ public class API {
     public static synchronized boolean addRemovable(Removable removable) {
         Preconditions.checkNotNull(removable);
 
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(removable.getPlayer()));
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(removable.getPlayer()));
 
         Class<?> enclosingClass = getRemovableClass(removable);
 
-        List<Removable> entries;
+        Set<Removable> entries;
         if(data == null) {
             data = new HashMap<>();
-            entries = new ArrayList<>();
+            entries = new HashSet<>();
             data.put(enclosingClass, entries);
             CACHE.put(getKey(removable.getPlayer()), data);
         } else {
             entries = data.get(enclosingClass);
             if(entries == null) {
-                entries = new ArrayList<>();
+                entries = new HashSet<>();
                 data.put(enclosingClass, entries);
             } else if(entries.contains(removable)) return false;
         }
@@ -241,10 +241,10 @@ public class API {
 
     public static synchronized <T extends Removable> T getRemovable(Player player, Class<? extends T> clazz) {
         Preconditions.checkNotNull(clazz);
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(player));
 
         if(data != null) {
-            List<T> l = (List<T>) data.get(getRemovableClass(clazz));
+            Set<T> l = (Set<T>) data.get(getRemovableClass(clazz));
 
             if(l != null) {
                 for(T t : l) {
@@ -262,10 +262,10 @@ public class API {
         Preconditions.checkNotNull(clazz);
         Preconditions.checkNotNull(uniqueId);
 
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(null));
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(null));
         if(data == null) return null;
 
-        List<Removable> entries = data.get(getRemovableClass(clazz));
+        Set<Removable> entries = data.get(getRemovableClass(clazz));
         if(entries != null) {
             for(Removable entry : entries) {
                 if(entry.getUniqueId().equals(uniqueId)) return (T) entry;
@@ -277,10 +277,10 @@ public class API {
 
     private static synchronized List<Removable> getRemovables(JavaPlugin plugin) {
         List<Removable> found = new ArrayList<>();
-        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
+        Map<String, HashMap<Class<?>, Set<Removable>>> data = CACHE.asMap();
 
-        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
-            for(List<Removable> removables : value.values()) {
+        for(HashMap<Class<?>, Set<Removable>> value : data.values()) {
+            for(Set<Removable> removables : value.values()) {
                 for(Removable removable : removables) {
                     if(removable.getPlugin().equals(plugin)) found.add(removable);
                 }
@@ -292,10 +292,10 @@ public class API {
 
     public static synchronized <T extends Removable> List<T> getRemovables(Player player, Class<? extends T> clazz) {
         Preconditions.checkNotNull(clazz);
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(player));
 
         if(data != null) {
-            List<?> entries = data.get(getRemovableClass(clazz));
+            Set<?> entries = data.get(getRemovableClass(clazz));
 
             if(entries != null) {
                 List<T> l = new ArrayList<>();
@@ -311,17 +311,17 @@ public class API {
         return new ArrayList<>();
     }
 
-    public static synchronized <T extends Removable> List<T> getRemovables(Class<? extends T> clazz) {
+    public static synchronized <T extends Removable> Set<T> getRemovables(Class<? extends T> clazz) {
         Preconditions.checkNotNull(clazz);
-        List<T> l = (List<T>) SPECIFIC.getIfPresent(clazz);
+        Set<T> l = (Set<T>) SPECIFIC.getIfPresent(clazz);
         if(l != null) return l;
-        else l = new ArrayList<>();
+        else l = new HashSet<>();
 
-        Map<String, HashMap<Class<?>, List<Removable>>> data = CACHE.asMap();
+        Map<String, HashMap<Class<?>, Set<Removable>>> data = CACHE.asMap();
         Class<?> rClazz = getRemovableClass(clazz);
 
-        for(HashMap<Class<?>, List<Removable>> value : data.values()) {
-            List<Removable> r = value.get(rClazz);
+        for(HashMap<Class<?>, Set<Removable>> value : data.values()) {
+            Set<Removable> r = value.get(rClazz);
             if(r != null) {
                 for(Removable removable : r) {
                     if(clazz.isInstance(removable)) l.add((T) removable);
@@ -329,12 +329,12 @@ public class API {
             }
         }
 
-        SPECIFIC.put(clazz, (List<Removable>) l);
+        SPECIFIC.put(clazz, (Set<Removable>) l);
         return l;
     }
 
     private static synchronized void updateSpecific(Removable r, int action) {
-        List<Removable> l = SPECIFIC.getIfPresent(r.getClass());
+        Set<Removable> l = SPECIFIC.getIfPresent(r.getClass());
         if(l == null) return;
 
         if(action == 1) {
@@ -350,11 +350,11 @@ public class API {
     public static synchronized boolean removeRemovable(Removable removable) {
         Preconditions.checkNotNull(removable);
         String key = getKey(removable.getPlayer());
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(key);
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(key);
 
         if(data != null) {
             Class<?> enclosingClass = getRemovableClass(removable);
-            List<Removable> entries = data.get(enclosingClass);
+            Set<Removable> entries = data.get(enclosingClass);
             if(entries != null) {
                 boolean success = entries.remove(removable);
                 if(success) {
@@ -375,23 +375,11 @@ public class API {
     }
 
     private static synchronized void removeRemovables(Player player) {
-        HashMap<Class<?>, List<Removable>> data = CACHE.getIfPresent(getKey(player));
+        String key = getKey(player);
+        HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(key);
+        CACHE.invalidate(key);
 
-        if(data != null) {
-            List<List<Removable>> l = new ArrayList<>(data.values());
-            for(List<Removable> value : l) {
-                List<Removable> l2 = new ArrayList<>(value);
-                l2.forEach(r -> {
-                    updateSpecific(r, -1);
-                    r.destroy();
-                });
-                l2.clear();
-                value.clear();
-            }
-            l.clear();
-            data.clear();
-            CACHE.invalidate(getKey(player));
-        }
+        if(data != null) data.values().forEach(s -> s.forEach(Removable::destroy));
     }
 
     public static void addTicker(Ticker ticker) {
