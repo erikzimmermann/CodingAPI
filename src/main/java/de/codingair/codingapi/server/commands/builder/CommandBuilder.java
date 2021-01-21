@@ -23,20 +23,18 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     private static IReflection.MethodAccessor unregister = null;
 
     private final HashMap<String, Command> fallback = new HashMap<>();
-    private Object wrapperInstance = null;
-
-    private PluginCommand main;
     private final UUID uniqueId = UUID.randomUUID();
     private final JavaPlugin plugin;
-
     private final String name;
     private final String description;
     private final String[] importantAliases;
     private final List<String> aliases;
-
     private final BaseComponent baseComponent;
-    private TabCompleter ownTabCompleter = null;
     private final boolean tabCompleter;
+    private Object wrapperInstance = null;
+    private PluginCommand main;
+    private TabCompleter ownTabCompleter = null;
+    private boolean mergeSpaceArguments = true;
 
     public CommandBuilder(JavaPlugin plugin, String name, BaseComponent baseComponent, boolean tabCompleter) {
         this(plugin, name, null, baseComponent, tabCompleter, (String[]) null);
@@ -55,29 +53,74 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         this.tabCompleter = tabCompleter;
 
         this.aliases = new ArrayList<>();
-        if(importantAliases == null) this.importantAliases = new String[0];
+        if (importantAliases == null) this.importantAliases = new String[0];
         else {
             this.importantAliases = new String[importantAliases.length];
-            for(int i = 0; i < importantAliases.length; i++) {
+            for (int i = 0; i < importantAliases.length; i++) {
                 String s = importantAliases[i].toLowerCase(Locale.ENGLISH).trim();
                 this.importantAliases[i] = s;
                 this.aliases.add(s);
             }
         }
 
-        if(aliases != null)
-            for(String alias : aliases) {
+        if (aliases != null)
+            for (String alias : aliases) {
                 this.aliases.add(alias.toLowerCase(Locale.ENGLISH).trim());
             }
 
-        if(Version.get().isBiggerThan(12) && wrapper == null) {
+        if (Version.get().isBiggerThan(12) && wrapper == null) {
             try {
                 wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
                 register = IReflection.getMethod(wrapper, "a", wrapper, new Class[] {CommandBuilder.class});
                 unregister = IReflection.getMethod(wrapper, "unregister");
-            } catch(ClassNotFoundException ignored) {
+            } catch (ClassNotFoundException ignored) {
             }
         }
+    }
+
+    public static Command getCommand(String name) {
+        if (name.startsWith("/")) return getKnownCommands().get(name.toLowerCase().substring(1));
+        else return getKnownCommands().get(name.toLowerCase());
+    }
+
+    public static boolean exists(String name) {
+        return getCommand(name) != null;
+    }
+
+    public static Map<String, Command> getKnownCommands() {
+        if (knownCommands == null) {
+            try {
+                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+                knownCommands.setAccessible(true);
+
+                CommandBuilder.knownCommands = (Map<String, Command>) knownCommands.get(simpleCommandMap());
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+                return new HashMap<>();
+            }
+        }
+
+        return knownCommands;
+    }
+
+    public static SimpleCommandMap simpleCommandMap() {
+        if (simpleCommandMap == null) {
+            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
+
+            try {
+                Field commandMap = SimplePluginManager.class.getDeclaredField("commandMap");
+                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
+
+                commandMap.setAccessible(true);
+                knownCommands.setAccessible(true);
+
+                simpleCommandMap = (SimpleCommandMap) commandMap.get(spm);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return simpleCommandMap;
     }
 
     @Override
@@ -86,20 +129,20 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     }
 
     public void register() {
-        if(main != null) return;
+        if (main != null) return;
         API.addRemovable(this);
 
         //unregister foreign main command
         Command c = getKnownCommands().remove(this.name);
-        if(c != null) {
+        if (c != null) {
             //add to fallback commands
             fallback.put(this.name, c);
         }
 
         //unregister foreign commands which block important aliases
-        for(String importantAlias : importantAliases) {
+        for (String importantAlias : importantAliases) {
             c = getKnownCommands().remove(importantAlias);
-            if(c != null) {
+            if (c != null) {
                 //add to fallback commands
                 fallback.put(importantAlias, c);
             }
@@ -116,17 +159,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         simpleCommandMap().register(plugin.getDescription().getName(), main);
 
         //Add to CommandDispatcher
-        if(Version.get().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
+        if (Version.get().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
     }
 
     public void unregister() {
-        if(main == null) return;
+        if (main == null) return;
 
         //Remove from CommandDispatcher
-        if(Version.get().isBiggerThan(12)) unregister.invoke(wrapperInstance);
+        if (Version.get().isBiggerThan(12)) unregister.invoke(wrapperInstance);
 
         unregister(name);
-        for(String alias : aliases) {
+        for (String alias : aliases) {
             unregister(alias);
         }
 
@@ -145,53 +188,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         Map<String, Command> commands = getKnownCommands();
         Command c = commands.get(label);
 
-        if(c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName())) commands.remove(label);
+        if (c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName())) commands.remove(label);
         commands.remove(main.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + label);
-    }
-
-    public static Command getCommand(String name) {
-        if(name.startsWith("/")) return getKnownCommands().get(name.toLowerCase().substring(1));
-        else return getKnownCommands().get(name.toLowerCase());
-    }
-
-    public static boolean exists(String name) {
-        return getCommand(name) != null;
-    }
-
-    public static Map<String, Command> getKnownCommands() {
-        if(knownCommands == null) {
-            try {
-                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-                knownCommands.setAccessible(true);
-
-                CommandBuilder.knownCommands = (Map<String, Command>) knownCommands.get(simpleCommandMap());
-            } catch(NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-                return new HashMap<>();
-            }
-        }
-
-        return knownCommands;
-    }
-
-    public static SimpleCommandMap simpleCommandMap() {
-        if(simpleCommandMap == null) {
-            SimplePluginManager spm = (SimplePluginManager) Bukkit.getPluginManager();
-
-            try {
-                Field commandMap = SimplePluginManager.class.getDeclaredField("commandMap");
-                Field knownCommands = SimpleCommandMap.class.getDeclaredField("knownCommands");
-
-                commandMap.setAccessible(true);
-                knownCommands.setAccessible(true);
-
-                simpleCommandMap = (SimpleCommandMap) commandMap.get(spm);
-            } catch(NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return simpleCommandMap;
     }
 
     @Override
@@ -200,13 +198,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         CommandComponent component = (args.length == 1 && args[0].equals("/" + label)) || baseComponent.getChildren().isEmpty() ? getBaseComponent() : getComponent(args);
 
-        if(component == null) {
-            if(baseComponent.isOnlyConsole() && sender instanceof Player) {
+        if (component == null) {
+            if (baseComponent.isOnlyConsole() && sender instanceof Player) {
                 this.baseComponent.onlyFor(false, sender, label, component);
                 return false;
             }
 
-            if(baseComponent.isOnlyPlayers() && !(sender instanceof Player)) {
+            if (baseComponent.isOnlyPlayers() && !(sender instanceof Player)) {
                 this.baseComponent.onlyFor(true, sender, label, component);
                 return false;
             }
@@ -215,17 +213,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             return false;
         }
 
-        if(component.isOnlyConsole() && sender instanceof Player) {
+        if (component.isOnlyConsole() && sender instanceof Player) {
             this.baseComponent.onlyFor(false, sender, label, component);
             return false;
         }
 
-        if(component.isOnlyPlayers() && !(sender instanceof Player)) {
+        if (component.isOnlyPlayers() && !(sender instanceof Player)) {
             this.baseComponent.onlyFor(true, sender, label, component);
             return false;
         }
 
-        if(component.hasPermission(sender)) {
+        if (component.hasPermission(sender)) {
             return component.runCommand(sender, label, args);
         }
 
@@ -238,11 +236,11 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         args = repairArgs(args);
         List<String> sug = new ArrayList<>();
 
-        if(this.ownTabCompleter != null) {
+        if (this.ownTabCompleter != null) {
             List<String> apply = this.ownTabCompleter.onTabComplete(sender, command, label, args);
-            if(apply != null) {
-                for(String s : apply) {
-                    if(s.contains(" ")) s = "\"" + s + "\"";
+            if (apply != null) {
+                for (String s : apply) {
+                    if (s.contains(" ") && mergeSpaceArguments) s = "\"" + s + "\"";
                     sug.add(s);
                 }
             }
@@ -251,59 +249,59 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         HashMap<CommandComponent, List<String>> sub = new HashMap<>();
 
-        if(args.length == 0) return sug;
+        if (args.length == 0) return sug;
 
         String lastArg = args[args.length - 1];
-        if(lastArg == null) lastArg = "";
+        if (lastArg == null) lastArg = "";
         else lastArg = lastArg.toLowerCase();
 
         args[args.length - 1] = "";
         CommandComponent component = getComponent(args);
 
-        if(component == null) return sug;
+        if (component == null) return sug;
 
         args[args.length - 1] = lastArg;
 
-        if(!(component instanceof NaturalCommandComponent)) {
-            for(CommandComponent child : component.getChildren()) {
-                if(child.hasPermission(sender)) {
-                    if(child.useInTabCompleter(sender, label, args)) {
+        if (!(component instanceof NaturalCommandComponent)) {
+            for (CommandComponent child : component.getChildren()) {
+                if (child.hasPermission(sender)) {
+                    if (child.useInTabCompleter(sender, label, args)) {
                         List<String> suggestion = new ArrayList<>();
 
-                        if(child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
+                        if (child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
                         else suggestion.add(child.getArgument());
 
-                        if(!suggestion.isEmpty()) sub.put(child, suggestion);
+                        if (!suggestion.isEmpty()) sub.put(child, suggestion);
                     }
                 }
             }
 
-            for(CommandComponent c : sub.keySet()) {
+            for (CommandComponent c : sub.keySet()) {
                 List<String> suggestions = sub.get(c);
 
-                for(String subCommand : suggestions) {
-                    if(subCommand.contains(" ")) {
+                for (String subCommand : suggestions) {
+                    if (subCommand.contains(" ") && mergeSpaceArguments) {
                         String modSC = "\"" + subCommand + "\"";
 
-                        if(c.matchTabComplete(sender, modSC, lastArg)) {
+                        if (c.matchTabComplete(sender, modSC, lastArg)) {
                             sug.add(modSC);
                             continue;
                         }
 
-                        if(lastArg.isEmpty() || modSC.toLowerCase().startsWith(lastArg)) {
+                        if (lastArg.isEmpty() || modSC.toLowerCase().startsWith(lastArg)) {
                             sug.add(modSC);
                             continue;
                         }
                     }
 
-                    if(c.matchTabComplete(sender, subCommand, lastArg)) {
-                        if(subCommand.contains(" ")) sug.add("\"" + subCommand + "\"");
+                    if (c.matchTabComplete(sender, subCommand, lastArg)) {
+                        if (subCommand.contains(" ") && mergeSpaceArguments) sug.add("\"" + subCommand + "\"");
                         else sug.add(subCommand);
                         continue;
                     }
 
-                    if(lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg)) {
-                        if(subCommand.contains(" ")) sug.add("\"" + subCommand + "\"");
+                    if (lastArg.isEmpty() || subCommand.toLowerCase().startsWith(lastArg)) {
+                        if (subCommand.contains(" ") && mergeSpaceArguments) sug.add("\"" + subCommand + "\"");
                         else sug.add(subCommand);
                     }
                 }
@@ -314,11 +312,11 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             sub.clear();
         } else {
             NaturalCommandComponent ncc = (NaturalCommandComponent) component;
-            if(ncc.hasPermission(sender)) {
+            if (ncc.hasPermission(sender)) {
                 List<String> list = ncc.onTabComplete(sender, command, label, args);
-                if(list != null) {
-                    for(String s : list) {
-                        if(s.contains(" ")) s = "\"" + s + "\"";
+                if (list != null) {
+                    for (String s : list) {
+                        if (s.contains(" ") && mergeSpaceArguments) s = "\"" + s + "\"";
                         sug.add(s);
                     }
 
@@ -347,20 +345,20 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     }
 
     public CommandComponent getComponent(String... args) {
-        if(args.length == 0) return this.baseComponent;
+        if (args.length == 0) return this.baseComponent;
         return getComponent(Arrays.asList(args));
     }
 
     public CommandComponent getComponent(List<String> s) {
-        if(s.isEmpty()) return this.baseComponent;
+        if (s.isEmpty()) return this.baseComponent;
 
         CommandComponent current = this.baseComponent;
 
-        for(String value : s) {
-            if(current == null || current instanceof NaturalCommandComponent) break;
+        for (String value : s) {
+            if (current == null || current instanceof NaturalCommandComponent) break;
             CommandComponent cc = current.getChild(value);
 
-            if((value != null && value.isEmpty()) && !(cc instanceof NaturalCommandComponent)) break;
+            if ((value != null && value.isEmpty()) && !(cc instanceof NaturalCommandComponent)) break;
             current = cc;
         }
 
@@ -368,10 +366,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
     }
 
     private String[] repairArgs(String[] args) {
-        if(args == null || args.length == 0) return args;
+        if (args == null || args.length == 0) return args;
 
         StringBuilder b = new StringBuilder();
-        for(String s : args) {
+        for (String s : args) {
             b.append(s);
             b.append(" ");
         }
@@ -379,7 +377,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         String s = b.toString();
         s = s.substring(0, s.length() - 1);
 
-        if(s.isEmpty()) {
+        boolean endingSpace = s.endsWith(" ");
+        s = b.toString().trim().replaceAll(" {2,}?", "") + (endingSpace ? " " : "");
+
+        if (s.isEmpty()) {
             return new String[] {""};
         }
 
@@ -387,17 +388,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
         int parse = 0;
         char[] cA = s.toCharArray();
-        for(int i = 0; i < cA.length; i++) {
+        for (int i = 0; i < cA.length; i++) {
             char c = cA[i];
 
-            if(c == '"') {
+            if (c == '"') {
                 //search for correct usage
-                for(int j = i + 1; j < cA.length; j++) {
+                for (int j = i + 1; j < cA.length; j++) {
                     char c1 = cA[j];
 
-                    if(c1 == '"') {
+                    if (c1 == '"') {
                         //success
-                        if(parse < i) {
+                        if (parse < i) {
                             //parse prepending remaining chars
                             nArgs.add(s.substring(parse, i));
                             parse = i;
@@ -409,17 +410,17 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                         break;
                     }
                 }
-            } else if(c == ' ') {
+            } else if (c == ' ') {
                 nArgs.add(s.substring(parse, i));
                 parse = i + 1;
             }
         }
 
-        if(parse < cA.length) {
+        if (parse < cA.length) {
             nArgs.add(s.substring(parse, cA.length));
         }
 
-        if(cA[cA.length - 1] == ' ') nArgs.add("");
+        if (cA[cA.length - 1] == ' ') nArgs.add("");
         return nArgs.toArray(new String[0]);
     }
 
@@ -445,5 +446,13 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
 
     public String[] getImportantAliases() {
         return importantAliases;
+    }
+
+    public boolean isMergeSpaceArguments() {
+        return mergeSpaceArguments;
+    }
+
+    public void setMergeSpaceArguments(boolean mergeSpaceArguments) {
+        this.mergeSpaceArguments = mergeSpaceArguments;
     }
 }
