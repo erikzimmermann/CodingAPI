@@ -72,10 +72,11 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseItem(true, XMaterial.STONE.parseMaterial()));
+        this(xMaterial.parseMaterial());
     }
 
     public ItemBuilder(Material type) {
+        if(type == null) type = Material.STONE;
         this.type = type;
     }
 
@@ -333,19 +334,26 @@ public class ItemBuilder implements Serializable {
                                 byte data = 0;
                                 if(obj != null) data = Byte.parseByte(d.get("Data") + "");
 
-                                Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
+                                Optional<XMaterial> mat = XMaterial.matchDefinedXMaterial(name, data);
 
-                                if(mat.isPresent()) material = mat.get().parseMaterial(true, false);
+                                if(mat.isPresent()) {
+                                    ItemStack item = mat.get().parseItem();
+                                    if(item != null) material = item.getType();
+                                }
                                 else {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
 
                             } else {
-                                Optional<XMaterial> mat = XMaterial.matchXMaterial(name, data);
+                                Optional<XMaterial> mat = XMaterial.matchDefinedXMaterial(name, data);
 
                                 if(mat.isPresent()) {
-                                    material = mat.get().parseMaterial(true, false);
-                                    setData(mat.get().getData());
+                                    XMaterial m = mat.get();
+                                    ItemStack item = m.parseItem();
+                                    if(item != null) {
+                                        material = item.getType();
+                                        setData(m.getData());
+                                    }
                                 }
                             }
 
@@ -728,7 +736,9 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder setType(XMaterial type) {
-        setType(type.parseMaterial(true, true, XMaterial.STONE.parseMaterial()));
+        ItemStack item = type.parseItem();
+        if(item != null) setType(item.getType());
+        else setType(Material.STONE);
         return this;
     }
 
@@ -752,7 +762,12 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setData(byte data) {
         this.data = data;
-        if(getType() != null && (getType() == XMaterial.POTION.parseMaterial(true, true) || getType() == XMaterial.PLAYER_HEAD.parseMaterial(true, true))) setDurability(getData());
+
+        if(getType() != null) {
+            XMaterial m = XMaterial.matchXMaterial(getType());
+            if(m == XMaterial.POTION || m == XMaterial.PLAYER_HEAD) setDurability(getData());
+        }
+
         return this;
     }
 
@@ -960,15 +975,18 @@ public class ItemBuilder implements Serializable {
     }
 
     public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack item = new ItemStack(XMaterial.PLAYER_HEAD.parseMaterial(true, false), 1, (short) 3);
+        ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
+
+        ItemStack item = new ItemStack(head == null ? Material.STONE : head.getType(), 1, (short) 3);
         if(gameProfile == null) return item;
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
-        IReflection.FieldAccessor profile = IReflection.getField(meta.getClass(), "profile");
-        profile.set(meta, gameProfile);
-
-        item.setItemMeta(meta);
+        if(meta != null) {
+            IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
+            profile.set(meta, gameProfile);
+            item.setItemMeta(meta);
+        }
 
         return item;
     }
