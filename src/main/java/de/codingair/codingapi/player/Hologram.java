@@ -152,6 +152,7 @@ public class Hologram implements Removable {
             HologramPackets.setCustomNameVisible(armorStand, !line.isEmpty());
             HologramPackets.setInvisible(armorStand, true);
             HologramPackets.setInvulnerable(armorStand, true);
+            HologramPackets.setMarker(armorStand, true);
             HologramPackets.setGravity(armorStand, false);
 
             this.location.subtract(0, DISTANCE, 0);
@@ -552,6 +553,13 @@ public class Hologram implements Removable {
             if(Version.get().isBiggerThan(Version.v1_9)) {
                 IReflection.MethodAccessor setInvulnerable = IReflection.getMethod(armorStand.getClass(), "setInvulnerable", new Class[] {boolean.class});
                 setInvulnerable.invoke(armorStand, invulnerable);
+            }
+        }
+
+        public static void setMarker(Object armorStand, boolean invulnerable) {
+            if(Version.get().isBiggerThan(8)) {
+                IReflection.MethodAccessor setMarker = IReflection.getMethod(armorStand.getClass(), "setMarker", new Class[] {boolean.class});
+                setMarker.invoke(armorStand, invulnerable);
             }
         }
 
