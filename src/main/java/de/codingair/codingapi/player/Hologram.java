@@ -24,7 +24,7 @@ import java.util.*;
 public class Hologram implements Removable {
     private static final double DISTANCE_TO_SEE = 120;
     private static final double DISTANCE = 0.25;
-    private static final double ARMOR_STAND_HEIGHT = 2.6;
+    private static final double ARMOR_STAND_HEIGHT = 0.625;
 
     private final UUID uniqueId = UUID.randomUUID();
     private final JavaPlugin plugin;
