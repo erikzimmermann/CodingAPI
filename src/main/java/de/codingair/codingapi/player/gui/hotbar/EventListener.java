@@ -4,7 +4,9 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -101,11 +103,16 @@ public class EventListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInvClick(InventoryClickEvent e) {
-        HotbarGUI h;
-        if((h = API.getRemovable((Player) e.getWhoClicked(), HotbarGUI.class)) != null) {
-            e.setCancelled(h.getItem(e.getSlot()) != null);
+        for (HotbarGUI h : API.getRemovables((Player) e.getWhoClicked(), HotbarGUI.class)) {
+            if((h = API.getRemovable((Player) e.getWhoClicked(), HotbarGUI.class)) != null) {
+                if(h.getItem(e.getSlot()) != null) {
+                    e.setCancelled(true);
+                    e.setResult(Event.Result.DENY);
+                    return;
+                }
+            }
         }
     }
 }
