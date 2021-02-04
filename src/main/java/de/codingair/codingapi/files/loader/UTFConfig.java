@@ -25,10 +25,35 @@ import java.util.concurrent.TimeUnit;
 public class UTFConfig extends YamlConfiguration {
     private static final String COMMENT = "#";
     private final List<Extra> extras = new ArrayList<>();
-    private boolean deployedExtras = false;
     private final Cache<String, String> caseSensitive = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
+    private boolean deployedExtras = false;
 
     private UTFConfig() {
+    }
+
+    public static UTFConfig loadConf(File file) {
+        UTFConfig loader = new UTFConfig();
+
+        try {
+            loader.load(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return loader;
+    }
+
+    public static UTFConfig loadConf(InputStream stream) {
+        UTFConfig loader = new UTFConfig();
+
+        try {
+            Validate.notNull(stream, "File cannot be null");
+            loader.load(new InputStreamReader(stream, Charsets.UTF_8));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return loader;
     }
 
     public void destroy() {
@@ -175,6 +200,15 @@ public class UTFConfig extends YamlConfiguration {
 
         for (String key : getKeys(true)) {
             if (!origin.contains(key)) toRemove.add(key);
+            else {
+                Object current = get(key);
+                Object old = origin.get(key);
+
+                if (!(old instanceof Map) && current instanceof Map) toRemove.add(key);
+                else if (!(current instanceof Map) && old instanceof Map) toRemove.add(key);
+                if (!(old instanceof ConfigurationSection) && current instanceof ConfigurationSection) toRemove.add(key);
+                else if (!(current instanceof ConfigurationSection) && old instanceof ConfigurationSection) toRemove.add(key);
+            }
         }
 
         for (String key : toRemove) {
@@ -283,30 +317,5 @@ public class UTFConfig extends YamlConfiguration {
 
     public void setDefaults(InputStream stream) {
         super.setDefaults(loadConf(stream));
-    }
-
-    public static UTFConfig loadConf(File file) {
-        UTFConfig loader = new UTFConfig();
-
-        try {
-            loader.load(file);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return loader;
-    }
-
-    public static UTFConfig loadConf(InputStream stream) {
-        UTFConfig loader = new UTFConfig();
-
-        try {
-            Validate.notNull(stream, "File cannot be null");
-            loader.load(new InputStreamReader(stream, Charsets.UTF_8));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return loader;
     }
 }
