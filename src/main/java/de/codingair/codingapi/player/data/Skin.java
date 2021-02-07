@@ -169,6 +169,11 @@ public abstract class Skin {
 		if(!this.isLoaded()) return null;
 		
 		String code = getDecodedValue();
+
+		//fix malformed JSON
+		code = code.replace("{textures:", "{\"textures\":")
+				.replace("{SKIN:", "{\"SKIN\":")
+				.replace("{url:", "{\"url\":");
 		
 		try {
 			JSONObject jsonObject = (JSONObject) new JSONParser().parse(code);

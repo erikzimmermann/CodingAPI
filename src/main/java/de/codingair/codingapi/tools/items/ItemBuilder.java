@@ -14,6 +14,7 @@ import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.DataMask;
 import de.codingair.codingapi.tools.io.utils.Serializable;
+import de.codingair.codingapi.tools.items.expansions.BannerValue;
 import de.codingair.codingapi.tools.items.expansions.DamageableValue;
 import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 import de.codingair.codingapi.utils.ChatColor;
@@ -54,6 +55,7 @@ public class ItemBuilder implements Serializable {
 
     private NBTTagCompound nbt = null;
     private int customModel = 0;
+    private List<Map<String, Object>> banner = null;
 
     private String skullId = null;
     private List<String> lore = null;
@@ -72,16 +74,16 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder(XMaterial xMaterial) {
-        this(xMaterial.parseMaterial());
+        this(xMaterial.parseItem());
     }
 
     public ItemBuilder(Material type) {
-        if(type == null) type = Material.STONE;
+        if (type == null) type = Material.STONE;
         this.type = type;
     }
 
     public ItemBuilder(ItemStack item) {
-        if(item == null) return;
+        if (item == null) return;
 
         this.nbt = new NBTTagCompound(item);
         this.type = item.getType();
@@ -89,55 +91,57 @@ public class ItemBuilder implements Serializable {
         this.durability = item.getDurability();
         this.amount = item.getAmount();
 
-        if(item.getEnchantments().size() > 0) {
+        if (item.getEnchantments().size() > 0) {
             enchantments = new HashMap<>();
             enchantments.putAll(item.getEnchantments());
         }
 
-        if(item.hasItemMeta()) {
+        if (item.hasItemMeta()) {
             this.preMeta = item.getItemMeta();
             this.name = item.getItemMeta().getDisplayName();
 
-            if(Version.get().isBiggerThan(12)) {
+            if (Version.get().isBiggerThan(12)) {
                 this.damage = DamageableValue.getDamage(this.preMeta);
             }
 
-            if(Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
-            if(Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
+            if (Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
+            if (Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
                 this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
             }
 
-            if(enchantments == null) enchantments = new HashMap<>();
+            if (enchantments == null) enchantments = new HashMap<>();
             enchantments.putAll(item.getItemMeta().getEnchants());
             item.getItemMeta().getEnchants().forEach((ench, level) -> this.preMeta.removeEnchant(ench));
 
             try {
                 LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
                 this.color = DyeColor.getByColor(meta.getColor());
-            } catch(Exception ignored) {
+            } catch (Exception ignored) {
             }
 
-            if(item.getItemMeta().hasLore()) {
+            if (item.getItemMeta().hasLore()) {
                 lore = new ArrayList<>();
                 lore.addAll(item.getItemMeta().getLore());
             }
             this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
             this.hideStandardLore = (item.getItemMeta().getItemFlags().size() == 1 && !item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS)) || item.getItemMeta().getItemFlags().size() > 1;
-            if(item.getItemMeta().getDisplayName() != null && item.getItemMeta().getDisplayName().equals("§0")) {
+            if (item.getItemMeta().getDisplayName() != null && item.getItemMeta().getDisplayName().equals("§0")) {
                 this.hideName = true;
                 this.name = null;
             }
+
+            try {
+                ItemMeta meta = item.getItemMeta();
+                IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
+                this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
+            } catch (Exception ignored) {
+            }
+
+            this.banner = BannerValue.serialize(item.getItemMeta());
         }
 
-        if(item.getType().name().toUpperCase().contains("POTION")) {
+        if (item.getType().name().toUpperCase().contains("POTION")) {
             this.potionData = new PotionData(item);
-        }
-
-        try {
-            ItemMeta meta = item.getItemMeta();
-            IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
-            this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
-        } catch(Exception ignored) {
         }
     }
 
@@ -173,18 +177,65 @@ public class ItemBuilder implements Serializable {
         this(skull.getItemStack(), skull.getItemMeta());
     }
 
+    public static ItemBuilder getFromJSON(String data) {
+        JSONParser parser = new JSONParser();
+        try {
+            JSON jsonObject = new JSON((JSONObject) parser.parse(data));
+
+            return getFromJSON(jsonObject);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return new ItemBuilder(Material.AIR);
+        }
+    }
+
+    public static ItemBuilder getFromJSON(JSON jsonObject) {
+        if (jsonObject == null) return new ItemBuilder(Material.AIR);
+
+        ItemBuilder builder = new ItemBuilder();
+        try {
+            builder.read(jsonObject);
+            return builder;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ItemBuilder(XMaterial.AIR);
+        }
+    }
+
+    public static ItemBuilder getFromBase64String(String code) {
+        if (code == null) return null;
+        return getFromJSON(new String(Base64.getDecoder().decode(code.getBytes())));
+    }
+
+    public static ItemStack getHead(GameProfile gameProfile) {
+        ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
+
+        ItemStack item = new ItemStack(head == null ? Material.STONE : head.getType(), 1, (short) 3);
+        if (gameProfile == null) return item;
+
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
+
+        if (meta != null) {
+            IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
+            profile.set(meta, gameProfile);
+            item.setItemMeta(meta);
+        }
+
+        return item;
+    }
+
     public org.bukkit.inventory.ItemStack getItem() {
-        if(this.type == null) return null;
+        if (this.type == null) return null;
 
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
-        if(this.type.name().contains("POTION")) {
+        if (this.type.name().contains("POTION")) {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
-            if(potionData != null) {
-                if(Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+            if (potionData != null) {
+                if (Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
-                } else if(!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                } else if (!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     Potion potion = this.potionData.getPotion();
                     meta.setMainEffect(potion.getType().getEffectType());
                 }
@@ -193,23 +244,23 @@ public class ItemBuilder implements Serializable {
             item.setItemMeta(meta);
         }
 
-        if((this.type.name().contains("SKULL") || this.type.name().contains("HEAD")) && this.data == 3) {
+        if ((this.type.name().contains("SKULL") || this.type.name().contains("HEAD")) && this.data == 3) {
             item = new ItemStack(this.type, 1, (short) 3);
         }
 
         item.setAmount(this.amount);
 
         ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
-        if(meta != null) {
+        if (meta != null) {
             meta.setDisplayName(this.name);
             meta.setLore(this.lore);
 
-            if(isColorable() && this.color != null) {
-                if(meta instanceof LeatherArmorMeta) {
+            if (isColorable() && this.color != null) {
+                if (meta instanceof LeatherArmorMeta) {
                     LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) meta;
                     leatherArmorMeta.setColor(this.color.getColor());
                 } else {
-                    if(this.type.name().equals("INK_SACK")) this.data = this.color.getDyeData();
+                    if (this.type.name().equals("INK_SACK")) this.data = this.color.getDyeData();
                     else this.data = this.color.getWoolData();
 
                     item.setDurability(this.data);
@@ -220,54 +271,56 @@ public class ItemBuilder implements Serializable {
                 item.setDurability(this.durability);
             }
 
-            if(hideName || this.name == null) meta.setDisplayName("§0");
-            if(hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            if(hideStandardLore) {
-                for(ItemFlag itemFlag : ItemFlag.values()) {
-                    if(itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
+            if (hideName || this.name == null) meta.setDisplayName("§0");
+            if (hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            if (hideStandardLore) {
+                for (ItemFlag itemFlag : ItemFlag.values()) {
+                    if (itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
 
                     meta.addItemFlags(itemFlag);
                 }
             }
 
-            if(this.skullId != null) {
+            if (this.skullId != null) {
                 try {
                     IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
                     profile.set(meta, GameProfileUtils.createBySkinId(skullId));
-                } catch(IllegalStateException ignored) {
+                } catch (IllegalStateException ignored) {
                 }
             }
 
-            if(Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
-            if(Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+            if (Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
+            if (Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
-            if(Version.get().isBiggerThan(12)) {
+            if (Version.get().isBiggerThan(12)) {
                 meta = DamageableValue.setDamage(meta, this.damage);
             }
+
+            if (this.banner != null) BannerValue.apply(meta, this.banner);
 
             item.setItemMeta(meta);
         }
 
-        if(this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
+        if (this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
 
-        if(nbt != null) return new NBTTagCompound(item).setNBT(nbt).getItem();
+        if (nbt != null) return new NBTTagCompound(item).setNBT(nbt).getItem();
         else return item;
     }
 
     @Override
     public boolean read(DataMask d) throws Exception {
         try {
-            for(Object key : d.keySet(false)) {
+            for (Object key : d.keySet(false)) {
                 String keyName = (String) key;
 
-                switch(keyName) {
+                switch (keyName) {
                     case "Lore": {
                         JSONArray jsonLore = d.getList("Lore");
-                        if(jsonLore == null) break;
+                        if (jsonLore == null) break;
 
                         List<String> lore = new ArrayList<>();
 
-                        for(Object value : jsonLore) {
+                        for (Object value : jsonLore) {
                             String v = (String) value;
                             lore.add(v == null ? null : ChatColor.translateAlternateColorCodes('&', v));
                         }
@@ -278,7 +331,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Color": {
                         JSON jsonColor = d.get("Color");
-                        if(jsonColor == null) break;
+                        if (jsonColor == null) break;
 
                         int red = Integer.parseInt(jsonColor.get("Red") + "");
                         int green = Integer.parseInt(jsonColor.get("Green") + "");
@@ -290,9 +343,9 @@ public class ItemBuilder implements Serializable {
 
                     case "Enchantments": {
                         JSON jsonEnchantments = d.get("Enchantments");
-                        if(jsonEnchantments == null) break;
+                        if (jsonEnchantments == null) break;
 
-                        for(Object keySet : jsonEnchantments.keySet(false)) {
+                        for (Object keySet : jsonEnchantments.keySet(false)) {
                             String name = (String) keySet;
                             Enchantment enchantment = Enchantment.getByName(name);
                             int level = Integer.parseInt(jsonEnchantments.get(name) + "");
@@ -304,7 +357,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Name": {
                         String name = d.get("Name");
-                        if(name == null) break;
+                        if (name == null) break;
 
                         setName(ChatColor.translateAlternateColorCodes('&', name));
                         break;
@@ -312,7 +365,7 @@ public class ItemBuilder implements Serializable {
 
                     case "PotionData": {
                         Object obj = d.getRaw("PotionData");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         PotionData data = PotionData.fromJSONString((String) obj);
                         setPotionData(data);
@@ -321,36 +374,35 @@ public class ItemBuilder implements Serializable {
 
                     case "Type": {
                         Object obj = d.get("Type");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         String name = d.get("Type");
                         Material material = null;
 
                         try {
                             material = Material.valueOf(name);
-                        } catch(IllegalArgumentException ex) {
-                            if(Version.get().isBiggerThan(Version.v1_12)) {
+                        } catch (IllegalArgumentException ex) {
+                            if (Version.get().isBiggerThan(Version.v1_12)) {
                                 obj = d.get("Data");
                                 byte data = 0;
-                                if(obj != null) data = Byte.parseByte(d.get("Data") + "");
+                                if (obj != null) data = Byte.parseByte(d.get("Data") + "");
 
                                 Optional<XMaterial> mat = XMaterial.matchDefinedXMaterial(name, data);
 
-                                if(mat.isPresent()) {
+                                if (mat.isPresent()) {
                                     ItemStack item = mat.get().parseItem();
-                                    if(item != null) material = item.getType();
-                                }
-                                else {
+                                    if (item != null) material = item.getType();
+                                } else {
                                     throw new IllegalAccessException("Couldn't find material (" + name + ", " + data + ")!");
                                 }
 
                             } else {
                                 Optional<XMaterial> mat = XMaterial.matchDefinedXMaterial(name, data);
 
-                                if(mat.isPresent()) {
+                                if (mat.isPresent()) {
                                     XMaterial m = mat.get();
                                     ItemStack item = m.parseItem();
-                                    if(item != null) {
+                                    if (item != null) {
                                         material = item.getType();
                                         setData(m.getData());
                                     }
@@ -359,8 +411,8 @@ public class ItemBuilder implements Serializable {
 
                             try {
                                 material = Material.valueOf(name);
-                            } catch(IllegalArgumentException ex2) {
-                                if(name.toUpperCase().equals("SPLASH_POTION")) {
+                            } catch (IllegalArgumentException ex2) {
+                                if (name.toUpperCase().equals("SPLASH_POTION")) {
                                     material = Material.POTION;
                                 }
                             }
@@ -372,7 +424,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Data": {
                         Object obj = d.get("Data");
-                        if(obj == null || getData() == 0) break;
+                        if (obj == null || getData() == 0) break;
 
                         setData(Byte.parseByte(d.get("Data") + ""));
                         break;
@@ -380,7 +432,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Durability": {
                         Object obj = d.get("Durability");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         setDurability(Short.parseShort(d.get("Durability") + ""));
                         break;
@@ -388,7 +440,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Amount": {
                         Integer amount = d.get("Amount");
-                        if(amount == null) break;
+                        if (amount == null) break;
 
                         setAmount(amount);
                         break;
@@ -396,7 +448,7 @@ public class ItemBuilder implements Serializable {
 
                     case "HideStandardLore": {
                         Object obj = d.get("HideStandardLore");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         setHideStandardLore(d.get("HideStandardLore"));
                         break;
@@ -404,7 +456,7 @@ public class ItemBuilder implements Serializable {
 
                     case "HideEnchantments": {
                         Object obj = d.get("HideEnchantments");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         setHideEnchantments(d.get("HideEnchantments"));
                         break;
@@ -412,7 +464,7 @@ public class ItemBuilder implements Serializable {
 
                     case "Unbreakable": {
                         Object obj = d.get("Unbreakable");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         setUnbreakable(d.get("Unbreakable"));
                         break;
@@ -420,7 +472,7 @@ public class ItemBuilder implements Serializable {
 
                     case "HideName": {
                         Object obj = d.get("HideName");
-                        if(obj == null) break;
+                        if (obj == null) break;
 
                         setHideName(d.get("HideName"));
                         break;
@@ -428,9 +480,9 @@ public class ItemBuilder implements Serializable {
 
                     case "SkullOwner": {
                         String data = d.getRaw("SkullOwner");
-                        if(data == null) break;
+                        if (data == null) break;
 
-                        if(data.contains("Property_Signature")) {
+                        if (data.contains("Property_Signature")) {
                             //old
                             setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
                         } else setSkullId((String) d.get("SkullOwner"));
@@ -446,11 +498,25 @@ public class ItemBuilder implements Serializable {
                         setDamage(d.getInteger("Damage"));
                         break;
                     }
+
+                    case "Banner": {
+                        List<Map<String, Object>> data = new ArrayList<>();
+                        List<?> l = d.getList("Banner");
+
+                        for (Object o : l) {
+                            if (o instanceof Map) {
+                                data.add((Map<String, Object>) o);
+                            }
+                        }
+
+                        if (!data.isEmpty()) this.banner = data;
+                        break;
+                    }
                 }
             }
 
             return true;
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             return false;
         }
@@ -462,32 +528,32 @@ public class ItemBuilder implements Serializable {
         JSON enchantments = new JSON();
         JSONArray lore = new JSONArray();
 
-        if(this.enchantments != null) {
-            for(Enchantment ench : this.enchantments.keySet()) {
+        if (this.enchantments != null) {
+            for (Enchantment ench : this.enchantments.keySet()) {
                 enchantments.put(ench.getName(), this.enchantments.get(ench));
             }
         }
 
-        if(this.lore != null) {
-            for(String s : this.lore) {
+        if (this.lore != null) {
+            for (String s : this.lore) {
                 lore.add(s.replace("§", "&"));
             }
         }
 
-        if(this.color != null) {
+        if (this.color != null) {
             color.put("Red", this.color.getColor().getRed());
             color.put("Green", this.color.getColor().getGreen());
             color.put("Blue", this.color.getColor().getBlue());
         }
 
-        if(this.name != null) d.put("Name", this.name.replace("§", "&"));
-        if(this.type != null) d.put("Type", this.type.name());
+        if (this.name != null) d.put("Name", this.name.replace("§", "&"));
+        if (this.type != null) d.put("Type", this.type.name());
         d.put("Data", this.data);
         d.put("Durability", this.durability);
         d.put("Amount", this.amount);
-        if(this.lore != null) d.put("Lore", lore.isEmpty() ? null : lore);
-        if(this.color != null) d.put("Color", color.isEmpty() ? null : color.toJSONString());
-        if(this.enchantments != null)
+        if (this.lore != null) d.put("Lore", lore.isEmpty() ? null : lore);
+        if (this.color != null) d.put("Color", color.isEmpty() ? null : color.toJSONString());
+        if (this.enchantments != null)
             d.put("Enchantments", enchantments.isEmpty() ? null : enchantments.toJSONString());
         d.put("HideStandardLore", this.hideStandardLore);
         d.put("HideEnchantments", this.hideEnchantments);
@@ -498,12 +564,13 @@ public class ItemBuilder implements Serializable {
         d.put("SkullOwner", this.skullId);
         d.put("CustomModel", this.customModel);
         d.put("Damage", this.damage);
+        d.put("Banner", this.banner);
     }
 
     @Override
     public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ItemBuilder builder = (ItemBuilder) o;
         return data == builder.data &&
                 durability == builder.durability &&
@@ -522,12 +589,13 @@ public class ItemBuilder implements Serializable {
                 Objects.equals(nbt, builder.nbt) &&
                 Objects.equals(skullId, builder.skullId) &&
                 Objects.equals(lore, builder.lore) &&
+                Objects.equals(banner, builder.banner) &&
                 Objects.equals(enchantments, builder.enchantments);
     }
 
     public boolean equalsSimply(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ItemBuilder builder = (ItemBuilder) o;
 
         return data == builder.data &&
@@ -554,45 +622,8 @@ public class ItemBuilder implements Serializable {
         return jsonObject.toJSONString();
     }
 
-    public static ItemBuilder getFromJSON(String data) {
-        JSONParser parser = new JSONParser();
-        try {
-            JSON jsonObject = new JSON((JSONObject) parser.parse(data));
-
-            return getFromJSON(jsonObject);
-        } catch(ParseException e) {
-            e.printStackTrace();
-            return new ItemBuilder(Material.AIR);
-        }
-    }
-
-    public static ItemBuilder getFromJSON(JSON jsonObject) {
-        if(jsonObject == null) return new ItemBuilder(Material.AIR);
-
-        ItemBuilder builder = new ItemBuilder();
-        try {
-            builder.read(jsonObject);
-            return builder;
-        } catch(Exception e) {
-            e.printStackTrace();
-            return new ItemBuilder(XMaterial.AIR);
-        }
-    }
-
-    public String toBase64String() {
-        String code = toJSONString();
-        if(code == null) return null;
-
-        return Base64.getEncoder().encodeToString(code.getBytes());
-    }
-
-    public static ItemBuilder getFromBase64String(String code) {
-        if(code == null) return null;
-        return getFromJSON(new String(Base64.getDecoder().decode(code.getBytes())));
-    }
-
     public ItemBuilder reset(boolean onlyAppearance) {
-        if(onlyAppearance) {
+        if (onlyAppearance) {
             setHideName(false);
             setHideEnchantments(false);
             setHideStandardLore(false);
@@ -612,7 +643,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public boolean isColorable() {
-        switch(this.type.name()) {
+        switch (this.type.name()) {
             case "INK_SACK":
             case "CARPET":
             case "WOOL":
@@ -653,7 +684,7 @@ public class ItemBuilder implements Serializable {
      * @return ItemBuilder instance
      */
     public ItemBuilder checkFirstLine() {
-        if(this.name == null && this.lore != null && !this.lore.isEmpty()) {
+        if (this.name == null && this.lore != null && !this.lore.isEmpty()) {
             setName(this.lore.remove(0));
         }
 
@@ -667,9 +698,9 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setText(String text, TextAlignment alignment, int wordWrap) {
         List<String> list = TextAlignment.lineBreak(text, wordWrap);
-        if(list.isEmpty()) return this;
+        if (list.isEmpty()) return this;
 
-        if(alignment != null) list = alignment.apply(list);
+        if (alignment != null) list = alignment.apply(list);
 
         setName(list.remove(0));
         setLore(list);
@@ -684,9 +715,9 @@ public class ItemBuilder implements Serializable {
         setName(null);
         removeLore();
 
-        if(text.isEmpty()) return this;
+        if (text.isEmpty()) return this;
         setName(text.remove(0));
-        if(!text.isEmpty()) setLore(text);
+        if (!text.isEmpty()) setLore(text);
         return this;
     }
 
@@ -696,11 +727,11 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder addText(String text, int wordWrap) {
         List<String> list = TextAlignment.lineBreak(text, wordWrap);
-        if(list.isEmpty()) return this;
+        if (list.isEmpty()) return this;
 
-        if(this.name == null || this.name.isEmpty()) {
+        if (this.name == null || this.name.isEmpty()) {
             setName(list.remove(0));
-            if(this.name != null && !this.name.isEmpty()) setHideName(false);
+            if (this.name != null && !this.name.isEmpty()) setHideName(false);
         }
 
         addLore(list);
@@ -708,12 +739,12 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder addText(List<String> text) {
-        if(text.isEmpty()) return this;
+        if (text.isEmpty()) return this;
         text = new ArrayList<>(text);
 
-        if(this.name == null || this.name.isEmpty()) {
+        if (this.name == null || this.name.isEmpty()) {
             this.name = text.remove(0);
-            if(this.name != null && !this.name.isEmpty()) setHideName(false);
+            if (this.name != null && !this.name.isEmpty()) setHideName(false);
         }
 
         addLore(text);
@@ -721,10 +752,10 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder removeText(List<String> text) {
-        if(text.isEmpty()) return this;
+        if (text.isEmpty()) return this;
 
-        for(String s : text) {
-            if(this.name != null && this.name.equals(s)) this.name = null;
+        for (String s : text) {
+            if (this.name != null && this.name.equals(s)) this.name = null;
             this.lore.removeAll(text);
         }
 
@@ -737,7 +768,7 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setType(XMaterial type) {
         ItemStack item = type.parseItem();
-        if(item != null) setType(item.getType());
+        if (item != null) setType(item.getType());
         else setType(Material.STONE);
         return this;
     }
@@ -751,8 +782,14 @@ public class ItemBuilder implements Serializable {
         return data;
     }
 
-    public ItemBuilder setDamage(int damage) {
-        this.damage = damage;
+    public ItemBuilder setData(byte data) {
+        this.data = data;
+
+        if (getType() != null) {
+            XMaterial m = XMaterial.matchXMaterial(getType());
+            if (m == XMaterial.POTION || m == XMaterial.PLAYER_HEAD) setDurability(getData());
+        }
+
         return this;
     }
 
@@ -760,14 +797,8 @@ public class ItemBuilder implements Serializable {
         return damage;
     }
 
-    public ItemBuilder setData(byte data) {
-        this.data = data;
-
-        if(getType() != null) {
-            XMaterial m = XMaterial.matchXMaterial(getType());
-            if(m == XMaterial.POTION || m == XMaterial.PLAYER_HEAD) setDurability(getData());
-        }
-
+    public ItemBuilder setDamage(int damage) {
+        this.damage = damage;
         return this;
     }
 
@@ -785,7 +816,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder setLore(List<String> lore) {
-        if(this.lore != null) this.lore.clear();
+        if (this.lore != null) this.lore.clear();
         return addLore(lore);
     }
 
@@ -794,7 +825,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder addLore(List<String> lore) {
-        if(this.lore == null) this.lore = new ArrayList<>();
+        if (this.lore == null) this.lore = new ArrayList<>();
         return addLore(this.lore.size(), lore);
     }
 
@@ -807,14 +838,14 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder addLore(int index, List<String> lore) {
-        if(this.lore == null) this.lore = new ArrayList<>();
-        if(lore == null) return this;
+        if (this.lore == null) this.lore = new ArrayList<>();
+        if (lore == null) return this;
 
-        for(String s : lore) {
-            if(s != null) {
-                if(s.contains("\n")) {
+        for (String s : lore) {
+            if (s != null) {
+                if (s.contains("\n")) {
                     String lastColor = "";
-                    for(String s1 : s.split("\n")) {
+                    for (String s1 : s.split("\n")) {
                         this.lore.add(index++, lastColor + s1);
                         lastColor = ChatColor.getLastFullColor(s1, '§');
                     }
@@ -825,7 +856,7 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder removeLore(List<String> lore) {
-        if(this.lore == null) return this;
+        if (this.lore == null) return this;
         this.lore.removeAll(lore);
         return this;
     }
@@ -835,13 +866,13 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder setEnchantments(HashMap<Enchantment, Integer> enchantments) {
-        if(this.enchantments != null) this.enchantments.clear();
+        if (this.enchantments != null) this.enchantments.clear();
         this.enchantments = enchantments;
         return this;
     }
 
     public ItemBuilder addEnchantment(Enchantment enchantment, int level) {
-        if(this.enchantments == null) this.enchantments = new HashMap<>();
+        if (this.enchantments == null) this.enchantments = new HashMap<>();
         this.enchantments.remove(enchantment);
         this.enchantments.put(enchantment, level);
         return this;
@@ -889,8 +920,8 @@ public class ItemBuilder implements Serializable {
     }
 
     public ItemBuilder removeLore(int includingStart, int excludingEnd) {
-        for(int i = excludingEnd - 1; i >= includingStart; i--) {
-            this.lore.remove(i);
+        if (excludingEnd > includingStart) {
+            this.lore.subList(includingStart, excludingEnd).clear();
         }
 
         return this;
@@ -898,15 +929,6 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder removeEnchantments() {
         this.enchantments = null;
-        return this;
-    }
-
-    public ItemMeta getPreMeta() {
-        return preMeta;
-    }
-
-    public ItemBuilder setPreMeta(ItemMeta preMeta) {
-        this.preMeta = preMeta;
         return this;
     }
 
@@ -925,12 +947,14 @@ public class ItemBuilder implements Serializable {
         clone.type = type;
         clone.data = data;
         clone.durability = durability;
+        clone.damage = damage;
         clone.amount = amount;
         clone.color = color;
         clone.preMeta = preMeta;
         clone.potionData = potionData;
         clone.nbt = nbt;
         clone.customModel = customModel;
+        clone.banner = banner;
         clone.skullId = skullId;
         clone.lore = lore == null ? null : new ArrayList<>(lore);
         clone.enchantments = enchantments == null ? null : new HashMap<>(enchantments);
@@ -972,23 +996,6 @@ public class ItemBuilder implements Serializable {
     public ItemBuilder setCustomModel(int customModel) {
         this.customModel = customModel;
         return this;
-    }
-
-    public static ItemStack getHead(GameProfile gameProfile) {
-        ItemStack head = XMaterial.PLAYER_HEAD.parseItem();
-
-        ItemStack item = new ItemStack(head == null ? Material.STONE : head.getType(), 1, (short) 3);
-        if(gameProfile == null) return item;
-
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-
-        if(meta != null) {
-            IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-            profile.set(meta, gameProfile);
-            item.setItemMeta(meta);
-        }
-
-        return item;
     }
 
     public NBTTagCompound getNbt() {
