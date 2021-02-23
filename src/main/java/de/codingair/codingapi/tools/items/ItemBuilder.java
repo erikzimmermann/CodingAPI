@@ -768,8 +768,11 @@ public class ItemBuilder implements Serializable {
 
     public ItemBuilder setType(XMaterial type) {
         ItemStack item = type.parseItem();
-        if (item != null) setType(item.getType());
-        else setType(Material.STONE);
+        if (item != null) {
+            setType(item.getType());
+            //noinspection ConstantConditions
+            setData(item.getData().getData());
+        } else setType(Material.STONE);
         return this;
     }
 

@@ -1,14 +1,10 @@
 package de.codingair.codingapi.tools.io.utils;
 
-import de.codingair.codingapi.tools.io.JSON.JSON;
-import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
-import de.codingair.codingapi.tools.io.lib.ParseException;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 public interface DataMask {
