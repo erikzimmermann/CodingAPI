@@ -2,10 +2,8 @@ package de.codingair.codingapi.player.gui.inventory.v2;
 
 import com.google.common.base.Preconditions;
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.player.gui.inventory.v2.exceptions.*;
-import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -164,41 +162,7 @@ public class GUI extends InventoryBuilder {
         if(this.title.equals(title)) return;
         this.title = title;
 
-        Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
-        Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
-
-        IReflection.MethodAccessor updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {containerClass});
-
-        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
-        IReflection.FieldAccessor<Integer> windowId = IReflection.getField(containerClass, "windowId");
-
-        Object ep = PacketUtils.getEntityPlayer(player);
-        Object packet;
-        Object icbcTitle = PacketUtils.getChatMessage(this.title);
-
-        Object active = activeContainer.get(ep);
-        int id = windowId.get(active);
-
-        if(Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-            IReflection.FieldAccessor<?> titleF = IReflection.getField(containerClass, "title");
-
-            titleF.set(active, icbcTitle);
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
-            packet = con.newInstance(id, getContainerType(this.size), icbcTitle);
-        } else {
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
-            packet = con.newInstance(id, "minecraft:chest", icbcTitle, player.getOpenInventory().getTopInventory().getSize());
-        }
-
-        PacketUtils.sendPacket(player, packet);
-        updateInventory.invoke(ep, active);
-    }
-
-    private Object getContainerType(int size) {
-        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-        IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
-        return generic.get(null);
+        InventoryUtils.updateTitle(player, title, inventory);
     }
 
     public GUI getFallback() {

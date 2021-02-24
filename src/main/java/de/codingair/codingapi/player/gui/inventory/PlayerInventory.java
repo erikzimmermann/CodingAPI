@@ -7,7 +7,6 @@ import org.bukkit.inventory.ItemStack;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
  **/
 
 public class PlayerInventory {

@@ -1,9 +1,7 @@
 package de.codingair.codingapi.player.gui.inventory.v2;
 
 import com.google.common.base.Preconditions;
-import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.specification.Version;
+import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -84,45 +82,10 @@ public class InventoryBuilder implements Removable {
     public void updateTitle(String invTitle) {
         if(invTitle.length() > 32) invTitle = invTitle.substring(0, 32);
         if(this.title.equals(invTitle)) return;
-
-        Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
-        Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
-
-        IReflection.MethodAccessor updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {containerClass});
-
-        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
-        IReflection.FieldAccessor<Integer> windowId = IReflection.getField(containerClass, "windowId");
-
-        Object ep = PacketUtils.getEntityPlayer(player);
-        Object packet;
-        Object icbcTitle = PacketUtils.getChatMessage(invTitle);
-
-        Object active = activeContainer.get(ep);
-        int id = windowId.get(active);
-
-        if(Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-            IReflection.FieldAccessor<?> title = IReflection.getField(containerClass, "title");
-
-            title.set(active, icbcTitle);
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
-            packet = con.newInstance(id, getContainerType(inventory.getSize()), icbcTitle);
-        } else {
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
-            packet = con.newInstance(id, "minecraft:chest", icbcTitle, player.getOpenInventory().getTopInventory().getSize());
-        }
-
         this.title = invTitle;
-        PacketUtils.sendPacket(player, packet);
-        updateInventory.invoke(ep, active);
-    }
 
-    private Object getContainerType(int size) {
-        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
-        IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
-        return generic.get(null);
+        InventoryUtils.updateTitle(player, title, inventory);
     }
-
     @Override
     public void destroy() {
         if(inventory != null) player.closeInventory();
