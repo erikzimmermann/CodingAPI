@@ -205,7 +205,7 @@ public class SimpleMessage implements Removable {
         for(Object o : components) {
             TextComponent c = o instanceof ChatButton ? ((ChatButton) o).build() : (TextComponent) o;
 
-            if(c.getText().contains(toReplaced)) {
+            if(c.toLegacyText().contains(toReplaced)) {
                 this.components.remove(c);
                 foundSth = true;
             } else {
@@ -214,12 +214,12 @@ public class SimpleMessage implements Removable {
             }
 
             int j = 0;
-            String[] a = c.getText().split(toReplaced, -1);
+            String[] a = c.toLegacyText().split(toReplaced, -1);
             for(int k = 0; k < a.length; k++) {
                 String s = a[k];
 
                 if(s != null && !s.isEmpty()) {
-                    TextComponent tc = new TextComponent(s);
+                    TextComponent tc = new TextComponent(TextComponent.fromLegacyText(s));
                     tc.setClickEvent(c.getClickEvent());
                     tc.setHoverEvent(c.getHoverEvent());
                     tc.setBold(c.isBold());
