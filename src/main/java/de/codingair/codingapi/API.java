@@ -14,7 +14,6 @@ import de.codingair.codingapi.server.listeners.PickItemListener;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.utils.Removable;
 import de.codingair.codingapi.utils.Ticker;
-import io.netty.util.internal.ConcurrentSet;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -162,7 +161,7 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if(this.tickerTimer != null) return;
 
-        this.tickerTimer = Bukkit.getScheduler().runTaskTimer(plugin, new Runnable() {
+        this.tickerTimer = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Runnable() {
             int i = 0;
             @Override
             public void run() {

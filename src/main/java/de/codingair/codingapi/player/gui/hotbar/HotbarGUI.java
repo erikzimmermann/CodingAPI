@@ -126,6 +126,7 @@ public abstract class HotbarGUI implements Removable {
     public void updateSingle(int slot) {
         ItemComponent ic = getItem(slot);
         commit(slot, ic);
+        if (ic.getAction() != null) ic.getAction().onHover(this, ic, ic, player);
     }
 
     public void update() {
