@@ -28,6 +28,13 @@ public class PlayerInventory {
         heldSlot = player.getInventory().getHeldItemSlot();
     }
 
+    public PlayerInventory(ItemStack[] content) {
+        this.player = null;
+        this.content = content;
+        this.armor = null;
+        this.heldSlot = 0;
+    }
+
     public Player getPlayer() {
         return player;
     }
@@ -60,7 +67,7 @@ public class PlayerInventory {
                 if(empty == -999 && !justStack) empty = i;
             } else if(other.isSimilar(item) && other.getAmount() < other.getMaxStackSize()) {
                 int space = other.getMaxStackSize() - other.getAmount();
-                int transport = item.getAmount() > space ? space : item.getAmount();
+                int transport = Math.min(item.getAmount(), space);
                 other.setAmount(other.getAmount() + transport);
                 item.setAmount(item.getAmount() - transport);
 
@@ -93,7 +100,7 @@ public class PlayerInventory {
                 if(empty == -999 && !justStack) empty = i;
             } else if(other.isSimilar(item) && other.getAmount() < other.getMaxStackSize()) {
                 int space = other.getMaxStackSize() - other.getAmount();
-                int transport = item.getAmount() > space ? space : item.getAmount();
+                int transport = Math.min(item.getAmount(), space);
                 other.setAmount(other.getAmount() + transport);
                 item.setAmount(item.getAmount() - transport);
 
