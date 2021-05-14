@@ -194,17 +194,17 @@ public abstract class SignGUI {
         double x = player.getLocation().getX();
         double z = player.getLocation().getZ();
 
-        Location l = new Location(w, x, 1, z);
+        Location l = new Location(w, x, 0, z);
         assert l.getWorld() != null;
 
         double minDistance = 10;
 
-        //increment from 0
-        while (l.getBlock().getType() != Material.AIR) {
+        //increment from lowest block
+        do {
             l.add(0, 1, 0);
 
             //check distance
-            if (player.getLocation().getY() - l.getY() < minDistance) {
+            if (Math.abs(player.getLocation().getY() - l.getY()) < minDistance) {
                 l.setY(l.getWorld().getMaxHeight());
 
                 //decrement from highest block
@@ -212,7 +212,7 @@ public abstract class SignGUI {
                     l.subtract(0, 1, 0);
 
                     //check distance
-                    if (l.getY() - player.getLocation().getY() < minDistance) {
+                    if (Math.abs(player.getLocation().getY() - l.getY()) < minDistance) {
                         //no suitable location found -> ignore text and show empty sign
                         return null;
                     }
@@ -220,7 +220,7 @@ public abstract class SignGUI {
 
                 break;
             }
-        }
+        } while (l.getBlock().getType() != Material.AIR);
 
         return l;
     }
