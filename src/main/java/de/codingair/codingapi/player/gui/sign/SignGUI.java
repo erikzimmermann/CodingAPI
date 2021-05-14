@@ -9,7 +9,6 @@ import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.items.XMaterial;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -23,10 +22,34 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public abstract class SignGUI {
+    private static final Class<?> packetClass;
+    private static final Class<?> updatePacket;
+    private static final Class<?> baseBlockPosition;
+    private static final IReflection.FieldAccessor<?> pos;
+    private static final IReflection.MethodAccessor getX;
+    private static final IReflection.MethodAccessor getY;
+    private static final IReflection.MethodAccessor getZ;
+
+    static {
+        packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
+
+        updatePacket = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");
+        pos = IReflection.getField(updatePacket, "a");
+        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "BaseBlockPosition");
+        assert baseBlockPosition != null;
+        getX = IReflection.getMethod(baseBlockPosition, "getX", int.class, new Class[0]);
+        getY = IReflection.getMethod(baseBlockPosition, "getY", int.class, new Class[0]);
+        getZ = IReflection.getMethod(baseBlockPosition, "getZ", int.class, new Class[0]);
+    }
+
     private final Player player;
     private final JavaPlugin plugin;
     private final Sign sign;
     private final String[] lines;
+
+    //used for instant opening -> open directly after sending the sign update packet
+    private Location tempSign = null;
+    private Runnable waiting = null;
 
     public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin) {
         this(player, null, plugin);
@@ -65,8 +88,11 @@ public abstract class SignGUI {
         //close current inventories
         player.closeInventory();
 
-        Location tempSign = null;
+        tempSign = null;
         Sign sign = this.sign;
+
+        //inject before updating sign to save time between setting and removing the sign
+        injectPacketReader();
 
         boolean needsTempSign = sign == null && this.lines != null;
         if (needsTempSign) {
@@ -81,22 +107,21 @@ public abstract class SignGUI {
         Location finalTempSign = tempSign;
 
         Runnable runnable = () -> {
-            //inject before updating sign to save time between setting and removing the sign
-            injectPacketReader();
-
             prepareSignEditing(finalSign);
             openEditor(finalSign);
 
             //clean temporary sign
             if (finalTempSign != null) finalTempSign.getBlock().setType(Material.AIR);
+
+            tempSign = null;
+            waiting = null;
         };
 
-        if (needsTempSign) Bukkit.getScheduler().runTaskLater(plugin, runnable, 4);
+        if (needsTempSign) waiting = runnable;
         else runnable.run();
     }
 
     private void injectPacketReader() {
-        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
         new PacketReader(this.player, "SignEditor", this.plugin) {
             @Override
             public boolean readPacket(Object packet) {
@@ -143,6 +168,21 @@ public abstract class SignGUI {
 
             @Override
             public boolean writePacket(Object packet) {
+                if (packet.getClass().equals(updatePacket)) {
+                    Object position = pos.get(packet);
+
+                    int x = (int) getX.invoke(position);
+                    int y = (int) getY.invoke(position);
+                    int z = (int) getZ.invoke(position);
+
+                    if (waiting != null && tempSign != null &&
+                            tempSign.getBlockX() == x &&
+                            tempSign.getBlockY() == y &&
+                            tempSign.getBlockZ() == z) {
+                        waiting.run();
+                    }
+                }
+
                 return false;
             }
         }.inject();
@@ -172,7 +212,7 @@ public abstract class SignGUI {
                     l.subtract(0, 1, 0);
 
                     //check distance
-                    if (player.getLocation().getY() - l.getY() < minDistance) {
+                    if (l.getY() - player.getLocation().getY() < minDistance) {
                         //no suitable location found -> ignore text and show empty sign
                         return null;
                     }
