@@ -9,9 +9,11 @@ import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.items.XMaterial;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -19,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public abstract class SignGUI {
@@ -82,7 +85,7 @@ public abstract class SignGUI {
 
     public void open() {
         if (Version.get().equals(Version.v1_7)) {
-            throw new IllegalStateException("The SignEditor does not work with 1.7!");
+            throw new IllegalStateException("The SignEditor does not work on 1.7!");
         }
 
         //close current inventories
@@ -103,15 +106,18 @@ public abstract class SignGUI {
         }
 
         //finalize vars
-        Sign finalSign = sign;
-        Location finalTempSign = tempSign;
+        final Sign finalSign = sign;
+        final Location finalTempSign = tempSign;
 
         Runnable runnable = () -> {
             prepareSignEditing(finalSign);
             openEditor(finalSign);
 
             //clean temporary sign
-            if (finalTempSign != null) finalTempSign.getBlock().setType(Material.AIR);
+            if (finalTempSign != null) {
+                //reset blocks later so the editor can be opened without issues (mainly for older versions)
+                Bukkit.getScheduler().runTaskLater(plugin, () -> finalTempSign.getBlock().setType(Material.AIR), 1L);
+            }
 
             tempSign = null;
             waiting = null;
@@ -179,7 +185,7 @@ public abstract class SignGUI {
                             tempSign.getBlockX() == x &&
                             tempSign.getBlockY() == y &&
                             tempSign.getBlockZ() == z) {
-                        waiting.run();
+                        Bukkit.getScheduler().runTask(plugin, waiting);
                     }
                 }
 
@@ -205,7 +211,7 @@ public abstract class SignGUI {
 
             //check distance
             if (Math.abs(player.getLocation().getY() - l.getY()) < minDistance) {
-                l.setY(l.getWorld().getMaxHeight());
+                l.setY(l.getWorld().getMaxHeight() - 1);
 
                 //decrement from highest block
                 while (l.getBlock().getType() != Material.AIR) {
@@ -230,16 +236,23 @@ public abstract class SignGUI {
         if (this.lines == null) throw new NullPointerException("Cannot update a sign without content.");
 
         Sign sign;
-        assert XMaterial.OAK_SIGN.parseMaterial() != null;
+        Material m = XMaterial.OAK_SIGN.parseMaterial();
+        assert m != null;
 
-        tempSign.getBlock().setType(XMaterial.OAK_SIGN.parseMaterial());
-        sign = (Sign) tempSign.getBlock().getState();
+        //fix wrong parsing -> we need the block material
+        if (m.name().equals("SIGN")) m = Material.valueOf("SIGN_POST");
+
+        Block b = tempSign.getBlock();
+        b.setType(m, false);
+
+        sign = (Sign) b.getState();
 
         //update sign
         for (int i = 0; i < 4; i++) {
             sign.setLine(i, this.lines[i]);
         }
-        sign.update(true, true);
+        sign.update(true, false);
+
         return sign;
     }
 
@@ -247,11 +260,10 @@ public abstract class SignGUI {
         if (sign != null) {
             Object tileEntity;
 
-            IReflection.FieldAccessor<?> field;
-            if (Version.get().isBiggerThan(Version.v1_11)) field = IReflection.getField(sign.getClass(), "tileEntity");
-            else field = IReflection.getField(sign.getClass(), "sign");
-
-            tileEntity = field.get(sign);
+            if (Version.get().isBiggerThan(Version.v1_11)) {
+                IReflection.MethodAccessor getTileEntity = IReflection.getMethod(sign.getClass(), "getTileEntity");
+                tileEntity = getTileEntity.invoke(sign);
+            } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);
 
             IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), "isEditable");
             editable.set(tileEntity, true);
