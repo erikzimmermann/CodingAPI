@@ -63,7 +63,7 @@ public class GUI extends InventoryBuilder {
         player.openInventory(inventory);
     }
 
-    void continueGUI() throws IsNotWaitingException {
+    protected void continueGUI() throws IsNotWaitingException {
         if (!waiting) throw new IsNotWaitingException();
 
         waiting = false;

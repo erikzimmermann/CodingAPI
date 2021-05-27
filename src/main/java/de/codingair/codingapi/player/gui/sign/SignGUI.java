@@ -126,7 +126,7 @@ public abstract class SignGUI {
         };
 
         if (needsTempSign) waiting = runnable;
-        else runnable.run();
+        else Bukkit.getScheduler().runTask(plugin, runnable);
     }
 
     private void injectPacketReader() {
