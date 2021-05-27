@@ -21,7 +21,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
 public abstract class SignGUI {
@@ -54,27 +53,30 @@ public abstract class SignGUI {
     private Location tempSign = null;
     private Runnable waiting = null;
 
-    public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin) {
-        this(player, null, plugin);
-    }
+    public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin, @Nullable Sign sign, @Nullable String[] lines) {
+        if (lines != null) {
+            this.lines = new String[4];
+            for (int i = 0; i < 4; i++) {
+                if (i < lines.length) this.lines[i] = lines[i];
+                else break;
+            }
+        } else this.lines = null;
 
-    public SignGUI(@NotNull Player player, @Nullable Sign edit, @NotNull JavaPlugin plugin) {
         this.player = player;
-        this.sign = edit;
         this.plugin = plugin;
-        this.lines = null;
+        this.sign = sign;
     }
 
     public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin, @NotNull String... lines) {
-        this.lines = new String[4];
-        for (int i = 0; i < 4; i++) {
-            if (i < lines.length) this.lines[i] = lines[i];
-            else break;
-        }
+        this(player, plugin, null, lines);
+    }
 
-        this.player = player;
-        this.sign = null;
-        this.plugin = plugin;
+    public SignGUI(@NotNull Player player, @Nullable Sign edit, @NotNull JavaPlugin plugin) {
+        this(player, plugin, edit, null);
+    }
+
+    public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin) {
+        this(player, plugin, null, null);
     }
 
     public abstract void onSignChangeEvent(String[] lines);

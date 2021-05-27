@@ -1,42 +1,49 @@
 package de.codingair.codingapi.player.gui.inventory.v2.buttons;
 
-import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.v2.GUI;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
 import de.codingair.codingapi.tools.Call;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Sign;
+import org.bukkit.event.inventory.ClickType;
 
 public abstract class SignButton extends Button implements GUISwitchButton {
     private final Sign sign;
+    protected final String[] lines;
 
-    public SignButton(Sign sign) {
+    private SignButton(Sign sign, String[] lines) {
         this.sign = sign;
+        this.lines = lines;
     }
 
-    public abstract void onSignChangeEvent(String[] lines);
+    public SignButton(Sign sign) {
+        this(sign, null);
+    }
+
+    public SignButton(String[] lines) {
+        this(null, lines);
+    }
+
+    /**
+     *
+     * @param lines The applied lines of the sign.
+     * @return True if the sign GUI should be closed. False reopens it after a short delay since we need this for MC.
+     */
+    public abstract boolean onSignChangeEvent(GUI fallback, String[] lines);
 
     @Override
-    public void open(GUI gui, Call call) {
-        new SignGUI(gui.getPlayer(), this.sign, gui.getPlugin()) {
+    public boolean open(ClickType clickType, GUI gui, Call call) {
+        new SignGUI(gui.getPlayer(), gui.getPlugin(), this.sign, this.lines) {
             @Override
             public void onSignChangeEvent(String[] lines) {
-                boolean notEmpty = false;
-                for(String line : lines) {
-                    if(!line.isEmpty()) {
-                        notEmpty = true;
-                        break;
-                    }
-                }
+                //update sign
+                if(sign != null) Bukkit.getScheduler().runTask(gui.getPlugin(), () -> SignTools.updateSign(sign, lines, true));
 
-                if(notEmpty) {
-                    if(sign != null) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, true));
-                    SignButton.this.onSignChangeEvent(lines);
-                }
-
-                close(call);
+                if (SignButton.this.onSignChangeEvent(gui, lines)) close(call);
+                else Bukkit.getScheduler().runTask(gui.getPlugin(), this::open);
             }
         }.open();
+        return false;
     }
 }

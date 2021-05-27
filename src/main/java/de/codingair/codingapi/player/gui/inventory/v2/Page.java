@@ -1,8 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.v2;
 
 import de.codingair.codingapi.player.gui.inventory.v2.buttons.Button;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -19,19 +17,37 @@ public abstract class Page {
         this.items = new HashMap<>();
     }
 
+    public Page(GUI gui) {
+        this(gui, null);
+    }
+
     public abstract void buildItems();
 
+    /**
+     * Applies the given buttons to the GUI. These built buttons will not be deployed to the final GUI. <p>
+     * Also applies the basic buttons.
+     */
     public void apply() {
         apply(true);
     }
 
+    /**
+     * Applies the given buttons to the GUI. These built buttons will not be deployed to the final GUI.
+     *
+     * @param basic True if we should apply the basic buttons as well.
+     */
     public void apply(boolean basic) {
         buildItems();
         deploy(basic);
     }
 
+    /**
+     * Deploys the given buttons to the final GUI.
+     *
+     * @param basic True if we should deploy the basic buttons as well.
+     */
     private void deploy(boolean basic) {
-        if(basic && this.basic != null) this.basic.apply(basic);
+        if (basic && this.basic != null) this.basic.apply(basic);
         items.forEach((slot, item) -> gui.setItem(slot, item.buildItem()));
 
         gui.updateTitle(this.title);
@@ -43,6 +59,7 @@ public abstract class Page {
 
     /**
      * Clears and rebuilds buttons & updates inventory
+     *
      * @param basic Predecessor page
      */
     public void rebuild(boolean basic) {
@@ -60,19 +77,25 @@ public abstract class Page {
         deploy(basic);
     }
 
+    public void updateItem(int slot) throws NullPointerException {
+        Button button = getButtonAt(slot);
+        if (button == null) throw new NullPointerException("Could not find a button at slot=" + slot);
+        gui.setItem(slot, button.buildItem());
+    }
+
     public void clear() {
         clear(true);
     }
 
     public void clear(boolean basic) {
         gui.clear(items.keySet());
-        if(basic && this.basic != null) this.basic.clear(basic);
+        if (basic && this.basic != null) this.basic.clear(basic);
     }
 
     public Button getButtonAt(int slot) {
         Button b = items.get(slot);
 
-        if(b == null && this.basic != null) return this.basic.getButtonAt(slot);
+        if (b == null && this.basic != null) return this.basic.getButtonAt(slot);
         else return b;
     }
 
@@ -80,8 +103,12 @@ public abstract class Page {
         return getButtonAt(x + y * 9);
     }
 
-    public Page(GUI gui) {
-        this(gui, null);
+    public Button removeButtonAt(int slot) {
+        return items.remove(slot);
+    }
+
+    public Button removeButtonAt(int x, int y) {
+        return removeButtonAt(x + y * 9);
     }
 
     public void addButton(int slot, Button button) {
@@ -109,14 +136,14 @@ public abstract class Page {
         Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
 
         do {
-            if(overwrite) addButton((int) cX, (int) cY, button);
+            if (overwrite) addButton((int) cX, (int) cY, button);
             else addButtonIfAbsent((int) cX, (int) cY, button);
 
             cX += v.getX();
             cY += v.getY();
-        } while((int) cX != x1 || (int) cY != y1);
+        } while ((int) cX != x1 || (int) cY != y1);
 
-        if(overwrite) addButton((int) cX, (int) cY, button);
+        if (overwrite) addButton((int) cX, (int) cY, button);
         else addButtonIfAbsent((int) cX, (int) cY, button);
     }
 
