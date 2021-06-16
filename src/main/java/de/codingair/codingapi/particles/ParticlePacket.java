@@ -15,10 +15,32 @@ import java.lang.reflect.Constructor;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
  **/
 
 public class ParticlePacket {
+
+    private static final Class<?> packetPlayOutWorldParticles;
+    private static final Class<?> particleParam;
+    private static final Class<?> craftParticle;
+    private static final Class<?> dustOptions;
+    private static final IReflection.MethodAccessor toNMS;
+
+    static {
+        if (Version.get().isBiggerThan(Version.v1_12)) {
+            packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
+            particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
+            craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
+            dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
+            toNMS = IReflection.getMethod(craftParticle, "toNMS", particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
+        } else {
+            packetPlayOutWorldParticles = null;
+            particleParam = null;
+            craftParticle = null;
+            dustOptions = null;
+            toNMS = null;
+        }
+    }
+
     private final Particle particle;
     private Object packet;
     private Color color = null;
@@ -38,31 +60,24 @@ public class ParticlePacket {
     }
 
     public ParticlePacket initialize(Location loc) {
-        if(!available()) return this;
+        if (!available()) return this;
         this.location = loc;
 
         Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
-        Constructor packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
+        Constructor<?> packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
-        if(Version.get().isBiggerThan(Version.v1_12)) {
-            Class<?> packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
-            Class<?> particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
-            Class<?> craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
-            Class<?> dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
-            IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles);
-            IReflection.MethodAccessor toNMS = IReflection.getMethod(craftParticle, "toNMS", particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
-
+        if (Version.get().isBiggerThan(Version.v1_12)) {
             Object data = null;
             float offsetX = 0, offsetY = 0, offsetZ = 0, extra = 0;
             int count = 1;
-            if(this.color != null) {
-                if(particle == Particle.REDSTONE)
+            if (this.color != null) {
+                if (particle == Particle.REDSTONE)
                     data = IReflection.getConstructor(dustOptions, org.bukkit.Color.class, float.class).newInstance(org.bukkit.Color.fromRGB(this.color.getRed(), this.color.getGreen(), this.color.getBlue()), 1);
-                else if(particle == Particle.NOTE) {
+                else if (particle == Particle.NOTE) {
                     count = 0;
                     offsetX = noteId / 24F;
                     extra = 1F;
-                } else if(particle == Particle.SPELL_MOB || particle == Particle.SPELL_MOB_AMBIENT) {
+                } else if (particle == Particle.SPELL_MOB || particle == Particle.SPELL_MOB_AMBIENT) {
                     count = 0;
                     offsetX = color.getRed() / 255F;
                     offsetY = color.getGreen() / 255F;
@@ -72,35 +87,50 @@ public class ParticlePacket {
             }
 
             Object particle;
-
             try {
                 particle = toNMS.invoke(null, org.bukkit.Particle.valueOf(this.particle.name()), data);
-            } catch(Exception ex) {
+            } catch (Exception ex) {
                 return this;
             }
 
-            packet = packetCon.newInstance();
-
-            try {
-                IReflection.setValue(packet, "a", (float) this.location.getX());      //x
-                IReflection.setValue(packet, "b", (float) this.location.getY());      //y
-                IReflection.setValue(packet, "c", (float) this.location.getZ());      //z
-                IReflection.setValue(packet, "d", offsetX);                           //offset x
-                IReflection.setValue(packet, "e", offsetY);                           //offset y
-                IReflection.setValue(packet, "f", offsetZ);                           //offset z
-                IReflection.setValue(packet, "g", extra);                             //extra
-                IReflection.setValue(packet, "h", count);                             //count
-                IReflection.setValue(packet, "i", this.longDistance);
-                IReflection.setValue(packet, "j", particle);
-            } catch(IllegalAccessException | NoSuchFieldException e1) {
-                e1.printStackTrace();
+            if (Version.atLeast(17)) {
+                IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
+                assert packetCon != null;
+                packet = packetCon.newInstance(particle,
+                        this.longDistance,
+                        this.location.getX(),
+                        this.location.getY(),
+                        this.location.getZ(),
+                        offsetX,
+                        offsetY,
+                        offsetZ,
+                        extra,
+                        count);
+            } else {
+                IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles);
+                assert packetCon != null;
+                packet = packetCon.newInstance();
+                try {
+                    IReflection.setValue(packet, "a", (float) this.location.getX());      //x
+                    IReflection.setValue(packet, "b", (float) this.location.getY());      //y
+                    IReflection.setValue(packet, "c", (float) this.location.getZ());      //z
+                    IReflection.setValue(packet, "d", offsetX);                           //offset x
+                    IReflection.setValue(packet, "e", offsetY);                           //offset y
+                    IReflection.setValue(packet, "f", offsetZ);                           //offset z
+                    IReflection.setValue(packet, "g", extra);                             //extra
+                    IReflection.setValue(packet, "h", count);                             //count
+                    IReflection.setValue(packet, "i", this.longDistance);
+                    IReflection.setValue(packet, "j", particle);
+                } catch (IllegalAccessException | NoSuchFieldException e1) {
+                    e1.printStackTrace();
+                }
             }
         } else {
             Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
 
             ParticleData data = null;
 
-            if(particle.requiresData()) {
+            if (particle.requiresData()) {
                 Location below = loc.clone();
                 below.setY(loc.getBlockY() - 0.49);
 
@@ -108,14 +138,14 @@ public class ParticlePacket {
                 data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());
             }
 
-            if(particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER"))) return this;
+            if (particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER"))) return this;
 
             float e = 0, f = 0, g = 0, h = 0;
             int i = 1;
-            if(particle.isColorable() && this.color != null) {
+            if (particle.isColorable() && this.color != null) {
                 e = (float) this.color.getRed() / 255F;
 
-                if(e == 0) e = 0.003921569F;
+                if (e == 0) e = 0.003921569F;
 
                 f = (float) this.color.getGreen() / 255F;
                 g = (float) this.color.getBlue() / 255F;
@@ -129,7 +159,7 @@ public class ParticlePacket {
                 IReflection.setValue(packet, "a", enumParticle.getEnumConstants()[particle.getId()]);
                 IReflection.setValue(packet, "j", this.longDistance);
 
-                if(data != null) {
+                if (data != null) {
                     int[] packetData = data.getPacketData();
                     IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[] {packetData[0] | (packetData[1] << 12)});
                 }
@@ -142,7 +172,7 @@ public class ParticlePacket {
                 IReflection.setValue(packet, "g", g);
                 IReflection.setValue(packet, "h", h);
                 IReflection.setValue(packet, "i", i);
-            } catch(Exception exception) {
+            } catch (Exception exception) {
                 exception.printStackTrace();
             }
         }
@@ -151,23 +181,23 @@ public class ParticlePacket {
     }
 
     public boolean available() {
-        if(Version.get().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
+        if (Version.get().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
         Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
         return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();
     }
 
     public void send(Player... p) {
-        if(packet == null || location == null) return;
+        if (packet == null || location == null) return;
 
-        for(Player player : p) {
-            if(player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
+        for (Player player : p) {
+            if (player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
                 PacketUtils.sendPacket(packet, player);
             }
         }
     }
 
     public void send() {
-        if(packet == null || location == null) return;
+        if (packet == null || location == null) return;
         send(Bukkit.getOnlinePlayers().toArray(new Player[0]));
     }
 

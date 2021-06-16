@@ -26,7 +26,7 @@ import java.util.Map;
 public class IReflection {
 
     public static void setValue(Object instance, String fieldName, Object value) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
-        FieldAccessor field = getField(instance.getClass(), fieldName);
+        FieldAccessor<?> field = getField(instance.getClass(), fieldName);
         field.set(instance, value);
     }
 
