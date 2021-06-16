@@ -47,8 +47,8 @@ public class Page {
     }
 
     public Object getFinal() {
-        Class<?> IChatBaseComponentClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent");
-        Class<?> ChatSerializerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent$ChatSerializer");
+        Class<?> IChatBaseComponentClass = IReflection.getClass(IReflection.ServerPacket.CHAT, "IChatBaseComponent");
+        Class<?> ChatSerializerClass = IReflection.getClass(IReflection.ServerPacket.CHAT, "IChatBaseComponent$ChatSerializer");
 
         IReflection.MethodAccessor a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
         return a.invoke(null, ComponentSerializer.toString(this.data.toArray(new BaseComponent[0])));

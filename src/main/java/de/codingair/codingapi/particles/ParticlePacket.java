@@ -41,12 +41,12 @@ public class ParticlePacket {
         if(!available()) return this;
         this.location = loc;
 
-        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
+        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
         Constructor packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
         if(Version.get().isBiggerThan(Version.v1_12)) {
-            Class<?> packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutWorldParticles");
-            Class<?> particleParam = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ParticleParam");
+            Class<?> packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
+            Class<?> particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
             Class<?> craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
             Class<?> dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
             IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles);

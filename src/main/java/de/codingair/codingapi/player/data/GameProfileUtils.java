@@ -3,27 +3,22 @@ package de.codingair.codingapi.player.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
-import de.codingair.codingapi.player.data.Skin;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.json.simple.JSONArray;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class GameProfileUtils {
     public static GameProfile getGameProfile(Player p) {
-        Class<?> entityPlayerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(entityPlayerClass, "getProfile", GameProfile.class, new Class[] {});
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, "getProfile", GameProfile.class, new Class[] {});
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
     }
 
@@ -93,7 +88,7 @@ public class GameProfileUtils {
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", skin.getValue(), skin.getSignature()));
 
-        Class<?> PlayerInteractManagerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInteractManager");
+        Class<?> PlayerInteractManagerClass = IReflection.getClass(IReflection.ServerPacket.LEVEL, "PlayerInteractManager");
         IReflection.ConstructorAccessor entityPlayerCon = IReflection.getConstructor(PacketUtils.EntityPlayerClass, PacketUtils.MinecraftServerClass, PacketUtils.WorldServerClass, GameProfile.class, PlayerInteractManagerClass);
         IReflection.ConstructorAccessor destroyPacket = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
         IReflection.ConstructorAccessor packet = IReflection.getConstructor(PacketUtils.PacketPlayOutNamedEntitySpawnClass, PacketUtils.EntityHumanClass);

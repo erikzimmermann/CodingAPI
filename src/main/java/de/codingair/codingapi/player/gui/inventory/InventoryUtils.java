@@ -19,17 +19,17 @@ public class InventoryUtils {
     private static final IReflection.ConstructorAccessor packetConstructor;
 
     static {
-        packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
+        packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
 
         if (packetPlayOutOpenWindowClass != null) {
             //initialize classes
-            containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
+            containerClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
             updateInventory = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {containerClass});
             activeContainer = IReflection.getField(PacketUtils.EntityHumanClass, "activeContainer");
             windowId = IReflection.getField(containerClass, "windowId");
 
             if (Version.get().isBiggerThan(Version.v1_13)) {
-                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
                 title = IReflection.getField(containerClass, "title");
 
                 packetConstructor = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
@@ -87,7 +87,7 @@ public class InventoryUtils {
     }
 
     private static Object getContainerType(int size) {
-        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
         IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
         return generic.get(null);
     }

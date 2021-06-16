@@ -6,7 +6,6 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.sounds.Sound;
 import de.codingair.codingapi.server.specification.Version;
-import org.bukkit.Color;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
@@ -16,7 +15,6 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -97,9 +95,9 @@ public class Environment {
         if(Version.get().isBiggerThan(Version.v1_8)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
-            Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "SoundEffectType");
-            Class<?> soundEffectClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "SoundEffect");
-            Class<?> minecraftKeyClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "MinecraftKey");
+            Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "SoundEffectType");
+            Class<?> soundEffectClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.sounds"), "SoundEffect");
+            Class<?> minecraftKeyClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.resources"), "MinecraftKey");
 
             Object soundEffectType = getSoundEffectType.get(block);
 
@@ -143,7 +141,7 @@ public class Environment {
             key = getKey.get(mcKey);
         } else {
             IReflection.FieldAccessor<?> getStepSound = IReflection.getField(PacketUtils.BlockClass, "stepSound");
-            Class<?> stepSoundClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Block$StepSound");
+            Class<?> stepSoundClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "Block$StepSound");
             IReflection.MethodAccessor breakSound = IReflection.getMethod(stepSoundClass, "getBreakSound", String.class, new Class[0]);
 
             Object stepSound = getStepSound.get(block);

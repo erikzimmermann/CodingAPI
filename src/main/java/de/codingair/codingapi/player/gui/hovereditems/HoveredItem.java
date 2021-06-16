@@ -109,9 +109,9 @@ public abstract class HoveredItem implements Removable, Ticker {
 	
 	public void spawn() {
 		remove();
-		
-		Class<?> entityArmorStand = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityArmorStand");
-		Class<?> entityItem = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityItem");
+
+		Class<?> entityArmorStand = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.decoration"), "EntityArmorStand");
+		Class<?> entityItem = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.item"), "EntityItem");
 		
 		IReflection.MethodAccessor setInvisible = IReflection.getMethod(entityArmorStand, "setInvisible", new Class[]{boolean.class});
 		IReflection.FieldAccessor pickupDelay = IReflection.getField(entityItem, "pickupDelay");

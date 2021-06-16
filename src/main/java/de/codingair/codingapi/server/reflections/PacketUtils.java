@@ -25,83 +25,83 @@ public class PacketUtils {
     public static final Class<?> CraftPlayerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftPlayer");
     public static final Class<?> CraftEntityClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftEntity");
     public static final Class<?> CraftServerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftServer");
-    public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "MinecraftServer");
-    public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DedicatedServer");
+    public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server"), "MinecraftServer");
+    public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.dedicated"), "DedicatedServer");
     public static final Class<?> CraftWorldClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftWorld");
-    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "World");
-    public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "WorldServer");
-    public static final Class<?> BlockPositionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "BlockPosition");
-    public static final Class<?> BlockClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Block");
-    public static final Class<?> BlocksClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Blocks");
-    public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IBlockData");
-    public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntity");
-    public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntitySign");
-    public static final Class<?> PlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerList");
-    public static final Class<?> DedicatedPlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DedicatedPlayerList");
-    public static final Class<?> DimensionManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DimensionManager");
-    public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagCompound");
+    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.LEVEL, "World");
+    public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), "WorldServer");
+    public static final Class<?> BlockPositionClass = getClass(IReflection.ServerPacket.CORE, "BlockPosition");
+    public static final Class<?> BlockClass = getClass(IReflection.ServerPacket.BLOCK, "Block");
+    public static final Class<?> BlocksClass = getClass(IReflection.ServerPacket.BLOCK, "Blocks");
+    public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.state"), "IBlockData");
+    public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), "TileEntity");
+    public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), "TileEntitySign");
+    public static final Class<?> PlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.players"), "PlayerList");
+    public static final Class<?> DedicatedPlayerListClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.dedicated"), "DedicatedPlayerList");
+    public static final Class<?> DimensionManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.dimension"), "DimensionManager");
+    public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.NBT, "NBTTagCompound");
 
-    public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Entity");
-    public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
-    public static final Class<?> EntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityLiving");
-    public static final Class<?> EntityInsentientClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityInsentient");
-    public static final Class<?> EntityHumanClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityHuman");
-    public static final Class<?> EntityFallingBlockClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityFallingBlock");
+    public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "Entity");
+    public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), "EntityPlayer");
+    public static final Class<?> EntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "EntityLiving");
+    public static final Class<?> EntityInsentientClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "EntityInsentient");
+    public static final Class<?> EntityHumanClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), "EntityHuman");
+    public static final Class<?> EntityFallingBlockClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.item"), "EntityFallingBlock");
 
-    public static final Class<?> ItemStackClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ItemStack");
+    public static final Class<?> ItemStackClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.item"), "ItemStack");
     public static final Class<?> CraftItemStackClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftItemStack");
     public static final IReflection.MethodAccessor getCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "getCustomModelData", int.class);
     public static final IReflection.MethodAccessor hasCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "hasCustomModelData", boolean.class);
     public static final IReflection.MethodAccessor setCustomModelData = IReflection.getSaveMethod(ItemMeta.class, "setCustomModelData", null, int.class);
 
-    public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerConnection");
-    public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NetworkManager");
+    public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.network"), "PlayerConnection");
+    public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network"), "NetworkManager");
 
-    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DataWatcher");
-    public static final Class<?> DataWatcherRegistryClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DataWatcherRegistry");
-    public static final Class<?> DataWatcherSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DataWatcherSerializer");
-    public static final Class<?> DataWatcherObjectClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "DataWatcherObject");
+    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcher");
+    public static final Class<?> DataWatcherRegistryClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcherRegistry");
+    public static final Class<?> DataWatcherSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcherSerializer");
+    public static final Class<?> DataWatcherObjectClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcherObject");
 
-    public static final Class<?> PacketPlayOutMountClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutMount");
-    public static final Class<?> PacketPlayOutUpdateAttributesClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutUpdateAttributes");
-    public static final Class<?> PacketPlayOutUpdateEntityNBTClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutUpdateEntityNBT");
-    public static final Class<?> PacketPlayOutTileEntityDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");
-    public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutAttachEntity");
-    public static final Class<?> PacketPlayOutNamedEntitySpawnClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutNamedEntitySpawn");
-    public static final Class<?> PacketPlayOutEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntity");
-    public static final Class<?> PacketPlayOutEntityEquipmentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityEquipment");
-    public static final Class<?> PacketPlayOutAnimationClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutAnimation");
-    public static final Class<?> PacketPlayOutEntityStatusClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityStatus");
-    public static final Class<?> PacketPlayOutBedClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutBed");
-    public static final Class<?> PacketPlayOutEntityDestroyClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityDestroy");
-    public static final Class<?> PacketPlayOutEntityEffectClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityEffect");
-    public static final Class<?> PacketPlayOutEntityTeleportClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityTeleport");
-    public static final Class<?> PacketPlayOutEntityVelocityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityVelocity");
-    public static final Class<?> PacketPlayOutEntityLookClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntity$PacketPlayOutEntityLook");
-    public static final Class<?> PacketPlayOutEntityHeadRotationClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityHeadRotation");
-    public static final Class<?> PacketPlayOutPlayerInfoClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo");
-    public static final Class<?> PacketPlayOutPlayerInfo$PlayerInfoData = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo$PlayerInfoData");
-    public static final Class<?> PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
-    public static final Class<?> PacketPlayOutEntityMetadataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutEntityMetadata");
-    public static final Class<?> PacketPlayInSettingsClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInSettings");
-    public static final Class<?> PacketPlayOutSpawnEntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutSpawnEntityLiving");
-    public static final Class<?> PacketPlayOutSpawnEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutSpawnEntity");
-    public static final Class<?> PacketPlayOutBlockActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutBlockAction");
-    public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
-    public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenSignEditor");
+    public static final Class<?> PacketPlayOutMountClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutMount");
+    public static final Class<?> PacketPlayOutUpdateAttributesClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateAttributes");
+    public static final Class<?> PacketPlayOutUpdateEntityNBTClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateEntityNBT");
+    public static final Class<?> PacketPlayOutTileEntityDataClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
+    public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutAttachEntity");
+    public static final Class<?> PacketPlayOutNamedEntitySpawnClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutNamedEntitySpawn");
+    public static final Class<?> PacketPlayOutEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntity");
+    public static final Class<?> PacketPlayOutEntityEquipmentClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityEquipment");
+    public static final Class<?> PacketPlayOutAnimationClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutAnimation");
+    public static final Class<?> PacketPlayOutEntityStatusClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityStatus");
+    public static final Class<?> PacketPlayOutBedClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBed");
+    public static final Class<?> PacketPlayOutEntityDestroyClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityDestroy");
+    public static final Class<?> PacketPlayOutEntityEffectClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityEffect");
+    public static final Class<?> PacketPlayOutEntityTeleportClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityTeleport");
+    public static final Class<?> PacketPlayOutEntityVelocityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityVelocity");
+    public static final Class<?> PacketPlayOutEntityLookClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntity$PacketPlayOutEntityLook");
+    public static final Class<?> PacketPlayOutEntityHeadRotationClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityHeadRotation");
+    public static final Class<?> PacketPlayOutPlayerInfoClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerInfo");
+    public static final Class<?> PacketPlayOutPlayerInfo$PlayerInfoData = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerInfo$PlayerInfoData");
+    public static final Class<?> PacketPlayOutEntity$PacketPlayOutRelEntityMoveLookClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntity$PacketPlayOutRelEntityMoveLook");
+    public static final Class<?> PacketPlayOutEntityMetadataClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityMetadata");
+    public static final Class<?> PacketPlayInSettingsClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInSettings");
+    public static final Class<?> PacketPlayOutSpawnEntityLivingClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutSpawnEntityLiving");
+    public static final Class<?> PacketPlayOutSpawnEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutSpawnEntity");
+    public static final Class<?> PacketPlayOutBlockActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockAction");
+    public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
+    public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
 
-    public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumItemSlot");
-    public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
-    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
-    public static final Class<?> EnumEntityUseActionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUseEntity$EnumEntityUseAction");
+    public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "EnumItemSlot");
+    public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
+    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.LEVEL, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
+    public static final Class<?> EnumEntityUseActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUseEntity$EnumEntityUseAction");
 
-    public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInteractManager");
+    public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), "PlayerInteractManager");
 
-    public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent$ChatSerializer");
-    public static final Class<?> IChatMutableComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatMutableComponent");
-    public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "IChatBaseComponent");
-    public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
-    public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatComponentText");
+    public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, "IChatBaseComponent$ChatSerializer");
+    public static final Class<?> IChatMutableComponentClass = getClass(IReflection.ServerPacket.CHAT, "IChatMutableComponent");
+    public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, "IChatBaseComponent");
+    public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
+    public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.CHAT, "ChatComponentText");
 
     public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[] {});
     public static final IReflection.MethodAccessor getHandleCraftServer = getMethod(CraftServerClass, "getHandle", DedicatedPlayerListClass, new Class[] {});
@@ -114,7 +114,7 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
 
-    public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, "playerConnection");
+    public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
 
     public static class Blocks {
         public static Object findByName(String name) {
@@ -138,6 +138,10 @@ public class PacketUtils {
     }
 
     public static Class<?> getClass(IReflection.ServerPacket packet, String className) {
+        return getClass(packet.toString(), className);
+    }
+
+    public static Class<?> getClass(String packet, String className) {
         try {
             return IReflection.getSaveClass(packet, className);
         } catch(Exception ex) {

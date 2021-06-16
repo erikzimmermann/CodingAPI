@@ -5,6 +5,7 @@ import de.codingair.codingapi.server.AsyncCatcher;
 import de.codingair.codingapi.server.events.PlayerPickItemEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -24,8 +25,14 @@ public class PickItemListener implements Listener {
     private static final IReflection.FieldAccessor<?> b;
 
     static {
-        PACKET_CLASS = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInSetCreativeSlot");
-        slot = IReflection.getField(PACKET_CLASS, "slot");
+        PACKET_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInSetCreativeSlot");
+
+        if (Version.get().isBiggerThan(16)) {
+            slot = IReflection.getField(PACKET_CLASS, "a");
+        } else {
+            slot = IReflection.getField(PACKET_CLASS, "slot");
+        }
+
         b = IReflection.getField(PACKET_CLASS, "b");
     }
 
@@ -36,7 +43,7 @@ public class PickItemListener implements Listener {
     }
 
     private void call(Player player, int slot, ItemStack item) {
-        if(item.getType() == Material.AIR) return;
+        if (item.getType() == Material.AIR) return;
 
         Block b = player.getTargetBlock(new HashSet<Material>() {{
             add(Material.AIR);
@@ -44,16 +51,16 @@ public class PickItemListener implements Listener {
 
         boolean correct = b.getType() == item.getType();
 
-        if(!correct) {
-            for(ItemStack drop : b.getDrops()) {
-                if(drop.getType() == item.getType()) {
+        if (!correct) {
+            for (ItemStack drop : b.getDrops()) {
+                if (drop.getType() == item.getType()) {
                     correct = true;
                     break;
                 }
             }
         }
 
-        if(correct) Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getInventory().getItemInHand(), b, !new NBTTagCompound(item).getMap().isEmpty()));
+        if (correct) Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getInventory().getItemInHand(), b, !new NBTTagCompound(item).getMap().isEmpty()));
     }
 
     @EventHandler
@@ -62,7 +69,7 @@ public class PickItemListener implements Listener {
         new PacketReader(p, "PickItemListener", plugin) {
             @Override
             public boolean readPacket(Object packet) {
-                if(PACKET_CLASS == packet.getClass()) {
+                if (PACKET_CLASS == packet.getClass()) {
                     AsyncCatcher.runSync(plugin, () -> call(p, slot.get(packet), PacketUtils.getItemStack(b.get(packet))));
                 }
 

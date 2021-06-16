@@ -14,6 +14,7 @@ public enum Version {
     v1_14(14),
     v1_15(15),
     v1_16(16),
+    v1_17(17),
     ;
 
     private static Version VERSION = null;
@@ -93,5 +94,12 @@ public enum Version {
 
     public static boolean less(int version) {
         return get().id < version;
+    }
+
+    @SafeVarargs
+    public static <T> T since(int version, T old, T... updated) {
+        int diff = Version.get().getId() - version;
+        if (diff >= 0) return updated[diff];
+        return old;
     }
 }

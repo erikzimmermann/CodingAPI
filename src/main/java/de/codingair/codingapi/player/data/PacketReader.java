@@ -3,6 +3,7 @@ package de.codingair.codingapi.player.data;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -42,9 +43,9 @@ public abstract class PacketReader implements Removable {
 	}
 	
 	public boolean inject() {
-		IReflection.FieldAccessor<?> getPlayerConnection = IReflection.getField(PacketUtils.EntityPlayerClass, "playerConnection");
-		IReflection.FieldAccessor<?> getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, "networkManager");
-		IReflection.FieldAccessor<?> getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, "channel");
+		IReflection.FieldAccessor<?> getPlayerConnection = PacketUtils.playerConnection;
+		IReflection.FieldAccessor<?> getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, Version.since(17, "networkManager", "a"));
+		IReflection.FieldAccessor<?> getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, Version.since(17, "channel", "k"));
 
 		Object ep = PacketUtils.getEntityPlayer(player);
 		if(ep == null) return false;

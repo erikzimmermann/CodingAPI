@@ -98,7 +98,7 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
     public static CommandDispatcher<Object> dispatcher() {
         if(dispatcher == null) {
             IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
-            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "CommandDispatcher");
+            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandDispatcher");
             Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
 
             IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", commandDispatcherBrigadierClass, new Class[] {});

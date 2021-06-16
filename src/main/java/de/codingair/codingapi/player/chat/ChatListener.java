@@ -17,7 +17,7 @@ public class ChatListener implements Listener {
 
     public ChatListener() {
         try {
-            chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInChat");
+            chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
         } catch(ClassNotFoundException ignored) {
         }
 

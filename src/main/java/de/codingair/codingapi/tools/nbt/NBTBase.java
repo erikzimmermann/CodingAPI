@@ -28,18 +28,18 @@ public class NBTBase<T> {
     }
     
     private enum Type {
-        BYTE(Byte.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagByte")),
-        BYTE_ARRAY(Byte[].class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagByteArray")),
-        DOUBLE(Double.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagDouble")),
-        END(null, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagEnd")),
-        FLOAT(Float.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagFloat")),
-        INT(Integer.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagInt")),
-        INT_ARRAY(Integer[].class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagIntArray")),
-        LIST(List.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagList")),
-        LONG(Long.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagLong")),
-        LONG_ARRAY(Long[].class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagLongArray")),
-        SHORT(Short.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagShort")),
-        STRING(String.class, IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "NBTTagString")),
+        BYTE(Byte.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByte")),
+        BYTE_ARRAY(Byte[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByteArray")),
+        DOUBLE(Double.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagDouble")),
+        END(null, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagEnd")),
+        FLOAT(Float.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagFloat")),
+        INT(Integer.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagInt")),
+        INT_ARRAY(Integer[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagIntArray")),
+        LIST(List.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagList")),
+        LONG(Long.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagLong")),
+        LONG_ARRAY(Long[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagLongArray")),
+        SHORT(Short.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagShort")),
+        STRING(String.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagString")),
         UNKNOWN(null, null);
         
         private final Class<?> objectClazz;

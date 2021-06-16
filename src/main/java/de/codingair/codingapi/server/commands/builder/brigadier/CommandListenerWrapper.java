@@ -15,8 +15,10 @@ public class CommandListenerWrapper {
 
     public CommandListenerWrapper() {
         if(getBukkitSender == null) {
-            Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "CommandListenerWrapper");
-            Class<?> vec3DClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Vec3D");
+            Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandListenerWrapper");
+
+
+            Class<?> vec3DClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D");
             getBukkitSender = IReflection.getMethod(commandListenerWrapperClass, "getBukkitSender", CommandSender.class, new Class[]{});
             getWorld = IReflection.getMethod(commandListenerWrapperClass, "getWorld", PacketUtils.WorldServerClass, new Class[]{});
             getPosition = IReflection.getMethod(commandListenerWrapperClass, "getPosition", vec3DClass, new Class[]{});

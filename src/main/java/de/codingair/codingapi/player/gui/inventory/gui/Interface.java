@@ -314,7 +314,7 @@ public class Interface {
     }
 
     private Object getContainerType(int size) {
-        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
         IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "GENERIC_9X" + (size / 9));
         return generic.get(null);
     }

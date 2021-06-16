@@ -18,18 +18,18 @@ public class MessageAPI {
 
         Object com = PacketUtils.getChatMessage(message);
 
-        Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutChat");
+        Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutChat");
 
         Object bar;
 
         if(Version.get().isBiggerThan(15)) {
-            Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
+            Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
         } else if(Version.get().isBiggerThan(11)) {
-            Class<?> type = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessageType");
+            Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
 
@@ -93,8 +93,8 @@ public class MessageAPI {
     }
 
     public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket, boolean reset, boolean clear) {
-        Class<?> packet = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle");
-        Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTitle$EnumTitleAction");
+        Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle");
+        Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");
         IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
         int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
@@ -119,7 +119,7 @@ public class MessageAPI {
         Object packet;
 
         if(Version.get().isBiggerThan(Version.v1_12)) {
-            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerListHeaderFooter");
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass);
 
             packet = constructor.newInstance();
@@ -130,7 +130,7 @@ public class MessageAPI {
             headerF.set(packet, PacketUtils.getChatMessage(header));
             footerF.set(packet, PacketUtils.getChatMessage(footer));
         } else {
-            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutPlayerListHeaderFooter");
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerListHeaderFooter");
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass, PacketUtils.ChatMessageClass);
 
             IReflection.FieldAccessor b = IReflection.getField(packetClass, "b");

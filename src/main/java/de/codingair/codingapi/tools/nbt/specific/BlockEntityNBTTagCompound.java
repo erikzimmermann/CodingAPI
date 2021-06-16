@@ -33,7 +33,7 @@ public class BlockEntityNBTTagCompound extends NBTTagCompound {
         if(TILE_ENTITY != null) return;
 
         CRAFT_BLOCK_ENTITY_STATE = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "block.CraftBlockEntityState");
-        Class<?> tileClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "TileEntity");
+        Class<?> tileClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), "TileEntity");
 
         TILE_ENTITY = IReflection.getField(CRAFT_BLOCK_ENTITY_STATE, "tileEntity");
         SAVE = IReflection.getMethod(tileClass, "save", PacketUtils.NBTTagCompoundClass, new Class[] {PacketUtils.NBTTagCompoundClass});

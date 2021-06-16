@@ -75,15 +75,15 @@ public class Book implements Removable {
     private void callOpenPacket() {
         //open
         if(!Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> PacketDataSerializerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketDataSerializer");
+            Class<?> PacketDataSerializerClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketDataSerializer");
             IReflection.ConstructorAccessor dataSCon = IReflection.getConstructor(PacketDataSerializerClass, ByteBuf.class);
 
-            Packet packet = new Packet(IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutCustomPayload"), this.player);
+            Packet packet = new Packet(IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutCustomPayload"), this.player);
             packet.initialize(new Class[]{String.class, PacketDataSerializerClass}, "MC|BOpen", dataSCon.newInstance(Unpooled.buffer()));
             packet.send();
         } else {
-            Class<?> PacketPlayOutOpenBookClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenBook");
-            Class<?> EnumHandClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumHand");
+            Class<?> PacketPlayOutOpenBookClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenBook");
+            Class<?> EnumHandClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world"), "EnumHand");
 
             Packet packet = new Packet(PacketPlayOutOpenBookClass, this.player);
             packet.initialize(new Class[]{EnumHandClass}, EnumHandClass.getEnumConstants()[0]);

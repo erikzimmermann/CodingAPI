@@ -1,6 +1,5 @@
 package de.codingair.codingapi.server.events;
 
-import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;

@@ -33,11 +33,11 @@ public abstract class SignGUI {
     private static final IReflection.MethodAccessor getZ;
 
     static {
-        packetClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayInUpdateSign");
+        packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
 
-        updatePacket = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutTileEntityData");
+        updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
         pos = IReflection.getField(updatePacket, "a");
-        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "BaseBlockPosition");
+        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, "BaseBlockPosition");
         assert baseBlockPosition != null;
         getX = IReflection.getMethod(baseBlockPosition, "getX", int.class, new Class[0]);
         getY = IReflection.getMethod(baseBlockPosition, "getY", int.class, new Class[0]);
@@ -134,40 +134,44 @@ public abstract class SignGUI {
             @Override
             public boolean readPacket(Object packet) {
                 if (packet.getClass().equals(packetClass)) {
-                    IReflection.FieldAccessor<?> b = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
-                    assert PacketUtils.PacketPlayInUpdateSignClass != null;
-                    Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
+                    try {
+                        IReflection.FieldAccessor<?> packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, Version.since(17, "b", "c"));
+                        assert PacketUtils.PacketPlayInUpdateSignClass != null;
+                        Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
 
-                    String[] lines;
+                        String[] lines;
 
-                    if (Version.get().isBiggerThan(Version.v1_8)) {
-                        lines = (String[]) b.get(p);
-                    } else {
-                        lines = sign == null ? new String[4] : sign.getLines();
+                        if (Version.get().isBiggerThan(Version.v1_8)) {
+                            lines = (String[]) packetLines.get(p);
+                        } else {
+                            lines = sign == null ? new String[4] : sign.getLines();
 
-                        Object[] data = (Object[]) b.get(p);
+                            Object[] data = (Object[]) packetLines.get(p);
 
-                        assert PacketUtils.IChatBaseComponentClass != null;
-                        IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
-                        IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
+                            assert PacketUtils.IChatBaseComponentClass != null;
+                            IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
+                            IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
 
-                        for (int i = 0; i < 4; i++) {
-                            Object icbc;
+                            for (int i = 0; i < 4; i++) {
+                                Object icbc;
 
-                            try {
-                                icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
-                            } catch (Exception ex) {
-                                icbc = PacketUtils.getChatMessage((String) data[i]);
+                                try {
+                                    icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
+                                } catch (Exception ex) {
+                                    icbc = PacketUtils.getChatMessage((String) data[i]);
+                                }
+
+                                int siblings = ((List<?>) getSiblings.invoke(icbc)).size();
+                                String line = (String) getText.invoke(icbc);
+
+                                if (!line.isEmpty() || siblings == 0) lines[i] = line;
                             }
-
-                            int siblings = ((List<?>) getSiblings.invoke(icbc)).size();
-                            String line = (String) getText.invoke(icbc);
-
-                            if (!line.isEmpty() || siblings == 0) lines[i] = line;
                         }
-                    }
 
-                    onSignChangeEvent(lines);
+                        onSignChangeEvent(lines);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                     return true;
                 }
 
@@ -267,11 +271,16 @@ public abstract class SignGUI {
                 tileEntity = getTileEntity.invoke(sign);
             } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);
 
-            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), "isEditable");
+            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), Version.since(17, "isEditable", "f"));
             editable.set(tileEntity, true);
 
-            IReflection.FieldAccessor<?> owner;
+            IReflection.FieldAccessor<?> owner = null;
             switch (Version.get().getId()) {
+                case 17:
+                    IReflection.FieldAccessor<?> id = IReflection.getField(tileEntity.getClass(), "g");
+                    id.set(tileEntity, player.getUniqueId());
+                    break;
+
                 case 16:
                 case 15:
                     owner = IReflection.getField(tileEntity.getClass(), "c");
@@ -286,7 +295,8 @@ public abstract class SignGUI {
                     owner = IReflection.getField(tileEntity.getClass(), "h");
                     break;
             }
-            owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
+
+            if (owner != null) owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
         }
     }
 

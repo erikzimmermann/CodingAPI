@@ -166,19 +166,19 @@ public class AnvilGUI implements Removable {
         API.addRemovable(this);
         this.player.closeInventory();
 
-        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAnvil");
-        Class<?> playerInventoryClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PlayerInventory");
-        Class<?> worldClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "World");
-        Class<?> blockPositionClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "BlockPosition");
-        Class<?> entityPlayerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
+        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAnvil");
+        Class<?> playerInventoryClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), "PlayerInventory");
+        Class<?> worldClass = PacketUtils.WorldClass;
+        Class<?> blockPositionClass = PacketUtils.BlockPositionClass;
+        Class<?> entityPlayerClass = PacketUtils.EntityPlayerClass;
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftInventoryView");
-        Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "PacketPlayOutOpenWindow");
-        Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Container");
-        Class<?> chatMessageClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ChatMessage");
+        Class<?> packetPlayOutOpenWindowClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
+        Class<?> containerClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
+        Class<?> chatMessageClass = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
 
         IReflection.ConstructorAccessor anvilContainerCon;
         if(Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
+            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
             anvilContainerCon = IReflection.getConstructor(containerAnvilClass, int.class, playerInventoryClass, containerAccessClass);
         } else {
             anvilContainerCon = IReflection.getConstructor(containerAnvilClass, playerInventoryClass, worldClass, blockPositionClass, entityPlayerClass);
@@ -206,7 +206,7 @@ public class AnvilGUI implements Removable {
 
         Object container;
         if(Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAccess");
+            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
             IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, "at", containerAccessClass, new Class[] {worldClass, blockPositionClass});
 
             container = anvilContainerCon.newInstance(c, inventory, at.invoke(null, world, blockPosition));
@@ -226,7 +226,7 @@ public class AnvilGUI implements Removable {
 
         try {
             if(Version.get().isBiggerThan(Version.v1_13)) {
-                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "Containers");
+                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
                 IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, "ANVIL");
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(packetPlayOutOpenWindowClass, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
 
@@ -272,11 +272,10 @@ public class AnvilGUI implements Removable {
     }
 
     public void updateInventory() {
-        Class<?> entityPlayerClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EntityPlayer");
-        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "ContainerAnvil");
+        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAnvil");
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftInventoryView");
 
-        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(entityPlayerClass, "activeContainer");
+        IReflection.FieldAccessor<?> activeContainer = IReflection.getField(PacketUtils.EntityPlayerClass, "activeContainer");
 
         IReflection.MethodAccessor getBukkitView = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
         IReflection.MethodAccessor getTopInventory = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);
