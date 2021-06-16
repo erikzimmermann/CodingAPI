@@ -134,44 +134,40 @@ public abstract class SignGUI {
             @Override
             public boolean readPacket(Object packet) {
                 if (packet.getClass().equals(packetClass)) {
-                    try {
-                        IReflection.FieldAccessor<?> packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, Version.since(17, "b", "c"));
-                        assert PacketUtils.PacketPlayInUpdateSignClass != null;
-                        Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
+                    IReflection.FieldAccessor<?> packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, Version.since(17, "b", "c"));
+                    assert PacketUtils.PacketPlayInUpdateSignClass != null;
+                    Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
 
-                        String[] lines;
+                    String[] lines;
 
-                        if (Version.get().isBiggerThan(Version.v1_8)) {
-                            lines = (String[]) packetLines.get(p);
-                        } else {
-                            lines = sign == null ? new String[4] : sign.getLines();
+                    if (Version.get().isBiggerThan(Version.v1_8)) {
+                        lines = (String[]) packetLines.get(p);
+                    } else {
+                        lines = sign == null ? new String[4] : sign.getLines();
 
-                            Object[] data = (Object[]) packetLines.get(p);
+                        Object[] data = (Object[]) packetLines.get(p);
 
-                            assert PacketUtils.IChatBaseComponentClass != null;
-                            IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
-                            IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
+                        assert PacketUtils.IChatBaseComponentClass != null;
+                        IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[] {});
+                        IReflection.MethodAccessor getSiblings = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "a", List.class, new Class[] {});
 
-                            for (int i = 0; i < 4; i++) {
-                                Object icbc;
+                        for (int i = 0; i < 4; i++) {
+                            Object icbc;
 
-                                try {
-                                    icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
-                                } catch (Exception ex) {
-                                    icbc = PacketUtils.getChatMessage((String) data[i]);
-                                }
-
-                                int siblings = ((List<?>) getSiblings.invoke(icbc)).size();
-                                String line = (String) getText.invoke(icbc);
-
-                                if (!line.isEmpty() || siblings == 0) lines[i] = line;
+                            try {
+                                icbc = PacketUtils.IChatBaseComponentClass.cast(data[i]);
+                            } catch (Exception ex) {
+                                icbc = PacketUtils.getChatMessage((String) data[i]);
                             }
-                        }
 
-                        onSignChangeEvent(lines);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                            int siblings = ((List<?>) getSiblings.invoke(icbc)).size();
+                            String line = (String) getText.invoke(icbc);
+
+                            if (!line.isEmpty() || siblings == 0) lines[i] = line;
+                        }
                     }
+
+                    onSignChangeEvent(lines);
                     return true;
                 }
 

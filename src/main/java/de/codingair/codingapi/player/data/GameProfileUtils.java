@@ -88,7 +88,7 @@ public class GameProfileUtils {
         profile.getProperties().removeAll("textures");
         profile.getProperties().put("textures", new Property("textures", skin.getValue(), skin.getSignature()));
 
-        Class<?> PlayerInteractManagerClass = IReflection.getClass(IReflection.ServerPacket.LEVEL, "PlayerInteractManager");
+        Class<?> PlayerInteractManagerClass = IReflection.getClass(IReflection.ServerPacket.SERVER_LEVEL, "PlayerInteractManager");
         IReflection.ConstructorAccessor entityPlayerCon = IReflection.getConstructor(PacketUtils.EntityPlayerClass, PacketUtils.MinecraftServerClass, PacketUtils.WorldServerClass, GameProfile.class, PlayerInteractManagerClass);
         IReflection.ConstructorAccessor destroyPacket = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
         IReflection.ConstructorAccessor packet = IReflection.getConstructor(PacketUtils.PacketPlayOutNamedEntitySpawnClass, PacketUtils.EntityHumanClass);

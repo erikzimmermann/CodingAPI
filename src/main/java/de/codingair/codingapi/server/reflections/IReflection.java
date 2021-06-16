@@ -326,7 +326,8 @@ public class IReflection {
         NBT(17, "net.minecraft.nbt"),
         CORE(17, "net.minecraft.core"),
         PARTICLES(17, "net.minecraft.core.particles"),
-        LEVEL(17, "net.minecraft.server.level"),
+        SERVER_LEVEL(17, "net.minecraft.server.level"),
+        WORLD_LEVEL(17, "net.minecraft.world.level"),
         INVENTORY(17, "net.minecraft.world.inventory"),
         BLOCK(17, "net.minecraft.world.level.block"),
         ;

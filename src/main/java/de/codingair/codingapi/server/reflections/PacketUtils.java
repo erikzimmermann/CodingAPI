@@ -28,7 +28,7 @@ public class PacketUtils {
     public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server"), "MinecraftServer");
     public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.dedicated"), "DedicatedServer");
     public static final Class<?> CraftWorldClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftWorld");
-    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.LEVEL, "World");
+    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.WORLD_LEVEL, "World");
     public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), "WorldServer");
     public static final Class<?> BlockPositionClass = getClass(IReflection.ServerPacket.CORE, "BlockPosition");
     public static final Class<?> BlockClass = getClass(IReflection.ServerPacket.BLOCK, "Block");
@@ -92,7 +92,7 @@ public class PacketUtils {
 
     public static final Class<?> EnumItemSlotClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "EnumItemSlot");
     public static final Class<?> EnumPlayerInfoActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerInfo$EnumPlayerInfoAction");
-    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.LEVEL, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
+    public static final Class<?> EnumGamemodeClass = getClass(IReflection.ServerPacket.WORLD_LEVEL, (Version.get().equals(Version.v1_8) || Version.get().equals(Version.v1_9) ? "WorldSettings$" : "") + "EnumGamemode");
     public static final Class<?> EnumEntityUseActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUseEntity$EnumEntityUseAction");
 
     public static final Class<?> PlayerInteractManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), "PlayerInteractManager");
