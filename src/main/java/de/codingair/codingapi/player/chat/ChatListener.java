@@ -3,6 +3,8 @@ package de.codingair.codingapi.player.chat;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
+import net.minecraft.network.protocol.game.PacketPlayInChat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,13 +15,15 @@ import java.util.List;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
-    private Class<?> chatPacket = null;
+    private static final Class<?> chatPacket;
+    private static final IReflection.FieldAccessor<String> text;
+
+    static {
+        chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
+        text = IReflection.getField(chatPacket, Version.since(17, "a", "b"));
+    }
 
     public ChatListener() {
-        try {
-            chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
-        } catch(ClassNotFoundException ignored) {
-        }
 
         for(Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             inject(onlinePlayer);
@@ -36,8 +40,7 @@ public class ChatListener implements Listener {
             @Override
             public boolean readPacket(Object packet) {
                 if(packet.getClass().equals(chatPacket)) {
-                    IReflection.FieldAccessor<String> aField = IReflection.getField(packet.getClass(), "a");
-                    String msg = aField.get(packet);
+                    String msg = text.get(packet);
 
                     if(msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
                     String type = null;
