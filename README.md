@@ -9,6 +9,6 @@
 <dependency>  
   <groupId>com.github.CodingAir</groupId>
   <artifactId>CodingAPI</artifactId>  
-  <version>1.22</version>  
+  <version>1.23</version>  
 </dependency>
 ```
