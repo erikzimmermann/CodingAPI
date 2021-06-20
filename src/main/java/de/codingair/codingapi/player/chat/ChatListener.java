@@ -4,7 +4,6 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
-import net.minecraft.network.protocol.game.PacketPlayInChat;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
