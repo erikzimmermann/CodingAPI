@@ -14,7 +14,7 @@ public class MessageAPI {
     private static final HashMap<String, BukkitRunnable> runnables = new HashMap<>();
 
     public static void sendActionBar(Player p, String message) {
-        if(message == null) message = "";
+        if (message == null) message = "";
 
         Object com = PacketUtils.getChatMessage(message);
 
@@ -22,13 +22,13 @@ public class MessageAPI {
 
         Object bar;
 
-        if(Version.get().isBiggerThan(15)) {
+        if (Version.get().isBiggerThan(15)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
-        } else if(Version.get().isBiggerThan(11)) {
+        } else if (Version.get().isBiggerThan(11)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
@@ -44,7 +44,7 @@ public class MessageAPI {
 
     public static void stopSendingActionBar(Player p) {
         BukkitRunnable runnable = runnables.get(p.getName());
-        if(runnable != null) {
+        if (runnable != null) {
             runnable.cancel();
         }
 
@@ -53,11 +53,11 @@ public class MessageAPI {
 
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
         BukkitRunnable runnable = runnables.remove(p.getName());
-        if(runnable != null) {
+        if (runnable != null) {
             runnable.cancel();
         }
 
-        if(seconds <= 0) {
+        if (seconds <= 0) {
             sendActionBar(p, "");
             return;
         }
@@ -67,7 +67,7 @@ public class MessageAPI {
 
             @Override
             public void run() {
-                if(ticks == 0) {
+                if (ticks == 0) {
                     sendActionBar(p, null);
                     this.cancel();
                     return;
@@ -93,58 +93,27 @@ public class MessageAPI {
     }
 
     public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket, boolean reset, boolean clear) {
-        Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle");
-        Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");
-        IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
-
-        int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
-
-        Object resetP = !reset ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 4], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object clearP = !clear ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 3], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object times = ignoreTimePacket ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 2], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
-        Object subTitle = msg2 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[1], PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
-        Object title = msg1 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[0], PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
-
-        if(reset) PacketUtils.sendPacket(p, resetP);
-        if(clear) PacketUtils.sendPacket(p, clearP);
-        if(msg1 != null) PacketUtils.sendPacket(p, title);
-        if(msg2 != null) PacketUtils.sendPacket(p, subTitle);
-        if(!ignoreTimePacket) PacketUtils.sendPacket(p, times);
-    }
-
-    public static void sendTablist(Player p, String header, String footer) {
-        if(header == null) header = "";
-        if(footer == null) footer = "";
-
-        Object packet;
-
-        if(Version.get().isBiggerThan(Version.v1_12)) {
-            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerListHeaderFooter");
-            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass);
-
-            packet = constructor.newInstance();
-
-            IReflection.FieldAccessor headerF = IReflection.getField(packetClass, "header");
-            IReflection.FieldAccessor footerF = IReflection.getField(packetClass, "footer");
-
-            headerF.set(packet, PacketUtils.getChatMessage(header));
-            footerF.set(packet, PacketUtils.getChatMessage(footer));
+        if (Version.atLeast(17)) {
+            IReflection.MethodAccessor sendTitle = IReflection.getMethod(p.getClass(), "sendTitle", new Class[]{String.class, String.class, int.class, int.class, int.class});
+            sendTitle.invoke(p, msg1, msg2, fadeIn, stay, fadeOut);
         } else {
-            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutPlayerListHeaderFooter");
-            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packetClass, PacketUtils.ChatMessageClass);
+            Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle");
+            Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
-            IReflection.FieldAccessor b = IReflection.getField(packetClass, "b");
+            int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
 
-            Object tabHeader = PacketUtils.getChatMessage(header);
-            Object tabFooter = PacketUtils.getChatMessage(footer);
+            Object resetP = !reset ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 4], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+            Object clearP = !clear ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 3], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+            Object times = ignoreTimePacket ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 2], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
+            Object subTitle = msg2 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[1], PacketUtils.getChatMessage(msg2), fadeIn, stay, fadeOut);
+            Object title = msg1 == null ? null : constructor.newInstance(enumTitle.getEnumConstants()[0], PacketUtils.getChatMessage(msg1), fadeIn, stay, fadeOut);
 
-            packet = constructor.newInstance(tabHeader);
-
-            b.set(packet, tabFooter);
+            if (reset) PacketUtils.sendPacket(p, resetP);
+            if (clear) PacketUtils.sendPacket(p, clearP);
+            if (msg1 != null) PacketUtils.sendPacket(p, title);
+            if (msg2 != null) PacketUtils.sendPacket(p, subTitle);
+            if (!ignoreTimePacket) PacketUtils.sendPacket(p, times);
         }
-
-
-        PacketUtils.sendPacket(p, packet);
     }
-
 }
