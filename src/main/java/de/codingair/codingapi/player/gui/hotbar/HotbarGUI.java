@@ -34,8 +34,8 @@ public abstract class HotbarGUI implements Removable {
 
     public HotbarGUI(Player player, JavaPlugin plugin) {
         this.player = player;
-
         this.plugin = plugin;
+
         EventListener.register(plugin);
     }
 
@@ -51,6 +51,8 @@ public abstract class HotbarGUI implements Removable {
     }
 
     public void open(boolean sound) {
+        this.lastClick = System.currentTimeMillis();
+
         List<HotbarGUI> l = API.getRemovables(player, HotbarGUI.class);
         for(HotbarGUI gui : l) {
             gui.setWaiting(true);

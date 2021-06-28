@@ -62,14 +62,14 @@ public class EventListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         HotbarGUI gui;
         if ((gui = API.getRemovable(e.getPlayer(), HotbarGUI.class)) != null) {
-            if (System.currentTimeMillis() - gui.getLastClick() <= 50) {
-                return;
-            } else gui.setLastClick(System.currentTimeMillis());
-
             ItemComponent ic = gui.getMenu()[e.getPlayer().getInventory().getHeldItemSlot()];
 
             if (ic == null || ic.getItem() == null) return;
             e.setCancelled(true);
+
+            if (System.currentTimeMillis() - gui.getLastClick() <= 50) {
+                return;
+            } else gui.setLastClick(System.currentTimeMillis());
 
             //PLAY SOUND
             if (ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());

@@ -304,13 +304,13 @@ public class PacketUtils {
 
             Object packet = IReflection.getConstructor(PacketPlayOutEntityTeleportClass).newInstance();
 
-            IReflection.FieldAccessor a = IReflection.getField(PacketPlayOutEntityTeleportClass, "a");
-            IReflection.FieldAccessor b = IReflection.getField(PacketPlayOutEntityTeleportClass, "b");
-            IReflection.FieldAccessor c = IReflection.getField(PacketPlayOutEntityTeleportClass, "c");
-            IReflection.FieldAccessor d = IReflection.getField(PacketPlayOutEntityTeleportClass, "d");
-            IReflection.FieldAccessor e = IReflection.getField(PacketPlayOutEntityTeleportClass, "e");
-            IReflection.FieldAccessor f = IReflection.getField(PacketPlayOutEntityTeleportClass, "f");
-            IReflection.FieldAccessor g = IReflection.getField(PacketPlayOutEntityTeleportClass, "g");
+            IReflection.FieldAccessor<?> a = IReflection.getField(PacketPlayOutEntityTeleportClass, "a");
+            IReflection.FieldAccessor<?> b = IReflection.getField(PacketPlayOutEntityTeleportClass, "b");
+            IReflection.FieldAccessor<?> c = IReflection.getField(PacketPlayOutEntityTeleportClass, "c");
+            IReflection.FieldAccessor<?> d = IReflection.getField(PacketPlayOutEntityTeleportClass, "d");
+            IReflection.FieldAccessor<?> e = IReflection.getField(PacketPlayOutEntityTeleportClass, "e");
+            IReflection.FieldAccessor<?> f = IReflection.getField(PacketPlayOutEntityTeleportClass, "f");
+            IReflection.FieldAccessor<?> g = IReflection.getField(PacketPlayOutEntityTeleportClass, "g");
 
             a.set(packet, id);
 
