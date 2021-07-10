@@ -58,15 +58,10 @@ public enum Version {
 
             //version
             NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
-            double versionId = Double.parseDouble(NAME.substring(2));
+            double version = Double.parseDouble(NAME.substring(2));
             SPECIFICATION = Bukkit.getBukkitVersion().replace(NAME + "-", "");
 
-            for (Version value : values()) {
-                if (value.id == versionId) {
-                    VERSION = value;
-                    break;
-                }
-            }
+            VERSION = byId(version);
         }
     }
 
@@ -81,6 +76,12 @@ public enum Version {
     private static @NotNull Version byId(double version) {
         for (Version value : Version.values()) {
             if (value.id == version) return value;
+        }
+
+        //1.16.5 -> 1.16
+        int casted = (int) version;
+        for (Version value : Version.values()) {
+            if (value.id == casted) return value;
         }
 
         throw new IllegalArgumentException("Version not found: " + version);
