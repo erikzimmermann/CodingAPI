@@ -271,7 +271,7 @@ public abstract class SignGUI {
             editable.set(tileEntity, true);
 
             IReflection.FieldAccessor<?> owner = null;
-            switch (Version.get().getId()) {
+            switch ((int) Version.get().getId()) {
                 case 17:
                     IReflection.FieldAccessor<?> id = IReflection.getField(tileEntity.getClass(), "g");
                     id.set(tileEntity, player.getUniqueId());

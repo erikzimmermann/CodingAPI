@@ -1,6 +1,7 @@
 package de.codingair.codingapi.server.specification;
 
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public enum Version {
     UNKNOWN(0),
@@ -15,15 +16,16 @@ public enum Version {
     v1_15(15),
     v1_16(16),
     v1_17(17),
+    v1_17_1(17.1),
     ;
 
     private static Version VERSION = null;
     private static String NAME = null;
     private static String SPECIFICATION = null;
     private static Type TYPE = null;
-    private final int id;
+    private final double id;
 
-    Version(int id) {
+    Version(double id) {
         this.id = id;
     }
 
@@ -36,31 +38,31 @@ public enum Version {
     }
 
     public static void load() {
-        if(VERSION == null) {
+        if (VERSION == null) {
             //server type
             try {
                 String s = Bukkit.getVersion();
                 int from = s.indexOf('-');
 
-                if(from >= 0) {
+                if (from >= 0) {
                     from += 1;
                     int to = s.indexOf("-", from);
 
-                    if(to >= 0) {
+                    if (to >= 0) {
                         TYPE = Type.getByName(Bukkit.getVersion().substring(from, to));
                     } else TYPE = Type.UNKNOWN;
                 } else TYPE = Type.UNKNOWN;
-            } catch(StringIndexOutOfBoundsException ex) {
+            } catch (StringIndexOutOfBoundsException ex) {
                 TYPE = Type.UNKNOWN;
             }
 
             //version
             NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
-            int versionId = Integer.parseInt(NAME.split("\\.")[1]);
+            double versionId = Double.parseDouble(NAME.substring(2));
             SPECIFICATION = Bukkit.getBukkitVersion().replace(NAME + "-", "");
 
-            for(Version value : values()) {
-                if(value.id == versionId) {
+            for (Version value : values()) {
+                if (value.id == versionId) {
                     VERSION = value;
                     break;
                 }
@@ -68,7 +70,42 @@ public enum Version {
         }
     }
 
-    public int getId() {
+    public static boolean atLeast(double version) {
+        return get().id >= version;
+    }
+
+    public static boolean less(double version) {
+        return get().id < version;
+    }
+
+    private static @NotNull Version byId(double version) {
+        for (Version value : Version.values()) {
+            if (value.id == version) return value;
+        }
+
+        throw new IllegalArgumentException("Version not found: " + version);
+    }
+
+    @SafeVarargs
+    public static <T> T since(double version, T old, T... updated) {
+        Version v = byId(version);
+
+        int diff = Version.get().ordinal() - v.ordinal();
+        if (diff >= 0) {
+            if (diff >= updated.length || updated[diff] == null) {
+                diff = Math.min(diff, updated.length - 1);
+
+                //go back to fewer value
+                for (int i = diff; i >= 0; i--) {
+                    if (updated[diff] != null) return updated[diff];
+                }
+            } else return updated[diff];
+        }
+
+        return old;
+    }
+
+    public double getId() {
         return id;
     }
 
@@ -84,22 +121,7 @@ public enum Version {
         return id > version.id;
     }
 
-    public boolean isBiggerThan(int version) {
+    public boolean isBiggerThan(double version) {
         return id > version;
-    }
-
-    public static boolean atLeast(int version) {
-        return get().id >= version;
-    }
-
-    public static boolean less(int version) {
-        return get().id < version;
-    }
-
-    @SafeVarargs
-    public static <T> T since(int version, T old, T... updated) {
-        int diff = Version.get().getId() - version;
-        if (diff >= 0) return updated[diff];
-        return old;
     }
 }

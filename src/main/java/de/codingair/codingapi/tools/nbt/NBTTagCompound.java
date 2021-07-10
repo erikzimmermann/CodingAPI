@@ -53,7 +53,7 @@ public class NBTTagCompound {
         }
         GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "get", TAG, new Class[] {String.class});
 
-        TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, Version.since(17, "tag", "w"));
+        TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, Version.since(17, "tag", "w", "u"));
         MAP_FIELD = IReflection.getField(PacketUtils.NBTTagCompoundClass, Version.since(17, "map", "x"));
         asBukkitCopy = IReflection.getMethod(PacketUtils.CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[] {PacketUtils.ItemStackClass});
     }
