@@ -65,12 +65,12 @@ public class Location extends org.bukkit.Location implements Serializable {
     public JSON toJSON(int decimalPlaces) {
         JSON json = new JSON();
 
-        json.put("World", this.worldName);
-        json.put("X", trim(getX(), decimalPlaces));
-        json.put("Y", trim(getY(), decimalPlaces));
-        json.put("Z", trim(getZ(), decimalPlaces));
-        json.put("Yaw", trim(getYaw(), decimalPlaces));
-        json.put("Pitch", trim(getPitch(), decimalPlaces));
+        json.put("world", this.worldName);
+        json.put("x", trim(getX(), decimalPlaces));
+        json.put("y", trim(getY(), decimalPlaces));
+        json.put("z", trim(getZ(), decimalPlaces));
+        json.put("yaw", trim(getYaw(), decimalPlaces));
+        json.put("pitch", trim(getPitch(), decimalPlaces));
 
         return json;
     }
@@ -84,6 +84,17 @@ public class Location extends org.bukkit.Location implements Serializable {
         setZ(d.getDouble("Z"));
         setYaw(d.getFloat("Yaw"));
         setPitch(d.getFloat("Pitch"));
+
+        if (this.worldName == null && getX() == 0 && getY() == 0 && getZ() == 0 && getYaw() == 0 && getPitch() == 0) {
+            this.worldName = d.getString("world");
+
+            setWorld(this.worldName == null ? null : Bukkit.getWorld(this.worldName));
+            setX(d.getDouble("x"));
+            setY(d.getDouble("y"));
+            setZ(d.getDouble("z"));
+            setYaw(d.getFloat("yaw"));
+            setPitch(d.getFloat("pitch"));
+        }
 
         return true;
     }
