@@ -24,7 +24,7 @@ public class ChatListener implements Listener {
 
     public ChatListener() {
 
-        for(Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+        for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             inject(onlinePlayer);
         }
     }
@@ -35,17 +35,17 @@ public class ChatListener implements Listener {
     }
 
     private void inject(Player player) {
-        new PacketReader(player, "CHAT_BUTTON_LISTENER", API.getInstance().getMainPlugin()) {
+        new PacketReader(player, "chat-button-listener", API.getInstance().getMainPlugin()) {
             @Override
             public boolean readPacket(Object packet) {
-                if(packet.getClass().equals(chatPacket)) {
+                if (packet.getClass().equals(chatPacket)) {
                     String msg = text.get(packet);
 
-                    if(msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
+                    if (msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
                     String type = null;
                     UUID uniqueId;
 
-                    if(msg.contains("#")) {
+                    if (msg.contains("#")) {
                         String[] a = msg.split("#");
                         uniqueId = UUID.fromString(a[0].replace(ChatButton.PREFIX, ""));
                         type = a[1];
@@ -70,14 +70,14 @@ public class ChatListener implements Listener {
     }
 
     private void handleSimpleMessages(String type, UUID uniqueId, Player player, List<SimpleMessage> messageList) {
-        if(!messageList.isEmpty()) {
+        if (!messageList.isEmpty()) {
             Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
                 boolean clicked = false;
-                for(SimpleMessage message : messageList) {
+                for (SimpleMessage message : messageList) {
                     ChatButton button = message.getButton(uniqueId);
-                    if(button != null) {
-                        if(button.canClick()) {
-                            if(button.getSound() != null) button.getSound().play(player);
+                    if (button != null) {
+                        if (button.canClick()) {
+                            if (button.getSound() != null) button.getSound().play(player);
                             button.onClick(player);
                         }
 
@@ -87,7 +87,7 @@ public class ChatListener implements Listener {
                 }
                 messageList.clear();
 
-                if(!clicked) callForeignClick(player, uniqueId, type);
+                if (!clicked) callForeignClick(player, uniqueId, type);
             });
         } else callForeignClick(player, uniqueId, type);
     }

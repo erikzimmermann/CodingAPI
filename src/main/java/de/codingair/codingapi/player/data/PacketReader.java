@@ -23,7 +23,7 @@ public abstract class PacketReader implements Removable {
 	
 	public PacketReader(Player player, String name, JavaPlugin plugin) {
 		this.player = player;
-		this.name = name;
+		this.name = name + UUID.randomUUID();
 		this.plugin = plugin;
 	}
 
