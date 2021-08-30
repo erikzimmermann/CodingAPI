@@ -116,15 +116,6 @@ public class PacketUtils {
 
     public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
 
-    public static class Blocks {
-        public static Object findByName(String name) {
-            IReflection.FieldAccessor field = IReflection.getField(BlocksClass, name);
-            if(field == null) return null;
-
-            return field.get(null);
-        }
-    }
-
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
         return getMethod(target, methodName, null, parameterTypes);
     }
@@ -132,7 +123,7 @@ public class PacketUtils {
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
         try {
             return IReflection.getSaveMethod(target, methodName, returnType, parameterTypes);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             return null;
         }
     }
@@ -144,7 +135,7 @@ public class PacketUtils {
     public static Class<?> getClass(String packet, String className) {
         try {
             return IReflection.getSaveClass(packet, className);
-        } catch(Exception ex) {
+        } catch (Exception ex) {
             return null;
         }
     }
@@ -154,21 +145,21 @@ public class PacketUtils {
     }
 
     public static void sendPacket(Player target, Object packet) {
-        if(!target.isOnline()) return;
+        if (!target.isOnline()) return;
         Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(target));
         sendPacket.invoke(playerConnection.get(entityPlayer), packet);
     }
 
     public static void sendPacket(Object packet, Player... target) {
-        for(Player player : target) {
-            if(player == null) continue;
+        for (Player player : target) {
+            if (player == null) continue;
             Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(player));
             sendPacket.invoke(playerConnection.get(entityPlayer), packet);
         }
     }
 
     public static Object getEntityPlayer(Player p) {
-        if(p == null) return null;
+        if (p == null) return null;
         return getHandle.invoke(CraftPlayerClass.cast(p));
     }
 
@@ -194,13 +185,13 @@ public class PacketUtils {
     }
 
     public static Object getIChatBaseComponent(String text) {
-        return getRawIChatBaseComponent("{\"text\":\"" + text +"\"}");
+        return getRawIChatBaseComponent("{\"text\":\"" + text + "\"}");
     }
 
     public static Object getRawIChatBaseComponent(String jsonFormat) {
         IReflection.MethodAccessor a;
 
-        if(Version.get().isBiggerThan(15)) {
+        if (Version.get().isBiggerThan(15)) {
             a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[] {String.class});
         } else {
             a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
@@ -221,7 +212,7 @@ public class PacketUtils {
 
     public static Object getMinecraftServer() {
         IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
-        if(getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
+        if (getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
         return getServer.invoke(getCraftServer());
     }
 
@@ -242,7 +233,7 @@ public class PacketUtils {
 
         IReflection.ConstructorAccessor dataCon = IReflection.getConstructor(PacketPlayOutPlayerInfo$PlayerInfoData, PacketPlayOutPlayerInfoClass, GameProfile.class, int.class, EnumGamemodeClass, IChatBaseComponentClass);
 
-        if(dataCon == null) return null;
+        if (dataCon == null) return null;
 
         IReflection.MethodAccessor getProfile = IReflection.getMethod(EntityPlayerClass, "getProfile", GameProfile.class, (Class<?>[]) null);
         IReflection.FieldAccessor<?> ping = IReflection.getField(EntityPlayerClass, "ping");
@@ -283,6 +274,14 @@ public class PacketUtils {
         return id + (data << 12);
     }
 
+    public static class Blocks {
+        public static Object findByName(String name) {
+            IReflection.FieldAccessor<?> field = IReflection.getField(BlocksClass, name);
+
+            return field.get(null);
+        }
+    }
+
     public static class EntityPackets {
         public static void spawnEntity(Object entity, int entityTypeId, Player... players) {
             spawnEntity(entity, entityTypeId, 0, players);
@@ -314,7 +313,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if(Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.get().isBiggerThan(Version.v1_8)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -334,7 +333,7 @@ public class PacketUtils {
         }
 
         public static int getId(Object entity) {
-            IReflection.MethodAccessor getId = IReflection.getMethod(PacketUtils.EntityPlayerClass, "getId", int.class, null);
+            IReflection.MethodAccessor getId = IReflection.getMethod(PacketUtils.EntityClass, "getId", int.class, new Class[0]);
             return (int) getId.invoke(entity);
         }
 
@@ -350,19 +349,19 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, passenger);
-                return packet;
             } else {
                 packet.initialize(new Class[] {int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
-                return packet;
             }
+
+            return packet;
         }
 
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if(Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.get().isBiggerThan(Version.v1_8)) {
                 packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {
