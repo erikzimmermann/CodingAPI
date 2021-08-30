@@ -9,17 +9,30 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public abstract class PacketReader implements Removable {
+	private static final IReflection.FieldAccessor<?> getPlayerConnection;
+	private static final IReflection.FieldAccessor<?> getNetworkManager;
+	private static final IReflection.FieldAccessor<?> getChannel;
+	
+	static {
+		getPlayerConnection = PacketUtils.playerConnection;
+		getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, Version.since(17, "networkManager", "a"));
+		getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, Version.since(17, "channel", "k"));
+	}
+	
 	private final UUID uniqueId = UUID.randomUUID();
 	private final Player player;
 	private Channel channel;
 	private final String name;
 	private final JavaPlugin plugin;
+	private ChannelDuplexHandler currentHandler = null;
 	
 	public PacketReader(Player player, String name, JavaPlugin plugin) {
 		this.player = player;
@@ -42,21 +55,22 @@ public abstract class PacketReader implements Removable {
 		unInject();
 	}
 	
-	public boolean inject() {
-		IReflection.FieldAccessor<?> getPlayerConnection = PacketUtils.playerConnection;
-		IReflection.FieldAccessor<?> getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, Version.since(17, "networkManager", "a"));
-		IReflection.FieldAccessor<?> getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, Version.since(17, "channel", "k"));
+	public void inject() {
+		if (currentHandler != null){
+			unInject(this::inject);
+			return;
+		}
 
 		Object ep = PacketUtils.getEntityPlayer(player);
-		if(ep == null) return false;
+		if(ep == null) return;
 		Object playerCon = getPlayerConnection.get(ep);
-		if(playerCon == null) return false;
+		if(playerCon == null) return;
 		Object networkMan = getNetworkManager.get(playerCon);
-		if(networkMan == null) return false;
+		if(networkMan == null) return;
 		channel = (Channel) getChannel.get(networkMan);
-		if(channel == null) return false;
+		if(channel == null) return;
 
-		ChannelDuplexHandler handler = new ChannelDuplexHandler() {
+		currentHandler = new ChannelDuplexHandler() {
 			@Override
 			public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
 				try {
@@ -77,27 +91,30 @@ public abstract class PacketReader implements Removable {
 		};
 
 		if(channel.pipeline().get(name) != null) channel.pipeline().remove(name);
-		if(channel.pipeline().get("packet_handler") != null) channel.pipeline().addBefore("packet_handler", name, handler);
-		else channel.pipeline().addFirst(name, handler);
+		if(channel.pipeline().get("packet_handler") != null) channel.pipeline().addBefore("packet_handler", name, currentHandler);
+		else channel.pipeline().addFirst(name, currentHandler);
 		
 		API.addRemovable(this);
-		return true;
 	}
-	
+
 	public void unInject() {
-		if(player.isOnline() && channel.pipeline().get(name) != null) {
-			try {
-				channel.pipeline().remove(name);
-			} catch(Throwable ignored) {
+		unInject(null);
+	}
+
+	public synchronized void unInject(@Nullable Runnable later) {
+		Bukkit.getScheduler().runTaskAsynchronously(API.getInstance().getMainPlugin(), () -> {
+			if (currentHandler != null && channel != null && player.isOnline()) {
+				try {
+					channel.pipeline().remove(this.currentHandler);
+				} catch(Throwable ignored) {
+				}
 			}
-		}
+
+			this.currentHandler = null;
+			if (later != null) later.run();
+		});
 
 		API.removeRemovable(this);
-	}
-	
-	public void refresh() {
-		unInject();
-		inject();
 	}
 	
 	@Override
