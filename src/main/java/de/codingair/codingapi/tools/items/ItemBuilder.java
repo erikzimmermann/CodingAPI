@@ -39,14 +39,13 @@ import java.util.*;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
  **/
 
 public class ItemBuilder implements Serializable {
     private String name = "";
     private Material type = null;
     private byte data = 0;
-    private short durability = 0;
+    private int durability = 0;
     private int damage = 0;
     private int amount = 1;
     private DyeColor color = null;
@@ -87,8 +86,8 @@ public class ItemBuilder implements Serializable {
 
         this.nbt = new NBTTagCompound(item);
         this.type = item.getType();
-        this.data = item.getData().getData();
-        this.durability = item.getDurability();
+        this.data = ItemHelper.getData(item);
+        this.durability = ItemHelper.getDurability(item);
         this.amount = item.getAmount();
 
         if (item.getEnchantments().size() > 0) {
@@ -97,16 +96,23 @@ public class ItemBuilder implements Serializable {
         }
 
         if (item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+            assert meta != null;
+
             this.preMeta = item.getItemMeta();
-            this.name = item.getItemMeta().getDisplayName();
+            this.name = meta.getDisplayName();
 
             if (Version.get().isBiggerThan(12)) {
                 this.damage = DamageableValue.getDamage(this.preMeta);
             }
 
             if (Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
-            if (Version.get().isBiggerThan(Version.v1_13) && (boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
-                this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
+            if (Version.get().isBiggerThan(Version.v1_13)) {
+                assert PacketUtils.hasCustomModelData != null;
+                if ((boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
+                    assert PacketUtils.getCustomModelData != null;
+                    this.customModel = (int) PacketUtils.getCustomModelData.invoke(preMeta);
+                }
             }
 
             if (enchantments == null) enchantments = new HashMap<>();
@@ -114,24 +120,24 @@ public class ItemBuilder implements Serializable {
             item.getItemMeta().getEnchants().forEach((ench, level) -> this.preMeta.removeEnchant(ench));
 
             try {
-                LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
-                this.color = DyeColor.getByColor(meta.getColor());
+                LeatherArmorMeta leatherMeta = (LeatherArmorMeta) item.getItemMeta();
+                this.color = DyeColor.getByColor(leatherMeta.getColor());
             } catch (Exception ignored) {
             }
 
             if (item.getItemMeta().hasLore()) {
                 lore = new ArrayList<>();
-                lore.addAll(item.getItemMeta().getLore());
+                if (meta.getLore() != null) lore.addAll(meta.getLore());
             }
             this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
             this.hideStandardLore = (item.getItemMeta().getItemFlags().size() == 1 && !item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS)) || item.getItemMeta().getItemFlags().size() > 1;
-            if (item.getItemMeta().getDisplayName() != null && item.getItemMeta().getDisplayName().equals("§0")) {
+            item.getItemMeta().getDisplayName();
+            if (item.getItemMeta().getDisplayName().equals("§0")) {
                 this.hideName = true;
                 this.name = null;
             }
 
             try {
-                ItemMeta meta = item.getItemMeta();
                 IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
                 this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
             } catch (Exception ignored) {
@@ -236,8 +242,13 @@ public class ItemBuilder implements Serializable {
                 if (Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
                 } else if (!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
+                    @SuppressWarnings ("deprecation")
                     Potion potion = this.potionData.getPotion();
-                    meta.setMainEffect(potion.getType().getEffectType());
+
+                    if (meta != null && potion.getType().getEffectType() != null) {
+                        //noinspection deprecation
+                        meta.setMainEffect(potion.getType().getEffectType());
+                    }
                 }
             }
 
@@ -263,12 +274,12 @@ public class ItemBuilder implements Serializable {
                     if (this.type.name().equals("INK_SACK")) this.data = this.color.getDyeData();
                     else this.data = this.color.getWoolData();
 
-                    item.setDurability(this.data);
+                    ItemHelper.setDurability(item, this.data);
                 }
             } else {
                 MaterialData data = this.data == 0 ? null : new MaterialData(this.type, this.data);
                 item.setData(data);
-                item.setDurability(this.durability);
+                ItemHelper.setDurability(item, this.durability);
             }
 
             if (hideName || this.name == null) meta.setDisplayName("§0");
@@ -293,7 +304,7 @@ public class ItemBuilder implements Serializable {
             if (Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
 
             if (Version.get().isBiggerThan(12)) {
-                meta = DamageableValue.setDamage(meta, this.damage);
+                DamageableValue.setDamage(meta, this.damage);
             }
 
             if (this.banner != null) BannerValue.apply(meta, this.banner);
@@ -805,11 +816,11 @@ public class ItemBuilder implements Serializable {
         return this;
     }
 
-    public short getDurability() {
+    public int getDurability() {
         return durability;
     }
 
-    public ItemBuilder setDurability(short durability) {
+    public ItemBuilder setDurability(int durability) {
         this.durability = durability;
         return this;
     }

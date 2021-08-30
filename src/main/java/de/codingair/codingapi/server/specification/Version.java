@@ -23,21 +23,18 @@ public enum Version {
     private static String NAME = null;
     private static String SPECIFICATION = null;
     private static Type TYPE = null;
+
+    static {
+        load();
+    }
+
     private final double id;
 
     Version(double id) {
         this.id = id;
     }
 
-    public static Version get() {
-        return VERSION;
-    }
-
-    public static Type type() {
-        return TYPE;
-    }
-
-    public static void load() {
+    private static void load() {
         if (VERSION == null) {
             //server type
             try {
@@ -63,6 +60,14 @@ public enum Version {
 
             VERSION = byId(version);
         }
+    }
+
+    public static Version get() {
+        return VERSION;
+    }
+
+    public static Type type() {
+        return TYPE;
     }
 
     public static boolean atLeast(double version) {
