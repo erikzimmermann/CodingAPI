@@ -16,10 +16,7 @@ import org.yaml.snakeyaml.error.YAMLException;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class UTFConfig extends YamlConfiguration {
@@ -29,6 +26,12 @@ public class UTFConfig extends YamlConfiguration {
     private boolean deployedExtras = false;
 
     private UTFConfig() {
+    }
+
+    public UTFConfig copy() {
+        UTFConfig config = new UTFConfig();
+        config.map.putAll(map);
+        return config;
     }
 
     public static UTFConfig loadConf(File file) {
