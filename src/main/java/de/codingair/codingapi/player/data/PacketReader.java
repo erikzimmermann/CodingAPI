@@ -102,7 +102,7 @@ public abstract class PacketReader implements Removable {
 	}
 
 	public synchronized void unInject(@Nullable Runnable later) {
-		Bukkit.getScheduler().runTaskAsynchronously(API.getInstance().getMainPlugin(), () -> {
+		Runnable runnable = () -> {
 			if (currentHandler != null && channel != null && player.isOnline()) {
 				try {
 					channel.pipeline().remove(this.currentHandler);
@@ -112,7 +112,11 @@ public abstract class PacketReader implements Removable {
 
 			this.currentHandler = null;
 			if (later != null) later.run();
-		});
+		};
+
+		JavaPlugin plugin = API.getInstance().getMainPlugin();
+		if (plugin.isEnabled()) Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+		else runnable.run();
 
 		API.removeRemovable(this);
 	}
