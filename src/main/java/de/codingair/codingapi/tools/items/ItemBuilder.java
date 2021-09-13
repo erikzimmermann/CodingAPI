@@ -131,8 +131,7 @@ public class ItemBuilder implements Serializable {
             }
             this.hideEnchantments = item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS);
             this.hideStandardLore = (item.getItemMeta().getItemFlags().size() == 1 && !item.getItemMeta().hasItemFlag(ItemFlag.HIDE_ENCHANTS)) || item.getItemMeta().getItemFlags().size() > 1;
-            item.getItemMeta().getDisplayName();
-            if (item.getItemMeta().getDisplayName().equals("§0")) {
+            if ("§0".equals(item.getItemMeta().getDisplayName())) {
                 this.hideName = true;
                 this.name = null;
             }
