@@ -15,12 +15,14 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -49,6 +51,7 @@ public class AnvilGUI implements Removable {
     private static final IReflection.ConstructorAccessor CHAT_MESSAGE_CON;
     private static final IReflection.FieldAccessor<Object> ACTIVE_CONTAINER;
     private static final IReflection.FieldAccessor<Object> WINDOW_ID;
+    private static final IReflection.FieldAccessor<InventoryType.SlotType> SLOT_TYPE_FIELD;
 
     static {
         Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAnvil");
@@ -86,6 +89,8 @@ public class AnvilGUI implements Removable {
         }
 
         REACHABLE = IReflection.getField(containerAnvilClass, "checkReachable");
+
+        SLOT_TYPE_FIELD = IReflection.getField(InventoryClickEvent.class, InventoryType.SlotType.class, 0);
     }
 
     private final UUID uniqueId = UUID.randomUUID();
@@ -153,15 +158,33 @@ public class AnvilGUI implements Removable {
 
     private void registerBukkitListener() {
         this.bukkitListener = new Listener() {
+            private final Map<String, InventoryType.SlotType> slotType = new HashMap<>();
+
+            @EventHandler (priority = EventPriority.LOWEST)
+            public void onInventoryClickBefore(InventoryClickEvent e) {
+                if (e.getWhoClicked() instanceof Player) {
+                    Player p = (Player) e.getWhoClicked();
+
+                    if (e.getInventory().equals(inv)) {
+                        //modify event to prevent external plugins from working here
+                        slotType.put(p.getName(), e.getSlotType());
+                        SLOT_TYPE_FIELD.set(e, InventoryType.SlotType.OUTSIDE);
+                    }
+                }
+            }
+
             @EventHandler (priority = EventPriority.HIGHEST)
             public void onInventoryClick(InventoryClickEvent e) {
                 if (e.getWhoClicked() instanceof Player) {
                     Player p = (Player) e.getWhoClicked();
 
                     if (e.getInventory().equals(inv)) {
+                        //restore event data
+                        SLOT_TYPE_FIELD.set(e, slotType.remove(p.getName()));
+
                         e.setCancelled(true);
 
-                        ItemStack item = e.getCurrentItem();
+                        ItemStack item = inv.getItem(AnvilSlot.OUTPUT.getSlot());
                         int slot = e.getRawSlot();
 
                         if (AnvilSlot.bySlot(slot) == AnvilSlot.OUTPUT && (item == null || item.getType() == Material.AIR) && onlyWithChanges) return;
@@ -176,7 +199,7 @@ public class AnvilGUI implements Removable {
 
                         e.setCancelled(clickEvent.isCancelled());
 
-                        if (keepSubmittedText && item != null && item.hasItemMeta()) {
+                        if (keepSubmittedText && submitted && item != null && item.hasItemMeta()) {
                             ItemMeta meta = item.getItemMeta();
                             assert meta != null;
                             meta.setDisplayName(submittedText);
@@ -202,7 +225,6 @@ public class AnvilGUI implements Removable {
                     if (e.getInventory().equals(inv)) {
                         if (closeEvent == null) {
                             closeEvent = new AnvilCloseEvent(player, AnvilGUI.this);
-                            Bukkit.getPluginManager().callEvent(closeEvent);
                             if (listener != null) listener.onClose(closeEvent);
                         }
 
