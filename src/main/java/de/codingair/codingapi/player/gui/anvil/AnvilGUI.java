@@ -28,7 +28,7 @@ import java.util.logging.Level;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verion: 1.0.0
+ * @version 1.0.0
  **/
 
 public class AnvilGUI implements Removable {
@@ -153,7 +153,7 @@ public class AnvilGUI implements Removable {
 
     private void registerBukkitListener() {
         this.bukkitListener = new Listener() {
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler (priority = EventPriority.HIGHEST)
             public void onInventoryClick(InventoryClickEvent e) {
                 if (e.getWhoClicked() instanceof Player) {
                     Player p = (Player) e.getWhoClicked();
@@ -167,9 +167,7 @@ public class AnvilGUI implements Removable {
                         if (AnvilSlot.bySlot(slot) == AnvilSlot.OUTPUT && (item == null || item.getType() == Material.AIR) && onlyWithChanges) return;
 
                         AnvilClickEvent clickEvent = new AnvilClickEvent(p, e.getClick(), AnvilSlot.bySlot(slot), item, AnvilGUI.this);
-
                         if (listener != null) listener.onClick(clickEvent);
-                        Bukkit.getPluginManager().callEvent(clickEvent);
 
                         if (clickEvent.getSlot().equals(AnvilSlot.OUTPUT)) {
                             submitted = true;
@@ -177,7 +175,6 @@ public class AnvilGUI implements Removable {
                         }
 
                         e.setCancelled(clickEvent.isCancelled());
-                        e.setCancelled(true);
 
                         if (keepSubmittedText && item != null && item.hasItemMeta()) {
                             ItemMeta meta = item.getItemMeta();

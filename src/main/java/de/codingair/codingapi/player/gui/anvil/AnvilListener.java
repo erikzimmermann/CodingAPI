@@ -4,7 +4,7 @@ package de.codingair.codingapi.player.gui.anvil;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
+ * @version 1.0.0
  **/
 
 public abstract class AnvilListener {
