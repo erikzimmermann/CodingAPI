@@ -26,7 +26,7 @@ import java.util.UUID;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
+ * @version 1.0.0
  **/
 
 public abstract class HoveredItem implements Removable, Ticker {
@@ -189,7 +189,7 @@ public abstract class HoveredItem implements Removable, Ticker {
 		this.hologram = new Hologram(this.location.clone().add(0, HOLOGRAM_HEIGHT, 0), this.plugin, corrected.toArray(new String[corrected.size()]));
 		this.hologram.update(this.player);
 		
-		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this.toString(), this.plugin) {
+		this.packetReader = new PacketReader(this.player, "PacketReader_" + this.player.getName() + "_" + this, this.plugin) {
 			@Override
 			public boolean readPacket(Object packet) {
 				if(packet.getClass().getSimpleName().equals("PacketPlayInUseEntity")) {

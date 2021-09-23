@@ -29,7 +29,7 @@ public abstract class Button {
             textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[] {new TextComponent(this.hover)}));
         }
 
-        textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "CodingAPI|BookAPI|Button|" + this.uniqueId.toString()));
+        textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "CodingAPI|BookAPI|Button|" + this.uniqueId));
 
         return textComponent;
     }

@@ -14,7 +14,7 @@ import java.util.List;
  * Removing of this disclaimer is forbidden.
  *
  * @author codingair
- * @verions: 1.0.0
+ * @version 1.0.0
  **/
 
 public enum TextAlignment {
@@ -26,9 +26,7 @@ public enum TextAlignment {
         if(this.equals(CENTER)) return center(lines);
         if(this.equals(JUSTIFY)) return justify(lines);
 
-        List<String> other = new ArrayList<>();
-        other.addAll(lines);
-        return other;
+        return new ArrayList<>(lines);
     }
 
     public List<String> apply(String... lines) {
@@ -142,7 +140,7 @@ public enum TextAlignment {
                 sb.append(" ");
             }
 
-            configured.add(sb.toString() + line);
+            configured.add(sb + line);
         }
 
         return configured;
@@ -184,8 +182,8 @@ public enum TextAlignment {
             line.append(word);
 
             if(cells >= length) {
-                line = new StringBuilder(line.toString().substring(0, line.length() - 1));
-                lines.add(lastColor[0] + line.toString());
+                line = new StringBuilder(line.substring(0, line.length() - 1));
+                lines.add(lastColor[0] + line);
                 line = new StringBuilder();
                 cells = 0;
 
@@ -197,7 +195,7 @@ public enum TextAlignment {
         }
 
         if(line.length() > 0) {
-            lines.add(lastColor[0] + line.toString());
+            lines.add(lastColor[0] + line);
         }
         return lines;
     }
@@ -238,7 +236,7 @@ public enum TextAlignment {
             compensated += spaceLength;
         }
 
-        player.sendMessage(sb.toString() + message);
+        player.sendMessage(sb + message);
     }
 
     public static void sendCenteredMessage(Player player, BaseComponent base) {

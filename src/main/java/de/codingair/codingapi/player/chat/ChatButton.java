@@ -49,7 +49,7 @@ public abstract class ChatButton {
         BaseComponent[] components = lore.toArray(new BaseComponent[0]);
 
         if(this.hover != null && !this.hover.isEmpty()) component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, components));
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId.toString() + (type == null ? "" : "#" + type)));
+        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
 
         return component;
     }

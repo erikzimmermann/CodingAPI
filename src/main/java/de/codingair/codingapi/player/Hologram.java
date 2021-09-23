@@ -607,7 +607,7 @@ public class Hologram implements Removable {
             if (Version.atLeast(17)) {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
-                packet = con.newInstance((Object) new int[]{PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance(new int[]{PacketUtils.EntityPackets.getId(armorStand)});
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;

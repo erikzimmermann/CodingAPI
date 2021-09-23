@@ -211,7 +211,7 @@ public enum ChatColor {
                     highlight.append(text.charAt(j));
                 }
 
-                builder.append(highlighter).append(highlight.toString()).append(resetColor).append(lastColor);
+                builder.append(highlighter).append(highlight).append(resetColor).append(lastColor);
                 index += toHighlight.length();
             }
         }

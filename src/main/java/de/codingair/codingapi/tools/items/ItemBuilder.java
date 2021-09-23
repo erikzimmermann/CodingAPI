@@ -422,7 +422,7 @@ public class ItemBuilder implements Serializable {
                             try {
                                 material = Material.valueOf(name);
                             } catch (IllegalArgumentException ex2) {
-                                if (name.toUpperCase().equals("SPLASH_POTION")) {
+                                if (name.equalsIgnoreCase("SPLASH_POTION")) {
                                     material = Material.POTION;
                                 }
                             }

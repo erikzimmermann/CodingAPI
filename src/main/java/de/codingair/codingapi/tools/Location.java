@@ -172,7 +172,7 @@ public class Location extends org.bukkit.Location implements Serializable {
             b.append("#");
         }
 
-        return Double.parseDouble(new DecimalFormat("#." + b.toString()).format(d).replace(",", "."));
+        return Double.parseDouble(new DecimalFormat("#." + b).format(d).replace(",", "."));
     }
 
     private float trim(float d, int decimalPlaces) {
@@ -181,7 +181,7 @@ public class Location extends org.bukkit.Location implements Serializable {
             b.append("#");
         }
 
-        return Float.parseFloat(new DecimalFormat("#." + b.toString()).format(d).replace(",", "."));
+        return Float.parseFloat(new DecimalFormat("#." + b).format(d).replace(",", "."));
     }
 
     public String toJSONString(int decimalPlaces) {

@@ -209,11 +209,11 @@ public class BungeeJSON extends JSONObject implements DataMask {
     public <T> T get(String key, T def, boolean raw) {
         Map<?, ?> map = getSection(this, k(key));
         if(map == null) return null;
-        Object o = map.get((Object) getLastKey(key));
+        Object o = map.get(getLastKey(key));
 
         if(o == null && map == this) {
             //old usage
-            o = map.get((Object) (prefix.isEmpty() ? key : prefix));
+            o = map.get(prefix.isEmpty() ? key : prefix);
 
             if(o instanceof String) {
                 try {

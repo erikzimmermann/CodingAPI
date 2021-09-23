@@ -311,7 +311,7 @@ public abstract class SignGUI {
         close(null);
     }
 
-    public void close(Call call) {
+    public void close(@Nullable Call call) {
         PacketReader packetReader = null;
 
         List<PacketReader> l = API.getRemovables(this.player, PacketReader.class);
