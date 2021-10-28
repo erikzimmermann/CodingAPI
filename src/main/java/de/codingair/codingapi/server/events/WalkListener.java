@@ -13,6 +13,7 @@ public class WalkListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWalk(PlayerMoveEvent e) {
+        if (e.getTo() == null) return;
         Player p = e.getPlayer();
 
         double x = e.getFrom().getX() - e.getTo().getX();
