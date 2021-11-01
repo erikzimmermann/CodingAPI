@@ -28,6 +28,10 @@ public class PlayerInventory {
         this(player, true);
     }
 
+    /**
+     * @param player The player which inventory will be copied.
+     * @param exact  True (less performant) copies the exact inventory contents to the cached array. False (optimized) sorts the inventory into the current cache and provides a much faster add algorithm.
+     */
     public PlayerInventory(Player player, boolean exact) {
         this.player = player;
         this.exact = exact;
