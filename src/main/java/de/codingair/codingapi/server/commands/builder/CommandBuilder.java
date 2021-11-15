@@ -209,7 +209,11 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                 return false;
             }
 
-            this.baseComponent.unknownSubCommand(sender, label, args);
+            if (this.baseComponent.hasPermission(sender)) {
+                this.baseComponent.unknownSubCommand(sender, label, args);
+            }
+
+            this.baseComponent.noPermission(sender, label, component);
             return false;
         }
 

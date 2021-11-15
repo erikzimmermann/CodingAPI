@@ -6,7 +6,7 @@
 
     <groupId>com.github.CodingAir</groupId>
     <artifactId>CodingAPI</artifactId>
-    <version>1.36</version>
+    <version>1.37</version>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>

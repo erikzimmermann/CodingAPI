@@ -8,6 +8,7 @@ import de.codingair.codingapi.particles.utils.Color;
 import de.codingair.codingapi.tools.HitBox;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,30 +16,24 @@ import java.util.List;
 public abstract class CustomAnimation extends Animation {
     public static final int MAX_SPEED = 10;
     public static final int MIN_SPEED = 1;
-    private static final int MAX_TICKS = 10;
-
     static final double CALCULATE_RADIUS = 2;
     static final double MAX_STANDARD_RADIUS = 3;
-
+    private static final int MAX_TICKS = 10;
     private final List<List<Location>> CACHE = new ArrayList<>();
-    private int playId = 0;
-
     private final double radius;
     private final double height;
+    private final MovableMid mid;
+    private final Location zero;
+    private int playId = 0;
     private int xRotation = 0, yRotation = 0, zRotation = 0;
     private double sinX, sinY, sinZ, cosX, cosY, cosZ;
     private boolean calculateSinCos = true;
-
     private int skipped = 0;
     private int delay;
     private int speed = 0;
-
     private Color color;
     private int rainbow = 0;
-
-    private final MovableMid mid;
     private Player[] viewers;
-    private final Location zero;
 
     public CustomAnimation(Particle particle, MovableMid mid, double radius, double height, int speed) {
         super(particle);
@@ -67,8 +62,8 @@ public abstract class CustomAnimation extends Animation {
     }
 
     private void cache() {
-        if(!useOwnCache()) return;
-        if(!CACHE.isEmpty()) CACHE.clear();
+        if (!useOwnCache()) return;
+        if (!CACHE.isEmpty()) CACHE.clear();
 
         List<List<Location>> calculated = calculate(false);
         CACHE.addAll(calculated);
@@ -80,7 +75,7 @@ public abstract class CustomAnimation extends Animation {
     }
 
     private void rotate(Location l) {
-        if(calculateSinCos) {
+        if (calculateSinCos) {
             double rX = ((double) xRotation) * Math.PI / 180D;
             double rY = ((double) yRotation) * Math.PI / 180D;
             double rZ = ((double) zRotation) * Math.PI / 180D;
@@ -122,15 +117,15 @@ public abstract class CustomAnimation extends Animation {
     private void adjustLocations(List<Location> locations) {
         boolean rotation = xRotation != 0 || yRotation != 0 || zRotation != 0;
         Location mid = this.mid.getLocation();
-        if(mid == null) {
+        if (mid == null) {
             setRunning(false);
             return;
         }
 
-        for(Location location : locations) {
-            if(rotation) rotate(location);
+        for (Location location : locations) {
+            if (rotation) rotate(location);
 
-            if(!useOwnCache()) location.multiply(getRadius() / CALCULATE_RADIUS);
+            if (!useOwnCache()) location.multiply(getRadius() / CALCULATE_RADIUS);
             location.add(mid.getX(), mid.getY() + getHeight(), mid.getZ());
             location.setWorld(mid.getWorld());
         }
@@ -138,24 +133,24 @@ public abstract class CustomAnimation extends Animation {
 
     @Override
     public void onTick() {
-        if(delay > 0) {
-            if(skipped < delay) {
+        if (delay > 0) {
+            if (skipped < delay) {
                 skipped++;
 
                 this.mid.onTick();
                 return;
-            } else if(skipped == delay) skipped = 0;
+            } else if (skipped == delay) skipped = 0;
         }
 
         this.mid.onTick();
-        if(!this.mid.isStanding()) return;
+        if (!this.mid.isStanding()) return;
 
         List<Location> locations = getCache().size() <= playId ? null : (get(isMotionAnimation() ? playId++ : 0));
-        if(locations == null) {
+        if (locations == null) {
             playId = 0;
             locations = get(playId++);
         }
-        if(locations == null) {
+        if (locations == null) {
             setRunning(false);
             throw new NullPointerException("No particle locations available!");
         }
@@ -163,24 +158,24 @@ public abstract class CustomAnimation extends Animation {
 
         adjustLocations(locations);
 
-        if(locations != null) {
-            if(viewers == null) {
-                for(Location location : locations) {
-                    getParticle().send(location, color == null ? null :
-                            (getParticle() == Particle.NOTE ?
-                                    Color.RED.getColor() :
-                                    color == Color.RAINBOW ? Color.values()[rainbow++].getColor() : color.getColor()
-                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), true, getMaxDistance());
-                    if(rainbow == (getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH)) rainbow = 0;
+        if (locations != null) {
+            if (viewers == null) {
+                for (Location location : locations) {
+                    getParticle().send(location, buildColor(), buildNoteColor(), true, getMaxDistance());
+
+                    if (this.color == Color.RAINBOW) {
+                        rainbow++;
+                        if (rainbow >= getMaxRainbowValue()) rainbow = 0;
+                    }
                 }
             } else {
-                for(Location location : locations) {
-                    getParticle().send(location, color == null ? null :
-                            (getParticle() == Particle.NOTE ?
-                                    Color.RED.getColor() :
-                                    color == Color.RAINBOW ? Color.values()[rainbow++].getColor() : color.getColor()
-                            ), color == Color.RAINBOW ? rainbow++ : color.getNoteColor(), true, getMaxDistance(), viewers);
-                    if(rainbow == (getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH)) rainbow = 0;
+                for (Location location : locations) {
+                    getParticle().send(location, buildColor(), buildNoteColor(), true, getMaxDistance(), viewers);
+
+                    if (this.color == Color.RAINBOW) {
+                        rainbow++;
+                        if (rainbow >= (getMaxRainbowValue())) rainbow = 0;
+                    }
                 }
             }
 
@@ -188,10 +183,32 @@ public abstract class CustomAnimation extends Animation {
         }
     }
 
+    private int getMaxRainbowValue() {
+        return getParticle() == Particle.NOTE ? Color.RAINBOW_NOTE_COLOR_LENGTH : Color.RAINBOW_COLOR_LENGTH;
+    }
+
+    private int buildNoteColor() {
+        int noteColor;
+        if (this.color == null) noteColor = 0;
+        else if (this.color == Color.RAINBOW) noteColor = rainbow;
+        else noteColor = this.color.getNoteColor();
+        return noteColor;
+    }
+
+    @Nullable
+    private java.awt.Color buildColor() {
+        java.awt.Color color;
+        if (this.color == null) color = null;
+        else if (getParticle() == Particle.NOTE) color = Color.RED.getColor();
+        else if (this.color == Color.RAINBOW) color = Color.values()[rainbow].getColor();
+        else color = this.color.getColor();
+        return color;
+    }
+
     @Override
     public void setRunning(boolean running) {
-        if(isRunning() == running) return;
-        if(!running) CACHE.clear();
+        if (isRunning() == running) return;
+        if (!running) CACHE.clear();
         else cache();
         super.setRunning(running);
     }
@@ -207,9 +224,9 @@ public abstract class CustomAnimation extends Animation {
     abstract List<List<Location>> getAnimCache();
 
     private List<List<Location>> getCache() {
-        if(useOwnCache()) {
+        if (useOwnCache()) {
             return CACHE;
-        } else if(getAnimCache().isEmpty()) {
+        } else if (getAnimCache().isEmpty()) {
             calculate(true);
         }
 
@@ -220,12 +237,12 @@ public abstract class CustomAnimation extends Animation {
         List<List<Location>> cache = getCache();
         HitBox box = null;
 
-        for(List<Location> locations : cache) {
+        for (List<Location> locations : cache) {
             List<Location> copy = copy(locations);
             adjustLocations(copy);
 
-            for(Location l : copy) {
-                if(box == null) box = new HitBox(l.getX(), l.getY(), l.getZ());
+            for (Location l : copy) {
+                if (box == null) box = new HitBox(l.getX(), l.getY(), l.getZ());
                 else box.addProperty(l.getX(), l.getY(), l.getZ());
             }
 
@@ -277,15 +294,15 @@ public abstract class CustomAnimation extends Animation {
         return delay;
     }
 
-    public void setSpeed(int speed) {
-        if(speed < MIN_SPEED) speed = MIN_SPEED;
-        if(speed > MAX_SPEED) speed = MAX_SPEED;
-        this.delay = MAX_TICKS - speed;
-        this.speed = speed;
-    }
-
     public int getSpeed() {
         return speed;
+    }
+
+    public void setSpeed(int speed) {
+        if (speed < MIN_SPEED) speed = MIN_SPEED;
+        if (speed > MAX_SPEED) speed = MAX_SPEED;
+        this.delay = MAX_TICKS - speed;
+        this.speed = speed;
     }
 
     public Color getColor() {
@@ -313,7 +330,7 @@ public abstract class CustomAnimation extends Animation {
     public List<Location> copy(List<Location> cache) {
         List<Location> copy = new ArrayList<>();
 
-        for(Location l : cache) {
+        for (Location l : cache) {
             copy.add(l.clone());
         }
 
@@ -321,9 +338,9 @@ public abstract class CustomAnimation extends Animation {
     }
 
     public void clear(List<List<Location>> cache) {
-        if(cache == null) return;
+        if (cache == null) return;
 
-        for(List<Location> locations : cache) {
+        for (List<Location> locations : cache) {
             locations.clear();
         }
 
