@@ -30,7 +30,7 @@ public class InventoryUtils {
                 UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {CONTAINER_CLASS});
             }
 
-            ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, Version.since(17, "activeContainer", "bV", "bW"));
+            ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, Version.since(17, "activeContainer", "bV", null, "bW"));
             WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
 
             if (Version.get().isBiggerThan(Version.v1_13)) {
@@ -122,7 +122,8 @@ public class InventoryUtils {
                     return "e";
                 case 6:
                     return "f";
-                default: throw new IllegalArgumentException("Cannot find an inventory type for size: " + size);
+                default:
+                    throw new IllegalArgumentException("Cannot find an inventory type for size: " + size);
             }
         } else return "GENERIC_9X" + id;
     }

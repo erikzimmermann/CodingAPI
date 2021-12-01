@@ -104,7 +104,7 @@ public enum Version {
 
                 //go back to fewer value
                 for (int i = diff; i >= 0; i--) {
-                    if (updated[diff] != null) return updated[diff];
+                    if (updated[i] != null) return updated[i];
                 }
             } else return updated[diff];
         }
