@@ -8,13 +8,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class AnvilClickEvent extends Event {
     private final Player player;
     private final AnvilSlot slot;
@@ -101,7 +94,7 @@ public class AnvilClickEvent extends Event {
         if(colors) input = input.replace("§", "&");
         else input = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', input));
 
-        return input == null ? null : CharMatcher.WHITESPACE.trimFrom(input);
+        return input == null ? null : CharMatcher.whitespace().trimFrom(input);
     }
 
     public String getRawInput() {

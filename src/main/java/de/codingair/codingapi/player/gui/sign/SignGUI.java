@@ -39,9 +39,10 @@ public abstract class SignGUI {
         pos = IReflection.getField(updatePacket, "a");
         baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, "BaseBlockPosition");
         assert baseBlockPosition != null;
-        getX = IReflection.getMethod(baseBlockPosition, "getX", int.class, new Class[0]);
-        getY = IReflection.getMethod(baseBlockPosition, "getY", int.class, new Class[0]);
-        getZ = IReflection.getMethod(baseBlockPosition, "getZ", int.class, new Class[0]);
+
+        getX = IReflection.getMethod(baseBlockPosition, Version.since(18, "getX", "u"), int.class, new Class[0]);
+        getY = IReflection.getMethod(baseBlockPosition, Version.since(18, "getY", "v"), int.class, new Class[0]);
+        getZ = IReflection.getMethod(baseBlockPosition, Version.since(18, "getZ", "w"), int.class, new Class[0]);
     }
 
     private final Player player;
@@ -270,29 +271,13 @@ public abstract class SignGUI {
             IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), Version.since(17, "isEditable", "f"));
             editable.set(tileEntity, true);
 
-            IReflection.FieldAccessor<?> owner = null;
-            switch ((int) Version.get().getId()) {
-                case 17:
-                    IReflection.FieldAccessor<?> id = IReflection.getField(tileEntity.getClass(), "g");
-                    id.set(tileEntity, player.getUniqueId());
-                    break;
-
-                case 16:
-                case 15:
-                    owner = IReflection.getField(tileEntity.getClass(), "c");
-                    break;
-                case 14:
-                    owner = IReflection.getField(tileEntity.getClass(), "j");
-                    break;
-                case 13:
-                    owner = IReflection.getField(tileEntity.getClass(), "g");
-                    break;
-                default:
-                    owner = IReflection.getField(tileEntity.getClass(), "h");
-                    break;
+            if (Version.atLeast(17)) {
+                IReflection.FieldAccessor<?> id = IReflection.getField(tileEntity.getClass(), "g");
+                id.set(tileEntity, player.getUniqueId());
+            } else {
+                IReflection.FieldAccessor<?> owner = IReflection.getField(tileEntity.getClass(), Version.since(13, "h", "g", "j", "c"));
+                owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
             }
-
-            if (owner != null) owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
         }
     }
 

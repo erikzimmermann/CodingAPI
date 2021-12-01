@@ -46,12 +46,17 @@ public class NBTTagCompound {
 
         TAG = IReflection.getClass(IReflection.ServerPacket.NBT, "NBTBase");
 
-        if (Version.get().isBiggerThan(Version.v1_13)) {
-            SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", TAG, new Class[] {String.class, TAG});
+        if (Version.atLeast(18)) {
+            SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "a", TAG, new Class[] {String.class, TAG});
+            GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "c", TAG, new Class[] {String.class});
         } else {
-            SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", new Class[] {String.class, TAG});
+            if (Version.atLeast(13)) {
+                SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", TAG, new Class[] {String.class, TAG});
+            } else {
+                SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", new Class[] {String.class, TAG});
+            }
+            GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "get", TAG, new Class[] {String.class});
         }
-        GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "get", TAG, new Class[] {String.class});
 
         TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, Version.since(17, "tag", "w", "u"));
         MAP_FIELD = IReflection.getField(PacketUtils.NBTTagCompoundClass, Version.since(17, "map", "x"));

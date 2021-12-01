@@ -5,6 +5,7 @@ import com.mojang.authlib.properties.Property;
 import com.mojang.util.UUIDTypeAdapter;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import org.bukkit.Bukkit;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 public class GameProfileUtils {
     public static GameProfile getGameProfile(Player p) {
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, "getProfile", GameProfile.class, new Class[] {});
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, Version.since(18, "getProfile", "fp"), GameProfile.class, new Class[] {});
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
     }
 

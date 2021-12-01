@@ -3,6 +3,7 @@ package de.codingair.codingapi.server.commands.builder.brigadier;
 import com.mojang.brigadier.context.CommandContext;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -16,12 +17,13 @@ public class CommandListenerWrapper {
     public CommandListenerWrapper() {
         if(getBukkitSender == null) {
             Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandListenerWrapper");
-
+            assert commandListenerWrapperClass != null;
 
             Class<?> vec3DClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D");
             getBukkitSender = IReflection.getMethod(commandListenerWrapperClass, "getBukkitSender", CommandSender.class, new Class[]{});
-            getWorld = IReflection.getMethod(commandListenerWrapperClass, "getWorld", PacketUtils.WorldServerClass, new Class[]{});
-            getPosition = IReflection.getMethod(commandListenerWrapperClass, "getPosition", vec3DClass, new Class[]{});
+
+            getWorld = IReflection.getMethod(commandListenerWrapperClass, Version.since(18, "getWorld", "e"), PacketUtils.WorldServerClass, new Class[]{});
+            getPosition = IReflection.getMethod(commandListenerWrapperClass, Version.since(18, "getPosition", "d"), vec3DClass, new Class[]{});
             tabComplete = IReflection.getMethod(PacketUtils.CraftServerClass, "tabComplete", List.class, new Class[]{CommandSender.class, String.class, PacketUtils.WorldServerClass, vec3DClass, boolean.class});
         }
     }

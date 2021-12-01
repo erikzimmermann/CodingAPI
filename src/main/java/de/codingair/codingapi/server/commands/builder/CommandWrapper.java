@@ -14,6 +14,7 @@ import com.mojang.brigadier.tree.RootCommandNode;
 import de.codingair.codingapi.server.commands.builder.brigadier.CommandListenerWrapper;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 
 import java.util.List;
@@ -97,12 +98,22 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
 
     public static CommandDispatcher<Object> dispatcher() {
         if(dispatcher == null) {
-            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
-            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandDispatcher");
-            Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+            Object commandDispatcher;
+            if (Version.atLeast(18)) {
+                IReflection.FieldAccessor<?> vanillaCommandDispatcher = IReflection.getField(PacketUtils.MinecraftServerClass, "vanillaCommandDispatcher");
+                commandDispatcher = vanillaCommandDispatcher.get(PacketUtils.getMinecraftServer());
+            } else {
+                IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
+                commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
+            }
 
+            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandDispatcher");
+            assert commandDispatcherClass != null;
+
+            Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
             IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", commandDispatcherBrigadierClass, new Class[] {});
-            dispatcher = (CommandDispatcher<Object>) a.invoke(getCommandDispatcher.invoke(PacketUtils.getMinecraftServer()));
+            //noinspection unchecked
+            dispatcher = (CommandDispatcher<Object>) a.invoke(commandDispatcher);
         }
 
         return dispatcher;

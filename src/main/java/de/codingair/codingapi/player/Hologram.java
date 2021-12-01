@@ -11,6 +11,7 @@ import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,6 +20,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -534,53 +536,32 @@ public class Hologram implements Removable {
     }
 
     private static class HologramPackets {
+        @NotNull
+        private static ArmorStand bukkit(@NotNull Object nms) {
+            return (ArmorStand) PacketUtils.getBukkitEntity(nms);
+        }
+
         public static void setGravity(Object armorStand, boolean gravity) {
-            IReflection.MethodAccessor setGravity;
-
-            if (Version.get().isBiggerThan(Version.v1_9)) {
-                setGravity = IReflection.getMethod(armorStand.getClass(), "setNoGravity", new Class[] {boolean.class});
-            } else {
-                setGravity = IReflection.getMethod(armorStand.getClass(), "setGravity", new Class[] {boolean.class});
-            }
-
-            if (Version.get().isBiggerThan(Version.v1_9)) gravity = !gravity;
-            setGravity.invoke(armorStand, gravity);
+            bukkit(armorStand).setGravity(gravity);
         }
 
         public static void setInvisible(Object armorStand, boolean invisible) {
-            IReflection.MethodAccessor setInvisible = IReflection.getMethod(armorStand.getClass(), "setInvisible", new Class[] {boolean.class});
-            setInvisible.invoke(armorStand, invisible);
+            bukkit(armorStand).setInvisible(invisible);
         }
 
         public static void setInvulnerable(Object armorStand, boolean invulnerable) {
-            if (Version.get().isBiggerThan(Version.v1_9)) {
-                IReflection.MethodAccessor setInvulnerable = IReflection.getMethod(armorStand.getClass(), "setInvulnerable", new Class[] {boolean.class});
-                setInvulnerable.invoke(armorStand, invulnerable);
-            }
+            bukkit(armorStand).setInvulnerable(invulnerable);
         }
 
         public static void setMarker(Object armorStand, boolean invulnerable) {
             if (Version.get().isBiggerThan(8)) {
-                IReflection.MethodAccessor setMarker = IReflection.getMethod(armorStand.getClass(), "setMarker", new Class[] {boolean.class});
+                IReflection.MethodAccessor setMarker = IReflection.getMethod(armorStand.getClass(), Version.since(18, "setMarker", "t"), new Class[] {boolean.class});
                 setMarker.invoke(armorStand, invulnerable);
             }
         }
 
         public static void setCustomName(Object armorStand, String text) {
-            Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.decoration"), "EntityArmorStand");
-            IReflection.MethodAccessor setCustomName;
-
-            if (Version.get().isBiggerThan(Version.v1_12)) {
-                setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {PacketUtils.IChatBaseComponentClass});
-            } else {
-                setCustomName = IReflection.getMethod(entity, "setCustomName", new Class[] {String.class});
-            }
-
-            if (Version.get().isBiggerThan(Version.v1_12)) {
-                setCustomName.invoke(armorStand, PacketUtils.getIChatBaseComponent(text));
-            } else {
-                setCustomName.invoke(armorStand, text);
-            }
+            bukkit(armorStand).setCustomName(text);
         }
 
         public static void update(Player player, Object armorStand, String text) {
@@ -590,7 +571,7 @@ public class Hologram implements Removable {
 
         public static void sendDataWatcher(Player player, Object armorStand) {
             assert PacketUtils.EntityClass != null;
-            IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, "getDataWatcher", PacketUtils.DataWatcherClass, new Class[] {});
+            IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, Version.since(18, "getDataWatcher", "ai"), PacketUtils.DataWatcherClass, new Class[] {});
 
             Packet packet = new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
             packet.initialize(new Class[] {int.class, PacketUtils.DataWatcherClass, boolean.class}, PacketUtils.EntityPackets.getId(armorStand), getDataWatcher.invoke(armorStand), true);
@@ -598,8 +579,7 @@ public class Hologram implements Removable {
         }
 
         public static void setCustomNameVisible(Object armorStand, boolean visible) {
-            IReflection.MethodAccessor setCustomNameVisible = IReflection.getMethod(armorStand.getClass(), "setCustomNameVisible", new Class[] {boolean.class});
-            setCustomNameVisible.invoke(armorStand, visible);
+            bukkit(armorStand).setCustomNameVisible(visible);
         }
 
         public static void destroy(Player player, Object armorStand) {
@@ -607,7 +587,7 @@ public class Hologram implements Removable {
             if (Version.atLeast(17)) {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
-                packet = con.newInstance(new int[]{PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance(new int[] {PacketUtils.EntityPackets.getId(armorStand)});
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
@@ -629,7 +609,7 @@ public class Hologram implements Removable {
         }
 
         public static void setLocation(Object armorStand, Location location) {
-            IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, "setPosition", new Class[] {double.class, double.class, double.class});
+            IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.since(18, "setPosition", "c"), new Class[] {double.class, double.class, double.class});
             IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, Version.since(17, "world", "t"));
 
             world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));

@@ -25,12 +25,12 @@ public class InventoryUtils {
             CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
 
             if (Version.atLeast(17)) {
-                UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, "updateInventory");
+                UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, Version.since(18, "updateInventory", "b"));
             } else {
                 UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {CONTAINER_CLASS});
             }
 
-            ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, Version.since(17, "activeContainer", "bV"));
+            ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, Version.since(17, "activeContainer", "bV", "bW"));
             WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
 
             if (Version.get().isBiggerThan(Version.v1_13)) {
@@ -64,6 +64,8 @@ public class InventoryUtils {
 
         Object openWindowPacket = preparePacket(activeContainer, title, inventory);
         PacketUtils.sendPacket(player, openWindowPacket);
+
+        if (UPDATE_INVENTORY == null) return;
 
         if (Version.atLeast(17)) {
             UPDATE_INVENTORY.invoke(activeContainer);

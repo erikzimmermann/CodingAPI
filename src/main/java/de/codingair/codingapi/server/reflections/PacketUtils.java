@@ -14,13 +14,6 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class PacketUtils {
     public static final Class<?> CraftPlayerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftPlayer");
     public static final Class<?> CraftEntityClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftEntity");
@@ -62,6 +55,7 @@ public class PacketUtils {
     public static final Class<?> DataWatcherSerializerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcherSerializer");
     public static final Class<?> DataWatcherObjectClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcherObject");
 
+    public static final Class<?> PacketClass = getClass(IReflection.ServerPacket.PROTOCOL, "Packet");
     public static final Class<?> PacketPlayOutMountClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutMount");
     public static final Class<?> PacketPlayOutUpdateAttributesClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateAttributes");
     public static final Class<?> PacketPlayOutUpdateEntityNBTClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateEntityNBT");
@@ -110,11 +104,12 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[] {});
     public static final IReflection.MethodAccessor getBukkitEntity = getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[] {});
     public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[] {});
-    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, "sendPacket");
+    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[] {PacketClass});
     public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
+    public static final IReflection.MethodAccessor getId = getMethod(EntityClass, Version.since(18, "getId", "ae"), int.class, new Class[0]);
 
-    public static final IReflection.FieldAccessor playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
+    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
 
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
         return getMethod(target, methodName, null, parameterTypes);
@@ -333,7 +328,6 @@ public class PacketUtils {
         }
 
         public static int getId(Object entity) {
-            IReflection.MethodAccessor getId = IReflection.getMethod(PacketUtils.EntityClass, "getId", int.class, new Class[0]);
             return (int) getId.invoke(entity);
         }
 

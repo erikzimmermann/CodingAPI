@@ -321,6 +321,7 @@ public class IReflection {
         CRAFTBUKKIT_PACKAGE( Bukkit.getServer().getClass().getPackage().getName()),
         BUKKIT_PACKET( "org.bukkit"),
 
+        PROTOCOL(17, "net.minecraft.network.protocol"),
         PACKETS(17, "net.minecraft.network.protocol.game"),
         CHAT(17, "net.minecraft.network.chat"),
         NBT(17, "net.minecraft.nbt"),
