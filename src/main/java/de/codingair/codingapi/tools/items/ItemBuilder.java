@@ -276,8 +276,13 @@ public class ItemBuilder implements Serializable {
                     ItemHelper.setDurability(item, this.data);
                 }
             } else {
-                MaterialData data = this.data == 0 ? null : new MaterialData(this.type, this.data);
-                item.setData(data);
+                if (data != 0 && Version.less(13)) {
+                    //avoid "Initializing Legacy Material Support. Unless you have legacy plugins and/or data this is a bug!"
+                    @SuppressWarnings ("deprecation")
+                    MaterialData data = new MaterialData(this.type, this.data);
+                    item.setData(data);
+                }
+
                 ItemHelper.setDurability(item, this.durability);
             }
 
@@ -300,7 +305,10 @@ public class ItemBuilder implements Serializable {
             }
 
             if (Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
-            if (Version.get().isBiggerThan(Version.v1_13)) PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+            if (Version.get().isBiggerThan(Version.v1_13)) {
+                assert PacketUtils.setCustomModelData != null;
+                PacketUtils.setCustomModelData.invoke(meta, this.customModel);
+            }
 
             if (Version.get().isBiggerThan(12)) {
                 DamageableValue.setDamage(meta, this.damage);
@@ -320,9 +328,7 @@ public class ItemBuilder implements Serializable {
     @Override
     public boolean read(DataMask d) throws Exception {
         try {
-            for (Object key : d.keySet(false)) {
-                String keyName = (String) key;
-
+            for (String keyName : d.keySet(false)) {
                 switch (keyName) {
                     case "Lore": {
                         JSONArray jsonLore = d.getList("Lore");
@@ -355,8 +361,7 @@ public class ItemBuilder implements Serializable {
                         JSON jsonEnchantments = d.get("Enchantments");
                         if (jsonEnchantments == null) break;
 
-                        for (Object keySet : jsonEnchantments.keySet(false)) {
-                            String name = (String) keySet;
+                        for (String name : jsonEnchantments.keySet(false)) {
                             Enchantment enchantment = Enchantment.getByName(name);
                             int level = Integer.parseInt(jsonEnchantments.get(name) + "");
 
@@ -515,6 +520,7 @@ public class ItemBuilder implements Serializable {
 
                         for (Object o : l) {
                             if (o instanceof Map) {
+                                //noinspection unchecked
                                 data.add((Map<String, Object>) o);
                             }
                         }
@@ -546,6 +552,7 @@ public class ItemBuilder implements Serializable {
 
         if (this.lore != null) {
             for (String s : this.lore) {
+                //noinspection unchecked
                 lore.add(s.replace("§", "&"));
             }
         }
@@ -780,8 +787,7 @@ public class ItemBuilder implements Serializable {
         ItemStack item = type.parseItem();
         if (item != null) {
             setType(item.getType());
-            //noinspection ConstantConditions
-            setData(item.getData().getData());
+            setData(type.getData());
         } else setType(Material.STONE);
         return this;
     }

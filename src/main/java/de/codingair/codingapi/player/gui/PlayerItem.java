@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -19,7 +20,7 @@ public abstract class PlayerItem extends ItemStack implements Removable {
     private long lastClick = 0;
 
     public PlayerItem(JavaPlugin plugin, Player player, ItemStack item) {
-        this.setToItemStack(item);
+        super(item);
 
         this.plugin = plugin;
         this.player = player;
@@ -45,14 +46,6 @@ public abstract class PlayerItem extends ItemStack implements Removable {
     @Override
     public Player getPlayer() {
         return player;
-    }
-
-    private void setToItemStack(ItemStack item) {
-        this.setAmount(item.getAmount());
-        this.setType(item.getType());
-        this.setData(item.getData());
-        this.setDurability(item.getDurability());
-        this.setItemMeta(item.getItemMeta());
     }
 
     public void remove() {
