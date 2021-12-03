@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import com.google.common.base.CharMatcher;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -94,7 +95,12 @@ public class AnvilClickEvent extends Event {
         if(colors) input = input.replace("§", "&");
         else input = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', input));
 
-        return input == null ? null : CharMatcher.whitespace().trimFrom(input);
+        return input == null ? null : getWhitespace().trimFrom(input);
+    }
+
+    private CharMatcher getWhitespace() {
+        if (Version.atLeast(18)) return CharMatcher.whitespace();
+        else return CharMatcher.WHITESPACE;
     }
 
     public String getRawInput() {
