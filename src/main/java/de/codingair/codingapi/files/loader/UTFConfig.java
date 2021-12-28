@@ -67,7 +67,7 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     @Override
-    public Object get(String path, Object def) {
+    public Object get(@NotNull String path, Object def) {
         Object value = super.get(path, null);
 
         if (value == null) {
@@ -92,8 +92,9 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     @Override
-    public void save(File file) throws IOException {
+    public void save(@NotNull File file) throws IOException {
         Validate.notNull(file, "File cannot be null");
+        //noinspection UnstableApiUsage
         Files.createParentDirs(file);
         String data = writeExtras(this.saveToString());
 
@@ -119,10 +120,10 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     @Override
-    public String saveToString() {
+    public @NotNull String saveToString() {
         try {
-            IReflection.FieldAccessor<DumperOptions> fy = IReflection.getField(getClass(), "yamlOptions");
-            IReflection.FieldAccessor<Representer> fr = IReflection.getField(getClass(), "yamlRepresenter");
+            IReflection.FieldAccessor<DumperOptions> fy = IReflection.getField(getClass(), DumperOptions.class, 0);
+            IReflection.FieldAccessor<Representer> fr = IReflection.getField(getClass(), Representer.class, 0);
 
             DumperOptions yamlOptions = fy.get(this);
             Representer yamlRepresenter = fr.get(this);
