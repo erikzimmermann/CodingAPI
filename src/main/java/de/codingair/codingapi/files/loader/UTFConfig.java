@@ -145,7 +145,7 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     private Yaml getYaml() {
-        IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), "yaml");
+        IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), Yaml.class, 0);
         return fYaml.get(this);
     }
 
