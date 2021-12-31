@@ -2,10 +2,10 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
+import de.codingair.codingapi.tools.io.lib.JSONParser;
+import de.codingair.codingapi.tools.io.lib.ParseException;
 
 import java.net.URL;
 import java.net.URLConnection;

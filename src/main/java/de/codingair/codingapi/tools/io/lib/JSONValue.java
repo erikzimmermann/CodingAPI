@@ -62,9 +62,9 @@ public class JSONValue {
             } else if (value instanceof JSONAware) {
                 out.write(((JSONAware)value).toJSONString());
             } else if (value instanceof Map) {
-                org.json.simple.JSONObject.writeJSONString((Map)value, out);
+                JSONObject.writeJSONString((Map)value, out);
             } else if (value instanceof List) {
-                org.json.simple.JSONArray.writeJSONString((List)value, out);
+                JSONArray.writeJSONString((List)value, out);
             } else {
                 out.write(value.toString());
             }

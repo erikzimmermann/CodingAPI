@@ -4,6 +4,7 @@ import de.codingair.codingapi.bungeecord.files.ConfigFile;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 import de.codingair.codingapi.tools.io.utils.DataMask;
 import de.codingair.codingapi.tools.io.utils.Serializable;
@@ -165,7 +166,7 @@ public class BungeeConfigMask implements DataMask {
                 }
             }
 
-            if(o instanceof org.json.simple.JSONObject) return (T) new JSON((org.json.simple.JSONObject) o);
+            if(o instanceof JSONObject) return (T) new JSON((JSONObject) o);
         }
 
         return o == null ? def : (T) o;

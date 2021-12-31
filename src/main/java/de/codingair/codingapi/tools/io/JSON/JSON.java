@@ -242,7 +242,7 @@ public class JSON extends JSONObject implements SpigotDataMask {
                 }
             }
 
-            if(o instanceof org.json.simple.JSONObject) return (T) new JSON((org.json.simple.JSONObject) o);
+            if(o instanceof JSONObject) return (T) new JSON((JSONObject) o);
         }
 
         return o == null ? def : (T) o;

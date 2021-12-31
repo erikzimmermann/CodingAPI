@@ -1,13 +1,13 @@
 package de.codingair.codingapi.server.reflections;
 
 import de.codingair.codingapi.server.specification.Version;
+import de.codingair.codingapi.tools.io.lib.JSONObject;
+import de.codingair.codingapi.tools.io.lib.JSONParser;
+import de.codingair.codingapi.tools.io.lib.ParseException;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class PotionData {
     private PotionType type;
