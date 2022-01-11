@@ -7,21 +7,29 @@ import de.codingair.codingapi.tools.Call;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Sign;
 import org.bukkit.event.inventory.ClickType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public abstract class SignButton extends Button implements GUISwitchButton {
     private final Sign sign;
-    protected final String[] lines;
+    protected final Supplier<String[]> lines;
 
-    private SignButton(Sign sign, String[] lines) {
+    private SignButton(@Nullable Sign sign, @NotNull Supplier<String[]> lines) {
         this.sign = sign;
         this.lines = lines;
     }
 
-    public SignButton(Sign sign) {
-        this(sign, null);
+    private SignButton(@Nullable Sign sign, @Nullable String[] lines) {
+        this(sign, () -> lines);
     }
 
-    public SignButton(String[] lines) {
+    public SignButton(@Nullable Sign sign) {
+        this(sign, (String[]) null);
+    }
+
+    public SignButton(@Nullable String[] lines) {
         this(null, lines);
     }
 
@@ -34,7 +42,7 @@ public abstract class SignButton extends Button implements GUISwitchButton {
 
     @Override
     public boolean open(ClickType clickType, GUI gui, Call call) {
-        new SignGUI(gui.getPlayer(), gui.getPlugin(), this.sign, this.lines) {
+        new SignGUI(gui.getPlayer(), gui.getPlugin(), this.sign, this.lines.get()) {
             @Override
             public void onSignChangeEvent(String[] lines) {
                 //update sign

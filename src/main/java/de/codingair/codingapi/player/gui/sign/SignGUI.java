@@ -35,8 +35,10 @@ public abstract class SignGUI {
     static {
         packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
 
-        updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
-        pos = IReflection.getField(updatePacket, "a");
+        if (Version.get().isBiggerThan(8)) updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
+        else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
+
+        pos = IReflection.getField(updatePacket, PacketUtils.BlockPositionClass, 0);
         baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, "BaseBlockPosition");
         assert baseBlockPosition != null;
 
@@ -144,6 +146,7 @@ public abstract class SignGUI {
                     if (Version.get().isBiggerThan(Version.v1_8)) {
                         lines = (String[]) packetLines.get(p);
                     } else {
+
                         lines = sign == null ? new String[4] : sign.getLines();
 
                         Object[] data = (Object[]) packetLines.get(p);
