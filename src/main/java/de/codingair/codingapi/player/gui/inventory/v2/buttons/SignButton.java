@@ -33,6 +33,10 @@ public abstract class SignButton extends Button implements GUISwitchButton {
         this(null, lines);
     }
 
+    public SignButton(@NotNull Supplier<String[]> lines) {
+        this(null, lines);
+    }
+
     /**
      *
      * @param lines The applied lines of the sign.
