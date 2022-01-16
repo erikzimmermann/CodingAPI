@@ -536,6 +536,9 @@ public class Hologram implements Removable {
     }
 
     private static class HologramPackets {
+        private final static IReflection.MethodAccessor setInvisible = IReflection.getSaveMethod(ArmorStand.class, "setInvisible", null, boolean.class);
+        private final static IReflection.MethodAccessor setVisible = IReflection.getSaveMethod(ArmorStand.class, "setVisible", null, boolean.class);
+
         @NotNull
         private static ArmorStand bukkit(@NotNull Object nms) {
             return (ArmorStand) PacketUtils.getBukkitEntity(nms);
@@ -546,7 +549,11 @@ public class Hologram implements Removable {
         }
 
         public static void setInvisible(Object armorStand, boolean invisible) {
-            bukkit(armorStand).setInvisible(invisible);
+            ArmorStand as = bukkit(armorStand);
+
+            if (setInvisible != null) setInvisible.invoke(as, invisible);
+            else if (setVisible != null) setVisible.invoke(as, !invisible);
+            else throw new IllegalStateException("Cannot find setInvisible nor setVisible for ArmorStands! Please contact the plugin author.");
         }
 
         public static void setInvulnerable(Object armorStand, boolean invulnerable) {
