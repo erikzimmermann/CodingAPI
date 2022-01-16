@@ -18,6 +18,7 @@ public enum Version {
     v1_17(17),
     v1_17_1(17.1),
     v1_18(18),
+    v1_18_1(18.1),
     ;
 
     private static Version VERSION = null;

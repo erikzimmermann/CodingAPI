@@ -5,15 +5,21 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.YamlConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.composer.Composer;
 import org.yaml.snakeyaml.error.YAMLException;
+import org.yaml.snakeyaml.parser.ParserImpl;
+import org.yaml.snakeyaml.reader.StreamReader;
 import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.resolver.Resolver;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -23,7 +29,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class UTFConfig extends YamlConfiguration {
-    private static final String COMMENT = "#";
+    private static final String COMMENT = "# ";
     private final List<Extra> extras = new ArrayList<>();
     private final Cache<String, String> caseSensitive = CacheBuilder.newBuilder().expireAfterAccess(5, TimeUnit.MINUTES).build();
     private boolean deployedExtras = false;
@@ -96,7 +102,10 @@ public class UTFConfig extends YamlConfiguration {
         Validate.notNull(file, "File cannot be null");
         //noinspection UnstableApiUsage
         Files.createParentDirs(file);
-        String data = writeExtras(this.saveToString());
+
+        String data;
+        if (Version.atLeast(18.1)) data = this.saveToString();
+        else data = writeExtras(this.saveToString());
 
         BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
         StringBuilder builder = new StringBuilder();
@@ -120,36 +129,6 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     @Override
-    public @NotNull String saveToString() {
-        try {
-            IReflection.FieldAccessor<DumperOptions> fy = IReflection.getField(getClass(), DumperOptions.class, 0);
-            IReflection.FieldAccessor<Representer> fr = IReflection.getField(getClass(), Representer.class, 0);
-
-            DumperOptions yamlOptions = fy.get(this);
-            Representer yamlRepresenter = fr.get(this);
-            DumperOptions.FlowStyle fs = DumperOptions.FlowStyle.BLOCK;
-
-            yamlOptions.setIndent(this.options().indent());
-            yamlOptions.setDefaultFlowStyle(fs);
-            yamlOptions.setAllowUnicode(true);
-            yamlRepresenter.setDefaultFlowStyle(fs);
-
-            String dump = getYaml().dump(this.getValues(false));
-            if (dump.equals("{}\n")) dump = "";
-
-            return dump;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return "Error while running this#saveToString()";
-    }
-
-    private Yaml getYaml() {
-        IReflection.FieldAccessor<Yaml> fYaml = IReflection.getField(getClass(), Yaml.class, 0);
-        return fYaml.get(this);
-    }
-
-    @Override
     protected @NotNull String parseHeader(@NotNull String input) {
         return "";
     }
@@ -160,46 +139,9 @@ public class UTFConfig extends YamlConfiguration {
     }
 
     @Override
-    public void load(@NotNull File file) throws IOException, InvalidConfigurationException {
-        Validate.notNull(file, "File cannot be null");
-        this.load(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
-    }
-
-    @Override
     public void loadFromString(@NotNull String contents) throws InvalidConfigurationException {
-        Validate.notNull(contents, "Contents cannot be null");
-        loadExtras(contents);
-        if (contents.startsWith("~Config\n")) contents = contents.replaceFirst("~Config\n", "");
-
-        Map<?, ?> input;
-        try {
-            //setMaxAliasesForCollections is not available?
-            //loaderOptions.setMaxAliasesForCollections(Integer.MAX_VALUE); // SPIGOT-5881: Not ideal, but was default pre SnakeYAML 1.26
-            input = getYaml().load(contents);
-        } catch (YAMLException var4) {
-            throw new InvalidConfigurationException(var4);
-        } catch (ClassCastException var5) {
-            throw new InvalidConfigurationException("Top level is not a Map.");
-        }
-
-        String header = this.parseHeader(contents);
-        if (header.length() > 0) this.options().header(header);
-        if (input != null) this.convertMapsToSections(input, this);
-    }
-
-    @Override
-    public void convertMapsToSections(Map<?, ?> input, @NotNull ConfigurationSection section) {
-        for (Map.Entry<?, ?> entry : input.entrySet()) {
-            String key = entry.getKey().toString();
-            Object value = entry.getValue();
-
-            if (value instanceof Map) {
-                ConfigurationSection deep = section.getConfigurationSection(key);
-                this.convertMapsToSections((Map<?, ?>) value, deep == null ? section.createSection(key) : deep);
-            } else {
-                section.set(key, value);
-            }
-        }
+        super.loadFromString(contents);
+        if (Version.less(18.1)) loadExtras(contents);
     }
 
     public void removeUnused(UTFConfig origin) {
