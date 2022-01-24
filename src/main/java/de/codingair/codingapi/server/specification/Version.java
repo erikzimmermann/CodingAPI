@@ -17,8 +17,7 @@ public enum Version {
     v1_16(16),
     v1_17(17),
     v1_17_1(17.1),
-    v1_18(18),
-    v1_18_1(18.1),
+    v1_18(18, 18.1)
     ;
 
     private static Version VERSION = null;
@@ -30,9 +29,9 @@ public enum Version {
         load();
     }
 
-    private final double id;
+    private final double[] id;
 
-    Version(double id) {
+    Version(double... id) {
         this.id = id;
     }
 
@@ -73,22 +72,26 @@ public enum Version {
     }
 
     public static boolean atLeast(double version) {
-        return get().id >= version;
+        return get().id[get().id.length - 1] >= version;
     }
 
     public static boolean less(double version) {
-        return get().id < version;
+        return get().id[0] < version;
     }
 
     private static @NotNull Version byId(double version) {
         for (Version value : Version.values()) {
-            if (value.id == version) return value;
+            for (double id : value.id) {
+                if (id == version) return value;
+            }
         }
 
         //1.16.5 -> 1.16
         int casted = (int) version;
         for (Version value : Version.values()) {
-            if (value.id == casted) return value;
+            for (double id : value.id) {
+                if (id == casted) return value;
+            }
         }
 
         throw new IllegalArgumentException("Version not found: " + version);
@@ -114,7 +117,7 @@ public enum Version {
     }
 
     public double getId() {
-        return id;
+        return id[id.length - 1];
     }
 
     public String fullVersion() {
@@ -126,10 +129,10 @@ public enum Version {
     }
 
     public boolean isBiggerThan(Version version) {
-        return id > version.id;
+        return ordinal() > version.ordinal();
     }
 
     public boolean isBiggerThan(double version) {
-        return id > version;
+        return id[id.length - 1] > version;
     }
 }
