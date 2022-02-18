@@ -52,11 +52,12 @@ public class ChatListener implements Listener {
                     } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
 
                     List<SimpleMessage> messageList = API.getRemovables(null, SimpleMessage.class);
-                    handleSimpleMessages(type, uniqueId, player, messageList);
+                    boolean used = handleSimpleMessages(type, uniqueId, player, messageList);
 
                     messageList = API.getRemovables(player, SimpleMessage.class);
-                    handleSimpleMessages(type, uniqueId, player, messageList);
-                    return true;
+                    used |= handleSimpleMessages(type, uniqueId, player, messageList);
+
+                    return used;
                 }
 
                 return false;
@@ -69,32 +70,35 @@ public class ChatListener implements Listener {
         }.inject();
     }
 
-    private void handleSimpleMessages(String type, UUID uniqueId, Player player, List<SimpleMessage> messageList) {
+    private boolean handleSimpleMessages(String type, UUID uniqueId, Player player, List<SimpleMessage> messageList) {
+        boolean clicked = false;
+
         if (!messageList.isEmpty()) {
-            Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
-                boolean clicked = false;
-                for (SimpleMessage message : messageList) {
-                    ChatButton button = message.getButton(uniqueId);
-                    if (button != null) {
+            for (SimpleMessage message : messageList) {
+
+                ChatButton button = message.getButton(uniqueId);
+                if (button != null) {
+                    clicked = true;
+
+                    Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
                         if (button.canClick()) {
                             if (button.getSound() != null) button.getSound().play(player);
                             button.onClick(player);
                         }
+                    });
 
-                        clicked = true;
-                        break;
-                    }
+                    break;
                 }
-                messageList.clear();
+            }
 
-                if (!clicked) callForeignClick(player, uniqueId, type);
-            });
-        } else callForeignClick(player, uniqueId, type);
+            messageList.clear();
+        }
+
+        if (clicked) return true;
+        else return callForeignClick(player, uniqueId, type);
     }
 
-    private void callForeignClick(Player player, UUID uniqueId, String type) {
-        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
-            ChatButtonManager.onInteract(l -> l.onForeignClick(player, uniqueId, type));
-        });
+    private boolean callForeignClick(Player player, UUID uniqueId, String type) {
+        return ChatButtonManager.onAsyncInteract(l -> l.onAsyncClick(player, uniqueId, type));
     }
 }

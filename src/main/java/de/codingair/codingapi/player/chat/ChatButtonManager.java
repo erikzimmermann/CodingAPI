@@ -15,16 +15,17 @@ public class ChatButtonManager {
         return this.listeners.remove(l);
     }
 
-    static void onInteract(Event e) {
-        if(!hasInstance()) return;
+    static boolean onAsyncInteract(Event e) {
+        if(!hasInstance()) return false;
 
         List<ChatButtonListener> listeners = new ArrayList<>(getInstance().listeners);
 
         for(ChatButtonListener listener : listeners) {
-            e.onInteract(listener);
+            if (e.onInteract(listener)) return true;
         }
 
         listeners.clear();
+        return false;
     }
 
     public static ChatButtonManager getInstance() {
@@ -37,6 +38,6 @@ public class ChatButtonManager {
     }
 
     public interface Event {
-        void onInteract(ChatButtonListener l);
+        boolean onInteract(ChatButtonListener l);
     }
 }
