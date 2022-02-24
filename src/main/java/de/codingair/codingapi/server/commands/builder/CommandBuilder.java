@@ -201,30 +201,31 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         if (component == null) {
             if (baseComponent.isOnlyConsole() && sender instanceof Player) {
                 this.baseComponent.onlyFor(false, sender, label, component);
-                return false;
+                return true;
             }
 
             if (baseComponent.isOnlyPlayers() && !(sender instanceof Player)) {
                 this.baseComponent.onlyFor(true, sender, label, component);
-                return false;
+                return true;
             }
 
             if (this.baseComponent.hasPermission(sender)) {
                 this.baseComponent.unknownSubCommand(sender, label, args);
+                return true;
             }
 
             this.baseComponent.noPermission(sender, label, component);
-            return false;
+            return true;
         }
 
         if (component.isOnlyConsole() && sender instanceof Player) {
             this.baseComponent.onlyFor(false, sender, label, component);
-            return false;
+            return true;
         }
 
         if (component.isOnlyPlayers() && !(sender instanceof Player)) {
             this.baseComponent.onlyFor(true, sender, label, component);
-            return false;
+            return true;
         }
 
         if (component.hasPermission(sender)) {
@@ -232,7 +233,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         }
 
         this.baseComponent.noPermission(sender, label, component);
-        return false;
+        return true;
     }
 
     @Override
