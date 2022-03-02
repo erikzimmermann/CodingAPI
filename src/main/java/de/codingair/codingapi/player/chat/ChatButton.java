@@ -16,7 +16,7 @@ public abstract class ChatButton {
     private final UUID uniqueId = UUID.randomUUID();
     private final String text;
     private String type;
-    private List<String> hover;
+    private List<TextComponent> hover;
     private SoundData sound = null;
 
     public ChatButton(String text) {
@@ -33,6 +33,12 @@ public abstract class ChatButton {
         setHover(hover);
     }
 
+    @Deprecated
+    public ChatButton(String text, TextComponent hover) {
+        this(text);
+        setHover(hover);
+    }
+
     public boolean canClick() {
         return true;
     }
@@ -40,22 +46,23 @@ public abstract class ChatButton {
     TextComponent build() {
         TextComponent component = new TextComponent(this.text);
 
-        List<BaseComponent> lore = new ArrayList<>();
-        if(hover != null) {
-            for(String s : hover) {
-                lore.add(new TextComponent(s));
-            }
+        if(this.hover != null && !this.hover.isEmpty()) {
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.toArray(new BaseComponent[0])));
         }
-        BaseComponent[] components = lore.toArray(new BaseComponent[0]);
-
-        if(this.hover != null && !this.hover.isEmpty()) component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, components));
         component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
 
         return component;
     }
 
     public ChatButton setHover(String hover) {
-        this.hover = new ArrayList<String>() {{
+        this.hover = new ArrayList<TextComponent>() {{
+            add(new TextComponent(hover));
+        }};
+        return this;
+    }
+
+    public ChatButton setHover(TextComponent hover) {
+        this.hover = new ArrayList<TextComponent>() {{
             add(hover);
         }};
         return this;
@@ -66,7 +73,7 @@ public abstract class ChatButton {
 
         for(int i = 0; i < hover.size(); i++) {
             String s = hover.get(i);
-            this.hover.add(s + (i + 1 < hover.size() ? "\n" : ""));
+            this.hover.add(new TextComponent(s + (i + 1 < hover.size() ? "\n" : "")));
         }
 
         return this;
