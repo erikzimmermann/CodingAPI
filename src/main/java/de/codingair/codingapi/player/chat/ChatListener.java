@@ -9,13 +9,26 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
     private static final Class<?> chatPacket;
     private static final IReflection.FieldAccessor<String> text;
+    static final Set<UUID> DEAD_BUTTONS = new HashSet<>();
+
+    @NotNull
+    static UUID getRandom() {
+        while(true) {
+            UUID id = UUID.randomUUID();
+            if (DEAD_BUTTONS.contains(id)) continue;
+            return id;
+        }
+    }
 
     static {
         chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
@@ -50,6 +63,8 @@ public class ChatListener implements Listener {
                         uniqueId = UUID.fromString(a[0].replace(ChatButton.PREFIX, ""));
                         type = a[1];
                     } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
+
+                    if (DEAD_BUTTONS.contains(uniqueId)) return true;
 
                     List<SimpleMessage> messageList = API.getRemovables(null, SimpleMessage.class);
                     boolean used = handleSimpleMessages(type, uniqueId, player, messageList);

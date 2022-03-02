@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public abstract class ChatButton {
     public static final String PREFIX = "CodingAPI|ChatAPI|Button|";
-    private final UUID uniqueId = UUID.randomUUID();
+    private final UUID uniqueId = ChatListener.getRandom();
     private final String text;
     private String type;
     private BaseComponent[] hover;

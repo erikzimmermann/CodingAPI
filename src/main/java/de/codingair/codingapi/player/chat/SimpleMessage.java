@@ -251,6 +251,10 @@ public class SimpleMessage implements Removable {
 
     @Override
     public void destroy() {
+        for (Object component : this.components) {
+            if (component instanceof ChatButton) ChatListener.DEAD_BUTTONS.add(((ChatButton) component).getUniqueId());
+        }
+
         API.removeRemovable(this);
         this.components.clear();
         if(this.runnable != null) {
