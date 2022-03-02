@@ -16,7 +16,7 @@ public abstract class ChatButton {
     private final UUID uniqueId = UUID.randomUUID();
     private final String text;
     private String type;
-    private List<TextComponent> hover;
+    private BaseComponent[] hover;
     private SoundData sound = null;
 
     public ChatButton(String text) {
@@ -33,8 +33,12 @@ public abstract class ChatButton {
         setHover(hover);
     }
 
-    @Deprecated
-    public ChatButton(String text, TextComponent hover) {
+    public ChatButton(String text, BaseComponent hover) {
+        this(text);
+        setHover(hover);
+    }
+
+    public ChatButton(String text, BaseComponent... hover) {
         this(text);
         setHover(hover);
     }
@@ -44,10 +48,10 @@ public abstract class ChatButton {
     }
 
     TextComponent build() {
-        TextComponent component = new TextComponent(this.text);
+        TextComponent component = new TextComponent(TextComponent.fromLegacyText(this.text));
 
-        if(this.hover != null && !this.hover.isEmpty()) {
-            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover.toArray(new BaseComponent[0])));
+        if (this.hover != null && this.hover.length > 0) {
+            component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
         }
         component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
 
@@ -55,25 +59,26 @@ public abstract class ChatButton {
     }
 
     public ChatButton setHover(String hover) {
-        this.hover = new ArrayList<TextComponent>() {{
-            add(new TextComponent(hover));
-        }};
+        this.hover = TextComponent.fromLegacyText(hover);
         return this;
     }
 
-    public ChatButton setHover(TextComponent hover) {
-        this.hover = new ArrayList<TextComponent>() {{
-            add(hover);
-        }};
+    public ChatButton setHover(BaseComponent hover) {
+        this.hover = new BaseComponent[] {hover};
+        return this;
+    }
+
+    public ChatButton setHover(BaseComponent... hover) {
+        this.hover = hover;
         return this;
     }
 
     public ChatButton setHover(List<String> hover) {
-        this.hover = new ArrayList<>();
+        this.hover = new BaseComponent[hover.size()];
 
-        for(int i = 0; i < hover.size(); i++) {
+        for (int i = 0; i < hover.size(); i++) {
             String s = hover.get(i);
-            this.hover.add(new TextComponent(s + (i + 1 < hover.size() ? "\n" : "")));
+            this.hover[i] = new TextComponent(TextComponent.fromLegacyText(s + (i + 1 < hover.size() ? "\n" : "")));
         }
 
         return this;

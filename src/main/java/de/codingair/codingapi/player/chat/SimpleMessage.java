@@ -9,6 +9,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +66,14 @@ public class SimpleMessage implements Removable {
 
     public SimpleMessage add(String s) {
         s = s.replace("\\n", "\n");
-        this.components.add(new TextComponent(s));
+        this.components.add(convert(s));
         cachedSize = -1;
         return this;
+    }
+
+    @NotNull
+    private TextComponent convert(String s) {
+        return new TextComponent(TextComponent.fromLegacyText(s));
     }
 
     public SimpleMessage add(TextComponent messageComponent) {
@@ -84,7 +90,7 @@ public class SimpleMessage implements Removable {
 
     public SimpleMessage add(int index, String s) {
         s = s.replace("\\n", "\n");
-        this.components.add(index, new TextComponent(s));
+        this.components.add(index, convert(s));
         cachedSize = -1;
         return this;
     }
@@ -110,12 +116,12 @@ public class SimpleMessage implements Removable {
 
     public SimpleMessage addComponent(int index, String message, boolean hover, boolean click) {
         message = message.replace("\\n", "\n");
-        return addComponent(index, new TextComponent(message), hover, click);
+        return addComponent(index, convert(message), hover, click);
     }
 
     public SimpleMessage addComponent(String message, boolean hover, boolean click) {
         message = message.replace("\\n", "\n");
-        return addComponent(new TextComponent(message), hover, click);
+        return addComponent(convert(message), hover, click);
     }
 
     public SimpleMessage addComponent(int index, TextComponent messageComponent, boolean hover, boolean click) {
@@ -219,7 +225,7 @@ public class SimpleMessage implements Removable {
                 String s = a[k];
 
                 if(s != null && !s.isEmpty()) {
-                    TextComponent tc = new TextComponent(TextComponent.fromLegacyText(s));
+                    TextComponent tc = convert(s);
                     tc.setClickEvent(c.getClickEvent());
                     tc.setHoverEvent(c.getHoverEvent());
                     tc.setBold(c.isBold());
