@@ -4,13 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class AnvilCloseEvent extends Event {
 	private final Player player;
 	public static HandlerList handlers = new HandlerList();

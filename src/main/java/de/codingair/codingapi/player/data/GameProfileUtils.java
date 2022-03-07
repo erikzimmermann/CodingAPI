@@ -19,7 +19,8 @@ import java.util.UUID;
 
 public class GameProfileUtils {
     public static GameProfile getGameProfile(Player p) {
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, Version.since(18, "getProfile", "fp"), GameProfile.class, new Class[] {});
+        //Version.since(18, "getProfile", "fp"),
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, GameProfile.class, new Class[] {});
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
     }
 

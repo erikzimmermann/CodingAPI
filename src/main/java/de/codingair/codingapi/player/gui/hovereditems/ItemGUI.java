@@ -15,13 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class ItemGUI implements Removable {
 	private final UUID uniqueId = UUID.randomUUID();
 	

@@ -11,12 +11,6 @@ import org.bukkit.entity.Player;
 import java.awt.*;
 import java.lang.reflect.Constructor;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- **/
-
 public class ParticlePacket {
 
     private static final Class<?> packetPlayOutWorldParticles;

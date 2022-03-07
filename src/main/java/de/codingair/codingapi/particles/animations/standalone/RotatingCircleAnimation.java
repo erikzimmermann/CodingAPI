@@ -7,13 +7,6 @@ import org.bukkit.Location;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class RotatingCircleAnimation extends Animation {
     private double radius;
     private double degrees;

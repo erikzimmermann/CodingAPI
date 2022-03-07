@@ -10,13 +10,6 @@ import java.util.List;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class CircleAnimation extends CustomAnimation {
     private static final List<List<Location>> CACHE = new ArrayList<>();
 

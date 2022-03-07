@@ -35,12 +35,6 @@ import org.bukkit.potion.Potion;
 
 import java.util.*;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- **/
-
 public class ItemBuilder implements Serializable {
     private String name = "";
     private Material type = null;

@@ -4,13 +4,6 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class Packet {
 	private final Class<?> clazz;
 	private Object packet;

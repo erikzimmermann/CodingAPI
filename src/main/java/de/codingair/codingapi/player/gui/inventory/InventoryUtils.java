@@ -21,34 +21,25 @@ public class InventoryUtils {
     static {
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
 
-        if (PACKET_PLAY_OUT_OPEN_WINDOW_CLASS != null) {
-            CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
+        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
 
-            if (Version.atLeast(17)) {
-                UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, Version.since(18, "updateInventory", "b"));
-            } else {
-                UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {CONTAINER_CLASS});
-            }
-
-            ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, Version.since(17, "activeContainer", "bV", null, "bW"));
-            WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
-
-            if (Version.get().isBiggerThan(Version.v1_13)) {
-                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
-                TITLE = IReflection.getField(CONTAINER_CLASS, "title");
-
-                PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
-            } else {
-                TITLE = null;
-                PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
-            }
+        if (Version.atLeast(17)) {
+            UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, Version.since(18, "updateInventory", "b"));
         } else {
-            CONTAINER_CLASS = null;
-            UPDATE_INVENTORY = null;
-            ACTIVE_CONTAINER = null;
-            WINDOW_ID = null;
-            PACKET_CONSTRUCTOR = null;
+            UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {CONTAINER_CLASS});
+        }
+
+        ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, CONTAINER_CLASS, 1);
+        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
+
+        if (Version.get().isBiggerThan(Version.v1_13)) {
+            Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
+            TITLE = IReflection.getField(CONTAINER_CLASS, "title");
+
+            PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
+        } else {
             TITLE = null;
+            PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
         }
     }
 
@@ -74,14 +65,18 @@ public class InventoryUtils {
         }
     }
 
-    private static Object getActiveContainer(Object entityPlayer) {
+    public static Object getActiveContainer(Object entityPlayer) {
         return ACTIVE_CONTAINER.get(entityPlayer);
+    }
+
+    public static void setActiveContainer(Object entityPlayer, Object value) {
+        ACTIVE_CONTAINER.set(entityPlayer, value);
     }
 
     private static Object preparePacket(@NotNull Object activeContainer, @NotNull String title, @NotNull Inventory inventory) {
         Object messageComponent = getTitleComponent(title);
         int size = inventory.getSize();
-        int id = WINDOW_ID.get(activeContainer);
+        int id = getWindowId(activeContainer);
 
         Object packet;
         if (Version.get().isBiggerThan(Version.v1_13)) {
@@ -92,6 +87,14 @@ public class InventoryUtils {
         }
 
         return packet;
+    }
+
+    public static int getWindowId(Object activeContainer) {
+        return WINDOW_ID.get(activeContainer);
+    }
+
+    public static void setWindowId(Object activeContainer, int value) {
+        WINDOW_ID.set(activeContainer, value);
     }
 
     private static Object getTitleComponent(@NotNull String title) {

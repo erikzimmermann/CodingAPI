@@ -22,13 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @version 1.0.0
- **/
-
 public abstract class HoveredItem implements Removable, Ticker {
 	private final UUID uniqueId = UUID.randomUUID();
 	private static int ID_COUNTER = 0;

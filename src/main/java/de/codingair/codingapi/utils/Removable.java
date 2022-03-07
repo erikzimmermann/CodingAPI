@@ -5,13 +5,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public interface Removable {
 	void destroy();
 	

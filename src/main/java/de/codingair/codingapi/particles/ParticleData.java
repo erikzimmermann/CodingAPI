@@ -2,13 +2,6 @@ package de.codingair.codingapi.particles;
 
 import org.bukkit.Material;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class ParticleData {
 	private final Material material;
 	private final int data;

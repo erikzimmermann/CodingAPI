@@ -3,13 +3,6 @@ package de.codingair.codingapi.player.gui.inventory.gui.itembutton;
 import de.codingair.codingapi.server.sounds.SoundData;
 import org.bukkit.Sound;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class ItemButtonOption {
 	private boolean movable = false;
 	private Sound clickSound = null;

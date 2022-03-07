@@ -10,13 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @version 1.0.0
- **/
-
 public enum TextAlignment {
     LEFT,
     CENTER,

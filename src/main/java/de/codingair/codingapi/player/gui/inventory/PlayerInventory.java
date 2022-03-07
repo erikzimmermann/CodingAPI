@@ -9,12 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- **/
-
 public class PlayerInventory {
     private final Player player;
     private final ItemStack[] content;

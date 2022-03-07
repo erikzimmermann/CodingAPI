@@ -2,15 +2,14 @@ package de.codingair.codingapi.server.reflections;
 
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * -== IReflection ==-
@@ -25,24 +24,23 @@ import java.util.Map;
  */
 public class IReflection {
 
-    public static void setValue(Object instance, String fieldName, Object value) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
+    public static void setValue(@NotNull Object instance, @NotNull String fieldName, @NotNull Object value) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
         FieldAccessor<?> field = getField(instance.getClass(), fieldName);
         field.set(instance, value);
     }
 
-    public static Class<?> getSaveClass(ServerPacket packet, String name) throws ClassNotFoundException {
+    @NotNull
+    public static Class<?> getSaveClass(@NotNull ServerPacket packet, @NotNull String name) throws ClassNotFoundException {
         return getSaveClass(packet.toString(), name);
     }
 
-    public static Class<?> getSaveClass(String packet, String name) throws ClassNotFoundException {
-        try {
-            return Class.forName(packet + name);
-        } catch (ClassNotFoundException e) {
-            throw e;
-        }
+    @NotNull
+    public static Class<?> getSaveClass(@NotNull String packet, @NotNull String name) throws ClassNotFoundException {
+        return Class.forName(packet + name);
     }
 
-    public static Class<?> getClass(String name) {
+    @Nullable
+    public static Class<?> getClass(@NotNull String name) {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
@@ -51,11 +49,13 @@ public class IReflection {
         }
     }
 
-    public static Class<?> getClass(ServerPacket packet, String name) {
+    @NotNull
+    public static Class<?> getClass(@NotNull ServerPacket packet, @NotNull String name) {
         return getClass(packet.toString(), name);
     }
 
-    public static Class<?> getClass(String path, String name) {
+    @NotNull
+    public static Class<?> getClass(@NotNull String path, @NotNull String name) {
         try {
             return Class.forName(path + name);
         } catch (ClassNotFoundException e) {
@@ -65,7 +65,8 @@ public class IReflection {
         return null;
     }
 
-    public static ConstructorAccessor getConstructor(Class<?> clazz, Class<?>... parameterTypes) {
+    @Nullable
+    public static ConstructorAccessor getConstructor(@NotNull Class<?> clazz, @NotNull Class<?> @NotNull ... parameterTypes) {
         Class<?>[] p = DataType.convertToPrimitive(parameterTypes);
         for (Constructor<?> c : clazz.getDeclaredConstructors()) {
             if (DataType.equalsArray(DataType.convertToPrimitive(c.getParameterTypes()), p)) {
@@ -82,8 +83,6 @@ public class IReflection {
                             throw new RuntimeException("An internal error occured.", e.getCause());
                         } catch (InstantiationException e) {
                             throw new RuntimeException("Cannot instantiate object.", e);
-                        } catch (IllegalArgumentException e) {
-                            throw e;
                         }
                     }
 
@@ -101,7 +100,7 @@ public class IReflection {
         return null;
     }
 
-    public static ConstructorAccessor[] getConstructors(Class<?> clazz) {
+    public static @NotNull ConstructorAccessor @NotNull [] getConstructors(@NotNull Class<?> clazz) {
         List<ConstructorAccessor> cons = new ArrayList<>();
 
         for (Constructor<?> c : clazz.getDeclaredConstructors()) {
@@ -119,8 +118,6 @@ public class IReflection {
                         throw new RuntimeException("An internal error occured.", e.getCause());
                     } catch (InstantiationException e) {
                         throw new RuntimeException("Cannot instantiate object.", e);
-                    } catch (IllegalArgumentException e) {
-                        throw e;
                     }
                 }
 
@@ -131,14 +128,28 @@ public class IReflection {
             });
         }
 
-        return cons.toArray(new ConstructorAccessor[cons.size()]);
+        return cons.toArray(new ConstructorAccessor[0]);
     }
 
-    public static MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
+    @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @NotNull Class<?> @NotNull... parameterTypes) {
+        return getMethod(target, null, null, parameterTypes);
+    }
+
+    @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull... parameterTypes) {
+        return getMethod(target, null, returnType, parameterTypes);
+    }
+
+    @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @Nullable String methodName, @NotNull Class<?> @NotNull ... parameterTypes) {
         return IReflection.getMethod(target, methodName, null, parameterTypes);
     }
 
-    public static MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
+    @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @Nullable String methodName, @Nullable Class<?> returnType, @NotNull Class<?> @Nullable ... parameterTypes) {
+        if (target == null) throw new IllegalArgumentException("Target class cannot be null.");
+
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && ((primitiveParameter.length == 0 && method.getParameterTypes().length == 0) || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
@@ -153,8 +164,6 @@ public class IReflection {
                             throw new IllegalStateException("Cannot use reflection.", e);
                         } catch (InvocationTargetException e) {
                             throw new RuntimeException("An internal error occured.", e.getCause());
-                        } catch (IllegalArgumentException e) {
-                            throw e;
                         }
                     }
 
@@ -167,10 +176,10 @@ public class IReflection {
         if (target.getSuperclass() != null)
             return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
 
-        throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, parameterTypes));
+        throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.toString(parameterTypes)));
     }
 
-    public static MethodAccessor getSaveMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) throws IllegalStateException {
+    public static MethodAccessor getSaveMethod(@NotNull Class<?> target, @Nullable String methodName, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull... parameterTypes) throws IllegalStateException {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
@@ -185,8 +194,6 @@ public class IReflection {
                             throw new IllegalStateException("Cannot use reflection.", e);
                         } catch (InvocationTargetException e) {
                             throw new RuntimeException("An internal error occured.", e.getCause());
-                        } catch (IllegalArgumentException e) {
-                            throw e;
                         }
                     }
 
@@ -223,8 +230,6 @@ public class IReflection {
                             return (T) field.get(target);
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (IllegalArgumentException e) {
-                            throw e;
                         }
                     }
 
@@ -234,8 +239,6 @@ public class IReflection {
                             field.set(target, value);
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (IllegalArgumentException e) {
-                            throw e;
                         }
                     }
 
@@ -257,7 +260,7 @@ public class IReflection {
                 Integer.class), LONG(long.class, Long.class), CHARACTER(char.class, Character.class), FLOAT(float.class,
                 Float.class), DOUBLE(double.class, Double.class), BOOLEAN(boolean.class, Boolean.class);
 
-        private static final Map<Class<?>, DataType> CLASS_MAP = new HashMap<Class<?>, DataType>();
+        private static final Map<Class<?>, DataType> CLASS_MAP = new HashMap<>();
 
         static {
             for (DataType t : DataType.values()) {
@@ -288,7 +291,7 @@ public class IReflection {
             return t == null ? c : t.getReference();
         }
 
-        public static Class<?>[] convertToPrimitive(Class<?>[] classes) {
+        public static Class<?>[] convertToPrimitive(@NotNull Class<?> @Nullable [] classes) {
             int length = classes == null ? 0 : classes.length;
             Class<?>[] types = new Class<?>[length];
             for (int i = 0; i < length; i++)

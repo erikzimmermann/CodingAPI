@@ -3,7 +3,6 @@ package de.codingair.codingapi.player.data;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -23,8 +22,8 @@ public abstract class PacketReader implements Removable {
 
     static {
         getPlayerConnection = PacketUtils.playerConnection;
-        getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, Version.since(17, "networkManager", "a"));
-        getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, Version.since(17, "channel", "k"));
+        getNetworkManager = IReflection.getField(PacketUtils.PlayerConnectionClass, PacketUtils.NetworkManagerClass, 0);
+        getChannel = IReflection.getField(PacketUtils.NetworkManagerClass, Channel.class, 0);
     }
 
     private final UUID uniqueId = UUID.randomUUID();

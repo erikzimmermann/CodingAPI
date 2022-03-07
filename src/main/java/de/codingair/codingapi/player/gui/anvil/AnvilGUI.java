@@ -2,6 +2,7 @@ package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
+import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
@@ -24,19 +25,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.logging.Level;
-
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @version 1.0.0
- **/
 
 public class AnvilGUI implements Removable {
     private static final Class<?> ENTITY_PLAYER_CLASS;
     private static final Class<?> PLAYER_INVENTORY_CLASS;
-    private static final IReflection.FieldAccessor<Object> GET_WORLD;
+    private static final IReflection.MethodAccessor GET_WORLD;
     private static final IReflection.ConstructorAccessor BLOCK_POSITION_CON;
     private static final IReflection.MethodAccessor NEXT_CONTAINER_COUNTER;
     private static final Class<?> WORLD_CLASS;
@@ -49,9 +44,8 @@ public class AnvilGUI implements Removable {
     private static final Class<?> PACKET_PLAY_OUT_OPEN_WINDOW_CLASS;
     private static final Class<?> CHAT_MESSAGE_CLASS;
     private static final IReflection.ConstructorAccessor CHAT_MESSAGE_CON;
-    private static final IReflection.FieldAccessor<Object> ACTIVE_CONTAINER;
-    private static final IReflection.FieldAccessor<Object> WINDOW_ID;
     private static final IReflection.FieldAccessor<InventoryType.SlotType> SLOT_TYPE_FIELD;
+    private static final Function<Object, Object> GET_INVENTORY;
 
     static {
         Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAnvil");
@@ -60,6 +54,7 @@ public class AnvilGUI implements Removable {
         BLOCK_POSITION_CLASS = PacketUtils.BlockPositionClass;
         ENTITY_PLAYER_CLASS = PacketUtils.EntityPlayerClass;
         assert ENTITY_PLAYER_CLASS != null;
+
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftInventoryView");
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
@@ -77,14 +72,17 @@ public class AnvilGUI implements Removable {
         GET_BUKKIT_VIEW = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
         GET_TOP_INVENTORY = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);
         NEXT_CONTAINER_COUNTER = IReflection.getMethod(ENTITY_PLAYER_CLASS, "nextContainerCounter", int.class, (Class<?>[]) null);
-
-        GET_WORLD = IReflection.getField(ENTITY_PLAYER_CLASS, Version.since(17, "world", "t"));
-        ACTIVE_CONTAINER = IReflection.getField(ENTITY_PLAYER_CLASS, Version.since(17, "activeContainer", "bV", null, "bW"));
-        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
-
+        GET_WORLD = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.WorldClass, new Class[0]);
         REACHABLE = IReflection.getField(containerAnvilClass, "checkReachable");
-
         SLOT_TYPE_FIELD = IReflection.getField(InventoryClickEvent.class, InventoryType.SlotType.class, 0);
+
+        if (Version.atLeast(17)) {
+            IReflection.MethodAccessor getInventory = IReflection.getMethod(PacketUtils.EntityHumanClass, PLAYER_INVENTORY_CLASS, new Class[0]);
+            GET_INVENTORY = getInventory::invoke;
+        } else {
+            IReflection.FieldAccessor<?> getInventory = IReflection.getField(ENTITY_PLAYER_CLASS, "inventory");
+            GET_INVENTORY = getInventory::get;
+        }
     }
 
     private final UUID uniqueId = UUID.randomUUID();
@@ -241,16 +239,8 @@ public class AnvilGUI implements Removable {
         this.player.closeInventory();
         Object entityPlayer = PacketUtils.getEntityPlayer(this.player);
 
-        Object inventory;
-        if (Version.atLeast(17)) {
-            IReflection.MethodAccessor getInventory = IReflection.getMethod(ENTITY_PLAYER_CLASS, Version.since(18, "getInventory", "fq"), PLAYER_INVENTORY_CLASS, new Class[0]);
-            inventory = getInventory.invoke(entityPlayer);
-        } else {
-            IReflection.FieldAccessor<?> getInventory = IReflection.getField(ENTITY_PLAYER_CLASS, "inventory");
-            inventory = getInventory.get(entityPlayer);
-        }
-
-        Object world = GET_WORLD.get(entityPlayer);
+        Object inventory = GET_INVENTORY.apply(entityPlayer);
+        Object world = GET_WORLD.invoke(entityPlayer);
         Object blockPosition = BLOCK_POSITION_CON.newInstance(0, 0, 0);
 
         int c = (int) NEXT_CONTAINER_COUNTER.invoke(entityPlayer);
@@ -258,10 +248,11 @@ public class AnvilGUI implements Removable {
         Object container;
         if (Version.get().isBiggerThan(Version.v1_13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
-            IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, Version.since(18, "at", "a"), containerAccessClass, new Class[] {WORLD_CLASS, BLOCK_POSITION_CLASS});
+            IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, containerAccessClass, new Class[] {WORLD_CLASS, BLOCK_POSITION_CLASS});
 
-            container = ANVIL_CONTAINER_CON.newInstance(c, inventory, at.invoke(null, world, blockPosition));
-            IReflection.FieldAccessor<?> title = IReflection.getField(CONTAINER_CLASS, "title");
+            Object containerAccess = at.invoke(null, world, blockPosition);
+            container = ANVIL_CONTAINER_CON.newInstance(c, inventory, containerAccess);
+            IReflection.FieldAccessor<?> title = IReflection.getField(CONTAINER_CLASS, PacketUtils.IChatBaseComponentClass, 0);
             title.set(container, PacketUtils.getIChatBaseComponent(this.title));
         } else {
             container = ANVIL_CONTAINER_CON.newInstance(inventory, world, blockPosition, entityPlayer);
@@ -294,15 +285,15 @@ public class AnvilGUI implements Removable {
             plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.get().name() + "!");
         }
 
-        ACTIVE_CONTAINER.set(entityPlayer, container);
-        WINDOW_ID.set(ACTIVE_CONTAINER.get(entityPlayer), c);
+        InventoryUtils.setActiveContainer(entityPlayer, container);
+        InventoryUtils.setWindowId(container, c);
 
         if (Version.atLeast(17)) {
-            IReflection.MethodAccessor initMenu = IReflection.getMethod(ENTITY_PLAYER_CLASS, Version.since(18, "initMenu", "a"), new Class[] {CONTAINER_CLASS});
+            IReflection.MethodAccessor initMenu = IReflection.getMethod(ENTITY_PLAYER_CLASS, (Class<?>) null, new Class[] {CONTAINER_CLASS});
             initMenu.invoke(entityPlayer, container);
         } else {
             IReflection.MethodAccessor addSlotListener = IReflection.getMethod(CONTAINER_CLASS, "addSlotListener", new Class[] {ENTITY_PLAYER_CLASS});
-            addSlotListener.invoke(ACTIVE_CONTAINER.get(entityPlayer), entityPlayer);
+            addSlotListener.invoke(InventoryUtils.getActiveContainer(entityPlayer), entityPlayer);
         }
 
         updateInventory();
@@ -332,7 +323,7 @@ public class AnvilGUI implements Removable {
 
     public void updateInventory() {
         Object entityPlayer = PacketUtils.getEntityPlayer(this.player);
-        Object container = ACTIVE_CONTAINER.get(entityPlayer);
+        Object container = InventoryUtils.getActiveContainer(entityPlayer);
 
         if (!container.toString().toLowerCase().contains("anvil")) return;
 

@@ -1,12 +1,5 @@
 package de.codingair.codingapi.player.gui.anvil;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public enum AnvilSlot {
 	INPUT_LEFT(0),
 	INPUT_RIGHT(1),

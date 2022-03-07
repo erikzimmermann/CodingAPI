@@ -9,13 +9,6 @@ import net.md_5.bungee.config.Configuration;
 import java.io.*;
 import java.util.Map;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
 public class ConfigFile {
     private final UTFConfiguration configuration;
     private final String name;

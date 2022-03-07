@@ -594,7 +594,7 @@ public class Hologram implements Removable {
             if (Version.atLeast(17)) {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
-                packet = con.newInstance(new int[] {PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance((Object) new int[] {PacketUtils.EntityPackets.getId(armorStand)});
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
@@ -617,7 +617,7 @@ public class Hologram implements Removable {
 
         public static void setLocation(Object armorStand, Location location) {
             IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.since(18, "setPosition", "c"), new Class[] {double.class, double.class, double.class});
-            IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, Version.since(17, "world", "t"));
+            IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
 
             world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));
             setPosition.invoke(armorStand, location.getX(), location.getY(), location.getZ());
@@ -625,7 +625,6 @@ public class Hologram implements Removable {
 
         public static Object createArmorStand(Location location) {
             Class<?> entity = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.decoration"), "EntityArmorStand");
-            assert entity != null;
 
             IReflection.ConstructorAccessor con = IReflection.getConstructor(entity, PacketUtils.WorldServerClass, double.class, double.class, double.class);
             assert con != null;

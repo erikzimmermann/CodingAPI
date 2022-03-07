@@ -23,13 +23,6 @@ import org.bukkit.plugin.Plugin;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author CodingAir
- * @verions: 1.0.0
- **/
-
 public class GUIListener implements Listener {
     private static GUIListener instance = null;
 

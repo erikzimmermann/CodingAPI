@@ -7,13 +7,7 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Removing of this disclaimer is forbidden.
- *
- * @author codingair
- * @verions: 1.0.0
- **/
-
+@Deprecated
 public enum Particle {
     BARRIER("barrier", "barrier", 35),
     BLOCK_CRACK("blockcrack", "block", 37, ParticleProperty.REQUIRES_DATA, ParticleProperty.NO_ANIMATION_PURPOSE),
@@ -95,23 +89,79 @@ public enum Particle {
         properties = Arrays.asList(property);
     }
 
+    public static Particle getById(int id) {
+        for (Particle particle : Particle.values()) {
+            if (particle.getId() == id) return particle;
+        }
+
+        return null;
+    }
+
+    public static Particle next(int id, boolean checkAnimationPurpose) {
+        return next(id, false, checkAnimationPurpose);
+    }
+
+    public static Particle next(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
+        Particle p = getById(id);
+
+        if (skipCharacter) {
+            for (int i = p.ordinal() + 1; i < values.length; i++) {
+                if (values[i].name().charAt(0) != p.name().charAt(0)) {
+                    Particle next = values[i];
+                    if (!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
+                }
+            }
+        } else {
+            for (int i = p.ordinal() + 1; i < values.length; i++) {
+                Particle next = values[i];
+                if (!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
+            }
+        }
+
+        return values[0];
+    }
+
+    public static Particle previous(int id, boolean checkAnimationPurpose) {
+        return previous(id, false, checkAnimationPurpose);
+    }
+
+    public static Particle previous(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
+        Particle p = getById(id);
+
+        if (skipCharacter) {
+            for (int i = p.ordinal() - 1; i >= 0; i--) {
+                if (values[i].name().charAt(0) != p.name().charAt(0)) {
+                    Particle next = values[i];
+                    if (!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
+                }
+            }
+        } else {
+            for (int i = p.ordinal() - 1; i >= 0; i--) {
+                Particle previous = values[i];
+                if (!checkAnimationPurpose || !previous.noAnimationPurpose()) return previous;
+            }
+        }
+
+        return values[values.length - 1];
+    }
+
     public boolean isColorable() {
-        if(properties == null) return false;
+        if (properties == null) return false;
         return properties.contains(ParticleProperty.COLORABLE);
     }
 
     public boolean noAnimationPurpose() {
-        if(properties == null) return false;
+        if (properties == null) return false;
         return properties.contains(ParticleProperty.NO_ANIMATION_PURPOSE);
     }
 
     public boolean requiresData() {
-        if(properties == null) return false;
+        if (properties == null) return false;
         return properties.contains(ParticleProperty.REQUIRES_DATA);
     }
 
     public boolean requiresWater() {
-        if(properties == null) return false;
+        if (properties == null) return false;
         return properties.contains(ParticleProperty.REQUIRES_WATER);
     }
 
@@ -129,7 +179,7 @@ public enum Particle {
 
     public void send(Location loc) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.initialize(loc);
             packet.send();
         }
@@ -137,10 +187,10 @@ public enum Particle {
 
     public void send(Location loc, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -148,7 +198,7 @@ public enum Particle {
 
     public void send(Location loc, boolean longDistance) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.initialize(loc);
             packet.send();
@@ -157,7 +207,7 @@ public enum Particle {
 
     public void send(Location loc, double maxDistance) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(true);
             packet.setMaxDistance(maxDistance);
             packet.initialize(loc);
@@ -167,11 +217,11 @@ public enum Particle {
 
     public void send(Location loc, boolean longDistance, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -179,7 +229,7 @@ public enum Particle {
 
     public void send(Location loc, Color color) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setColor(color);
             packet.initialize(loc);
             packet.send();
@@ -188,7 +238,7 @@ public enum Particle {
 
     public void send(Location loc, Color color, boolean longDistance) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.setColor(color);
             packet.initialize(loc);
@@ -198,7 +248,7 @@ public enum Particle {
 
     public void send(Location loc, Color color, int noteColor, boolean longDistance) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.setColor(color);
             packet.setNoteId(noteColor);
@@ -209,7 +259,7 @@ public enum Particle {
 
     public void send(Location loc, Color color, int noteColor, boolean longDistance, double maxDistance) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.setColor(color);
             packet.setNoteId(noteColor);
@@ -221,11 +271,11 @@ public enum Particle {
 
     public void send(Location loc, Color color, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setColor(color);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -233,12 +283,12 @@ public enum Particle {
 
     public void send(Location loc, Color color, int noteColor, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setColor(color);
             packet.setNoteId(noteColor);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -246,12 +296,12 @@ public enum Particle {
 
     public void send(Location loc, Color color, boolean longDistance, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
-            if(color != null) packet.setColor(color);
+            if (color != null) packet.setColor(color);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -259,13 +309,13 @@ public enum Particle {
 
     public void send(Location loc, Color color, int noteColor, boolean longDistance, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
-            if(color != null) packet.setColor(color);
+            if (color != null) packet.setColor(color);
             packet.setNoteId(noteColor);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -273,14 +323,14 @@ public enum Particle {
 
     public void send(Location loc, Color color, int noteColor, boolean longDistance, double maxDistance, Player... players) {
         ParticlePacket packet = new ParticlePacket(this);
-        if(packet.available()) {
+        if (packet.available()) {
             packet.setLongDistance(longDistance);
             packet.setMaxDistance(maxDistance);
-            if(color != null) packet.setColor(color);
+            if (color != null) packet.setColor(color);
             packet.setNoteId(noteColor);
             packet.initialize(loc);
 
-            for(Player player : players) {
+            for (Player player : players) {
                 packet.send(player);
             }
         }
@@ -290,14 +340,6 @@ public enum Particle {
         ParticlePacket packet = new ParticlePacket(this);
         packet.initialize(loc);
         return packet;
-    }
-
-    public static Particle getById(int id) {
-        for(Particle particle : Particle.values()) {
-            if(particle.getId() == id) return particle;
-        }
-
-        return null;
     }
 
     public String getName_v1_13() {
@@ -312,59 +354,11 @@ public enum Particle {
         return next(id, skipCharacter, checkAnimationPurpose);
     }
 
-    public static Particle next(int id, boolean checkAnimationPurpose) {
-        return next(id, false, checkAnimationPurpose);
-    }
-
-    public static Particle next(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
-        Particle p = getById(id);
-
-        if(skipCharacter) {
-            for(int i = p.ordinal() + 1; i < values.length; i++) {
-                if(values[i].name().charAt(0) != p.name().charAt(0)) {
-                    Particle next = values[i];
-                    if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                }
-            }
-        } else {
-            for(int i = p.ordinal() + 1; i < values.length; i++) {
-                Particle next = values[i];
-                if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-            }
-        }
-        
-        return values[0];
-    }
-
     public Particle previous(boolean checkAnimationPurpose) {
         return previous(false, checkAnimationPurpose);
     }
 
     public Particle previous(boolean skipCharacter, boolean checkAnimationPurpose) {
         return previous(id, skipCharacter, checkAnimationPurpose);
-    }
-
-    public static Particle previous(int id, boolean checkAnimationPurpose) {
-        return previous(id, false, checkAnimationPurpose);
-    }
-
-    public static Particle previous(int id, boolean skipCharacter, boolean checkAnimationPurpose) {
-        Particle p = getById(id);
-
-        if(skipCharacter) {
-            for(int i = p.ordinal() - 1; i >= 0; i--) {
-                if(values[i].name().charAt(0) != p.name().charAt(0)) {
-                    Particle next = values[i];
-                    if(!checkAnimationPurpose || !next.noAnimationPurpose()) return next;
-                }
-            }
-        } else {
-            for(int i = p.ordinal() - 1; i >= 0; i--) {
-                Particle previous = values[i];
-                if(!checkAnimationPurpose || !previous.noAnimationPurpose()) return previous;
-            }
-        }
-
-        return values[values.length - 1];
     }
 }

@@ -17,7 +17,7 @@ public class BookListener implements Listener {
         UUID uniqueId = UUID.fromString(e.getMessage().replace("CodingAPI|BookAPI|Button|", ""));
 
         e.setCancelled(true);
-        e.setMessage(null);
+        e.setMessage("");
         e.getRecipients().clear();
 
         List<Book> l = API.getRemovables(e.getPlayer(), Book.class);
