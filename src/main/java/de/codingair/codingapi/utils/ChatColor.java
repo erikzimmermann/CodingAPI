@@ -111,7 +111,7 @@ public enum ChatColor {
 
     public static String translateAll(char altColorChar, String textToTranslate) {
         if(textToTranslate == null) return null;
-        return translateHexColorCodes(altColorChar, translateAlternateColorCodes(altColorChar, textToTranslate));
+        return translateAlternateColorCodes(altColorChar, translateHexColorCodes(altColorChar, textToTranslate));
     }
 
     public static ChatColor getByChar(char code) {
