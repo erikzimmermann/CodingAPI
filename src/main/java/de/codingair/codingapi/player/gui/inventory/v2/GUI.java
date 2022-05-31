@@ -28,14 +28,24 @@ public class GUI extends InventoryBuilder {
     private int size;
     private String title;
     private String originalTitle;
+    private final boolean cancelInventoryEvents;
+
+    public GUI(Player player, JavaPlugin plugin, boolean cancelInventoryEvents) {
+        super(player, plugin);
+        this.cancelInventoryEvents = cancelInventoryEvents;
+    }
 
     public GUI(Player player, JavaPlugin plugin) {
-        super(player, plugin);
+        this(player, plugin, true);
+    }
+
+    public GUI(Player player, JavaPlugin plugin, int size, String title, boolean cancelInventoryEvents) {
+        this(player, plugin, cancelInventoryEvents);
+        buildInventory(size, title);
     }
 
     public GUI(Player player, JavaPlugin plugin, int size, String title) {
-        super(player, plugin);
-        buildInventory(size, title);
+        this(player, plugin, size, title, true);
     }
 
     @Override
@@ -212,5 +222,9 @@ public class GUI extends InventoryBuilder {
 
     public String getOriginalTitle() {
         return originalTitle;
+    }
+
+    public boolean cancelInventoryEvents() {
+        return cancelInventoryEvents;
     }
 }

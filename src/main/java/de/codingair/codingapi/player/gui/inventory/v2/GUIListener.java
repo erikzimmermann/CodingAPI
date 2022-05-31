@@ -43,10 +43,10 @@ public class GUIListener implements Listener {
 
         if (!gui.waiting && gui.getInventory().equals(e.getInventory())) {
             if (e.getClickedInventory() != null && e.getClickedInventory().equals(e.getView().getTopInventory())) {
-                e.setCancelled(true);
                 Button b = gui.getActive().getButtonAt(e.getSlot());
 
                 if (b != null) {
+                    e.setCancelled(true);
                     if (b.canClick(e.getClick())) {
                         b.onClick(gui, e);
                         b.playSound(gui.getPlayer());
@@ -69,8 +69,8 @@ public class GUIListener implements Listener {
                             }
                         }
                     }
-                }
-            } else {
+                } else if (gui.cancelInventoryEvents()) e.setCancelled(true);
+            } else if (gui.cancelInventoryEvents()) {
                 if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                     e.setCancelled(true);
                 } else if (e.getAction() == InventoryAction.COLLECT_TO_CURSOR) {
