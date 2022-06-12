@@ -3,27 +3,25 @@ package de.codingair.codingapi.server.commands.builder.brigadier;
 import com.mojang.brigadier.context.CommandContext;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
 public class CommandListenerWrapper {
     private static IReflection.MethodAccessor getBukkitSender;
-    private static IReflection.MethodAccessor getWorld;
-    private static IReflection.MethodAccessor getPosition;
+    private static IReflection.FieldAccessor<?> getWorld;
+    private static IReflection.FieldAccessor<?> getPosition;
     private static IReflection.MethodAccessor tabComplete;
 
     public CommandListenerWrapper() {
         if(getBukkitSender == null) {
             Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandListenerWrapper");
-            assert commandListenerWrapperClass != null;
 
             Class<?> vec3DClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D");
             getBukkitSender = IReflection.getMethod(commandListenerWrapperClass, "getBukkitSender", CommandSender.class, new Class[]{});
 
-            getWorld = IReflection.getMethod(commandListenerWrapperClass, Version.since(18, "getWorld", "e"), PacketUtils.WorldServerClass, new Class[]{});
-            getPosition = IReflection.getMethod(commandListenerWrapperClass, Version.since(18, "getPosition", "d"), vec3DClass, new Class[]{});
+            getWorld = IReflection.getField(commandListenerWrapperClass, PacketUtils.WorldServerClass, 0);
+            getPosition = IReflection.getField(commandListenerWrapperClass, vec3DClass, 0);
             tabComplete = IReflection.getMethod(PacketUtils.CraftServerClass, "tabComplete", List.class, new Class[]{CommandSender.class, String.class, PacketUtils.WorldServerClass, vec3DClass, boolean.class});
         }
     }
@@ -33,11 +31,11 @@ public class CommandListenerWrapper {
     }
 
     private Object getWorld(Object instance) {
-        return getWorld.invoke(instance);
+        return getWorld.get(instance);
     }
 
     private Object getPosition(Object instance) {
-        return getPosition.invoke(instance);
+        return getPosition.get(instance);
     }
 
     public List<String> tabComplete(Object server, CommandContext<Object> context, String input) {

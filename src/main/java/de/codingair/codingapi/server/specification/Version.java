@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server.specification;
 
+import de.codingair.codingapi.API;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,9 +19,11 @@ public enum Version {
     v1_17(17),
     v1_17_1(17.1),
     v1_18(18, 18.1),
-    v1_18_2(18.2)
+    v1_18_2(18.2),
+    v1_19(19),
     ;
 
+    private static boolean supportWarning = true;
     private static Version VERSION = null;
     private static String NAME = null;
     private static String SPECIFICATION = null;
@@ -81,10 +84,13 @@ public enum Version {
     }
 
     private static @NotNull Version byId(double version) {
+        Version highest = null;
         for (Version value : Version.values()) {
             for (double id : value.id) {
                 if (id == version) return value;
             }
+
+            highest = value;
         }
 
         //1.16.5 -> 1.16
@@ -93,6 +99,14 @@ public enum Version {
             for (double id : value.id) {
                 if (id == casted) return value;
             }
+        }
+
+        if (highest != null && version > highest.getId()) {
+            if (supportWarning) {
+                API.getInstance().getMainPlugin().getLogger().warning("Detected version " + version + " which is not yet fully supported (highest: " + highest.getId() + ")! Use with caution!");
+                supportWarning = false;
+            }
+            return highest;
         }
 
         throw new IllegalArgumentException("Version not found: " + version);

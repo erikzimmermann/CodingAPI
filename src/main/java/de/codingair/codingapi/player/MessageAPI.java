@@ -3,6 +3,8 @@ package de.codingair.codingapi.player;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -15,6 +17,11 @@ public class MessageAPI {
 
     public static void sendActionBar(Player p, String message) {
         if (message == null) message = "";
+
+        if (Version.atLeast(13)) {
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+            return;
+        }
 
         Object com = PacketUtils.getChatMessage(message);
 
@@ -88,14 +95,15 @@ public class MessageAPI {
         sendTitle(p, msg1, msg2, fadeIn, stay, fadeOut, false);
     }
 
+    @Deprecated
     public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket) {
         sendTitle(p, msg1, msg2, fadeIn, stay, fadeOut, ignoreTimePacket, false, false);
     }
 
+    @Deprecated
     public static void sendTitle(Player p, String msg1, String msg2, int fadeIn, int stay, int fadeOut, boolean ignoreTimePacket, boolean reset, boolean clear) {
-        if (Version.atLeast(17)) {
-            IReflection.MethodAccessor sendTitle = IReflection.getMethod(p.getClass(), "sendTitle", new Class[]{String.class, String.class, int.class, int.class, int.class});
-            sendTitle.invoke(p, msg1, msg2, fadeIn, stay, fadeOut);
+        if (Version.atLeast(13)) {
+            p.sendTitle(msg1 == null ? "" : msg1, msg2 == null ? "" : msg2, fadeIn, stay, fadeOut);
         } else {
             Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle");
             Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");

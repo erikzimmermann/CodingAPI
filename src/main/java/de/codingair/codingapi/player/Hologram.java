@@ -591,22 +591,23 @@ public class Hologram implements Removable {
 
         public static void destroy(Player player, Object armorStand) {
             Object packet;
-            if (Version.atLeast(17)) {
-                IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
+            if (Version.get() == Version.v1_17) {
+                IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int.class);
                 assert con != null;
-                packet = con.newInstance((Object) new int[] {PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance(PacketUtils.EntityPackets.getId(armorStand));
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
-                //noinspection PrimitiveArrayArgumentToVarargsMethod
-                packet = con.newInstance(new int[] {PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance((Object) new int[] {PacketUtils.EntityPackets.getId(armorStand)});
             }
 
             PacketUtils.sendPacket(packet, player);
         }
 
         public static void spawn(Player player, Object armorStand) {
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
+            IReflection.ConstructorAccessor con;
+            if (Version.atLeast(19)) con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass);
+            else con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
             assert con != null;
 
             Object packet = con.newInstance(armorStand);

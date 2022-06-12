@@ -196,8 +196,13 @@ public class PacketUtils {
     }
 
     public static Object getChatMessage(String text) {
-        IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(ChatMessageClass, String.class, Object[].class);
-        return chatMessageCon.newInstance(text, new Object[] {});
+        if (Version.atLeast(19)) {
+            IReflection.MethodAccessor creator = IReflection.getMethod(IChatBaseComponentClass, IChatBaseComponentClass, new Class[] {String.class});
+            return creator.invoke(null, text);
+        } else {
+            IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(ChatMessageClass, String.class, Object[].class);
+            return chatMessageCon.newInstance(text, new Object[] {});
+        }
     }
 
     public static Object getChatComponentText(String text) {

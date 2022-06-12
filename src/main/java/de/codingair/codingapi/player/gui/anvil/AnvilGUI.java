@@ -58,7 +58,6 @@ public class AnvilGUI implements Removable {
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftInventoryView");
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
-        CHAT_MESSAGE_CLASS = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
 
         if (Version.get().isBiggerThan(Version.v1_13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
@@ -67,7 +66,14 @@ public class AnvilGUI implements Removable {
             ANVIL_CONTAINER_CON = IReflection.getConstructor(containerAnvilClass, PLAYER_INVENTORY_CLASS, WORLD_CLASS, BLOCK_POSITION_CLASS, ENTITY_PLAYER_CLASS);
         }
         BLOCK_POSITION_CON = IReflection.getConstructor(BLOCK_POSITION_CLASS, Integer.class, Integer.class, Integer.class);
-        CHAT_MESSAGE_CON = IReflection.getConstructor(CHAT_MESSAGE_CLASS, String.class, Object[].class);
+
+        if (Version.less(14)) {
+            CHAT_MESSAGE_CLASS = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
+            CHAT_MESSAGE_CON = IReflection.getConstructor(CHAT_MESSAGE_CLASS, String.class, Object[].class);
+        } else {
+            CHAT_MESSAGE_CLASS = null;
+            CHAT_MESSAGE_CON = null;
+        }
 
         GET_BUKKIT_VIEW = IReflection.getMethod(containerAnvilClass, "getBukkitView", craftInventoryViewClass, (Class<?>[]) null);
         GET_TOP_INVENTORY = IReflection.getMethod(craftInventoryViewClass, "getTopInventory", Inventory.class, (Class<?>[]) null);

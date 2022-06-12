@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 public class SimpleMessage implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
@@ -156,7 +157,11 @@ public class SimpleMessage implements Removable {
     }
 
     public void send(Player sender) {
-        sender.spigot().sendMessage(getTextComponent());
+        send(sender, (p, tc) -> p.spigot().sendMessage(tc));
+    }
+
+    public void send(Player sender, BiConsumer<Player, TextComponent> sending) {
+        sending.accept(sender, getTextComponent());
         sent = true;
 
         if(this.runnable == null && timeOut > 0) {
