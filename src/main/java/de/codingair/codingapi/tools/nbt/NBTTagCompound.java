@@ -50,7 +50,7 @@ public class NBTTagCompound {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "a", TAG, new Class[] {String.class, TAG});
             GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "c", TAG, new Class[] {String.class});
         } else {
-            if (Version.atLeast(13)) {
+            if (Version.atLeast(14)) {
                 SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", TAG, new Class[] {String.class, TAG});
             } else {
                 SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "set", new Class[] {String.class, TAG});
