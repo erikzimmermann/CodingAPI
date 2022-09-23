@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.chat;
 
 import de.codingair.codingapi.server.sounds.SoundData;
+import de.codingair.codingapi.server.specification.Version;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class ChatButton {
-    public static final String PREFIX = "CodingAPI|ChatAPI|Button|";
+    public static final String PREFIX = Version.since(19, "", "/") + "CodingAPI|ChatAPI|Button|";
     private final UUID uniqueId = ChatListener.getRandom();
     private final String text;
     private String type;

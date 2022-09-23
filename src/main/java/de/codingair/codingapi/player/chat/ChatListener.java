@@ -4,6 +4,9 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
+import net.minecraft.network.protocol.game.PacketPlayInChat;
+import net.minecraft.network.protocol.game.PacketPlayInClientCommand;
+import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,13 +20,15 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
-    private static final Class<?> chatPacket;
+    private static Class<?> chatPacket;
+    private static String messagePrefix = "";
     private static final IReflection.FieldAccessor<String> text;
     static final Set<UUID> DEAD_BUTTONS = new HashSet<>();
+    static boolean showError = true;
 
     @NotNull
     static UUID getRandom() {
-        while(true) {
+        while (true) {
             UUID id = UUID.randomUUID();
             if (DEAD_BUTTONS.contains(id)) continue;
             return id;
@@ -31,12 +36,17 @@ public class ChatListener implements Listener {
     }
 
     static {
-        chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
-        text = IReflection.getField(chatPacket, Version.since(17, "a", "b"));
+        try {
+            chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.PACKETS, "ServerboundChatCommandPacket");
+            messagePrefix = "/";
+        } catch (ClassNotFoundException e) {
+            chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
+        }
+
+        text = IReflection.getField(chatPacket, String.class, 0);
     }
 
     public ChatListener() {
-
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             inject(onlinePlayer);
         }
@@ -52,27 +62,35 @@ public class ChatListener implements Listener {
             @Override
             public boolean readPacket(Object packet) {
                 if (packet.getClass().equals(chatPacket)) {
-                    String msg = text.get(packet);
+                    try {
+                        String msg = text.get(packet);
+                        if (msg != null) msg = messagePrefix + msg;
 
-                    if (msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
-                    String type = null;
-                    UUID uniqueId;
+                        if (msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
+                        String type = null;
+                        UUID uniqueId;
 
-                    if (msg.contains("#")) {
-                        String[] a = msg.split("#");
-                        uniqueId = UUID.fromString(a[0].replace(ChatButton.PREFIX, ""));
-                        type = a[1];
-                    } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
+                        if (msg.contains("#")) {
+                            String[] a = msg.split("#");
+                            uniqueId = UUID.fromString(a[0].replace(ChatButton.PREFIX, ""));
+                            type = a[1];
+                        } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
 
-                    if (DEAD_BUTTONS.contains(uniqueId)) return true;
+                        if (DEAD_BUTTONS.contains(uniqueId)) return true;
 
-                    List<SimpleMessage> messageList = API.getRemovables(null, SimpleMessage.class);
-                    boolean used = handleSimpleMessages(type, uniqueId, player, messageList);
+                        List<SimpleMessage> messageList = API.getRemovables(null, SimpleMessage.class);
+                        boolean used = handleSimpleMessages(type, uniqueId, player, messageList);
 
-                    messageList = API.getRemovables(player, SimpleMessage.class);
-                    used |= handleSimpleMessages(type, uniqueId, player, messageList);
+                        messageList = API.getRemovables(player, SimpleMessage.class);
+                        used |= handleSimpleMessages(type, uniqueId, player, messageList);
 
-                    return used;
+                        return used;
+                    } catch (Throwable t) {
+                        if (!showError) return false;
+                        t.printStackTrace();
+                        showError = false;
+                        return false;
+                    }
                 }
 
                 return false;
