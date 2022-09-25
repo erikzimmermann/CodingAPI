@@ -32,7 +32,7 @@ public class ItemHelper {
     }
 
     public static byte getData(@NotNull ItemStack itemStack) {
-        if (Version.less(13) && itemStack.getData() != null) {
+        if (Version.before(13) && itemStack.getData() != null) {
             //already deprecated in 1.8
 
             //noinspection deprecation
@@ -41,7 +41,7 @@ public class ItemHelper {
     }
 
     public static void setData(@NotNull ItemStack itemStack, byte data) {
-        if (Version.less(13) && itemStack.getData() != null) {
+        if (Version.before(13) && itemStack.getData() != null) {
             //already deprecated in 1.8
 
             //noinspection deprecation

@@ -4,22 +4,12 @@ import com.google.common.base.Charsets;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
 import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.configuration.file.YamlConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.composer.Composer;
-import org.yaml.snakeyaml.error.YAMLException;
-import org.yaml.snakeyaml.parser.ParserImpl;
-import org.yaml.snakeyaml.reader.StreamReader;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -141,7 +131,7 @@ public class UTFConfig extends YamlConfiguration {
     @Override
     public void loadFromString(@NotNull String contents) throws InvalidConfigurationException {
         super.loadFromString(contents);
-        if (Version.less(18.1)) loadExtras(contents);
+        if (Version.before(18.1)) loadExtras(contents);
     }
 
     public void removeUnused(UTFConfig origin) {

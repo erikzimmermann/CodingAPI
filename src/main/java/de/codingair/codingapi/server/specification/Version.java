@@ -81,8 +81,25 @@ public enum Version {
         return get().id[get().id.length - 1] >= version;
     }
 
-    public static boolean less(double version) {
+    public static boolean atMost(double version) {
+        return get().id[get().id.length - 1] <= version;
+    }
+
+    public static boolean later(double version) {
         return get().id[0] < version;
+    }
+
+    public static boolean before(double version) {
+        return get().id[0] < version;
+    }
+
+    @Deprecated
+    public static boolean less(double version) {
+        return before(version);
+    }
+
+    public static boolean between(double min, double max) {
+        return atLeast(min) && atMost(max);
     }
 
     private static @NotNull Version byId(double version) {

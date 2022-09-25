@@ -270,7 +270,7 @@ public class ItemBuilder implements Serializable {
                     ItemHelper.setDurability(item, this.data);
                 }
             } else {
-                if (data != 0 && Version.less(13)) {
+                if (data != 0 && Version.before(13)) {
                     //avoid "Initializing Legacy Material Support. Unless you have legacy plugins and/or data this is a bug!"
                     @SuppressWarnings ("deprecation")
                     MaterialData data = new MaterialData(this.type, this.data);

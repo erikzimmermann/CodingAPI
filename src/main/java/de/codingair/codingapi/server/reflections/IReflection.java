@@ -343,7 +343,7 @@ public class IReflection {
         }
 
         ServerPacket(int version, String path) {
-            if (Version.less(version)) this.path = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23);
+            if (Version.before(version)) this.path = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23);
             else this.path = path;
         }
 
@@ -353,7 +353,7 @@ public class IReflection {
         }
 
         public static String MINECRAFT_PACKAGE(String path) {
-            if (Version.less(17)) return MINECRAFT_PACKAGE.toString();
+            if (Version.before(17)) return MINECRAFT_PACKAGE.toString();
             else return path + ".";
         }
     }

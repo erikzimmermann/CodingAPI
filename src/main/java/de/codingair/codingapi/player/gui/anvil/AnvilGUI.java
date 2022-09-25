@@ -67,7 +67,7 @@ public class AnvilGUI implements Removable {
         }
         BLOCK_POSITION_CON = IReflection.getConstructor(BLOCK_POSITION_CLASS, Integer.class, Integer.class, Integer.class);
 
-        if (Version.less(14)) {
+        if (Version.before(14)) {
             CHAT_MESSAGE_CLASS = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
             CHAT_MESSAGE_CON = IReflection.getConstructor(CHAT_MESSAGE_CLASS, String.class, Object[].class);
         } else {
