@@ -82,7 +82,7 @@ public enum Version {
     }
 
     public static boolean atMost(double version) {
-        return get().id[get().id.length - 1] <= version;
+        return get().id[0] <= version;
     }
 
     public static boolean later(double version) {
