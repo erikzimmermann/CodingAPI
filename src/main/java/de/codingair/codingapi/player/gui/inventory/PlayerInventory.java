@@ -1,8 +1,10 @@
 package de.codingair.codingapi.player.gui.inventory;
 
+import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -10,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class PlayerInventory {
+    private static final IReflection.FieldAccessor<ItemMeta> META = IReflection.getField(ItemStack.class, ItemMeta.class, 0);
     private final Player player;
     private final ItemStack[] content;
     private final ItemStack[] armor;
@@ -157,8 +160,9 @@ public class PlayerInventory {
     private int optimizedAddUntilPossible(@NotNull ItemStack itemStack) {
         ItemStack item = itemStack.clone();
         Integer cacheEmptySlot = emptySlot;
+        int hashCode = itemHashCode(item);
 
-        this.type.compute(itemHashCode(item), (hash, slot) -> {
+        this.type.compute(hashCode, (hash, slot) -> {
             //stack on current
             if (slot == null) {
                 //add to inventory
@@ -212,7 +216,14 @@ public class PlayerInventory {
         hash = hash * 31 + item.getType().hashCode();
         //noinspection deprecation
         hash = hash * 31 + (item.getDurability() & 0xffff);
-        hash = hash * 31 + (item.hasItemMeta() && item.getItemMeta() != null ? (item.getItemMeta().hashCode()) : 0);
+
+        ItemMeta meta = null;
+        if (item.hasItemMeta()) {
+            meta = META.get(item);
+            if (meta == null) meta = item.getItemMeta();
+        }
+
+        hash = hash * 31 + (meta == null ? 0 : meta.hashCode());
 
         return hash;
     }
