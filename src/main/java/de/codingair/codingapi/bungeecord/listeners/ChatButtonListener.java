@@ -11,22 +11,22 @@ import java.util.HashMap;
 public class ChatButtonListener implements Listener {
     private final HashMap<Connection, String> ids = new HashMap<>();
 
-    @EventHandler(priority = -100)
+    @EventHandler (priority = -100)
     public void beforeChat(ChatEvent e) {
-        if(e.getMessage() == null || !e.getMessage().startsWith(ChatButton.PREFIX)) return;
-        String id = e.getMessage().replace(ChatButton.PREFIX, "");
+        if (!ChatButton.isChatButton(e.getMessage())) return;
+        String id = e.getMessage();
         ids.put(e.getSender(), id);
 
         e.setCancelled(true);
         e.setMessage("");
     }
 
-    @EventHandler(priority = 100)
+    @EventHandler (priority = 100)
     public void afterChat(ChatEvent e) {
         String id = ids.remove(e.getSender());
-        if(id != null)  {
+        if (id != null) {
             e.setCancelled(false);
-            e.setMessage(ChatButton.PREFIX + id);
+            e.setMessage(id);
         }
     }
 

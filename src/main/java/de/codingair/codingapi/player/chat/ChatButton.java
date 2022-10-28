@@ -7,18 +7,25 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public abstract class ChatButton {
-    public static final String PREFIX = Version.since(19, "", "/") + "CodingAPI|ChatAPI|Button|";
+    public static final String PREFIX = "CodingAPI|ChatAPI|Button|";
     private final UUID uniqueId = ChatListener.getRandom();
     private final String text;
     private String type;
     private BaseComponent[] hover;
     private SoundData sound = null;
+
+    public static boolean isChatButton(@Nullable String message) {
+        if (message == null) return false;
+
+        if (message.startsWith("/")) message = message.substring(1);
+        return message.startsWith(ChatButton.PREFIX);
+    }
 
     public ChatButton(String text) {
         this.text = text;
@@ -54,7 +61,7 @@ public abstract class ChatButton {
         if (this.hover != null && this.hover.length > 0) {
             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
         }
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
+        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, Version.since(19, "", "/") + PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
 
         return component;
     }
