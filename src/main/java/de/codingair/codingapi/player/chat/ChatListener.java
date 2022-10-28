@@ -62,15 +62,15 @@ public class ChatListener implements Listener {
                         String msg = text.get(packet);
                         if (msg != null) msg = messagePrefix + msg;
 
-                        if (msg == null || !msg.startsWith(ChatButton.PREFIX)) return false;
+                        if (!ChatButton.isChatButton(msg)) return false;
                         String type = null;
                         UUID uniqueId;
 
                         if (msg.contains("#")) {
                             String[] a = msg.split("#");
-                            uniqueId = UUID.fromString(a[0].replace(ChatButton.PREFIX, ""));
+                            uniqueId = UUID.fromString(ChatButton.removePrefix(a[0]));
                             type = a[1];
-                        } else uniqueId = UUID.fromString(msg.replace(ChatButton.PREFIX, ""));
+                        } else uniqueId = UUID.fromString(ChatButton.removePrefix(msg));
 
                         if (DEAD_BUTTONS.contains(uniqueId)) return true;
 

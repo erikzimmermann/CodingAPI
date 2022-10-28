@@ -7,6 +7,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -25,6 +26,12 @@ public abstract class ChatButton {
 
         if (message.startsWith("/")) message = message.substring(1);
         return message.startsWith(ChatButton.PREFIX);
+    }
+
+    @Contract("null -> null")
+    public static String removePrefix(@Nullable String message) {
+        if (message == null) return null;
+        return message.substring((message.startsWith("/") ? 1 : 0) + PREFIX.length());
     }
 
     public ChatButton(String text) {
