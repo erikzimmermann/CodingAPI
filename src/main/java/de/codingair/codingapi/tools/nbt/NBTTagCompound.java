@@ -12,7 +12,7 @@ public class NBTTagCompound {
     protected static IReflection.MethodAccessor SET;
     protected static IReflection.MethodAccessor GET;
     protected static IReflection.FieldAccessor<?> TAG_FIELD;
-    protected static IReflection.FieldAccessor<Map<String, ?>> MAP_FIELD;
+    protected static IReflection.FieldAccessor<?> MAP_FIELD;
     protected static IReflection.MethodAccessor asBukkitCopy;
 
     protected Object tag;
@@ -58,8 +58,8 @@ public class NBTTagCompound {
             GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, "get", TAG, new Class[] {String.class});
         }
 
-        TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, Version.since(17, "tag", "w", "u"));
-        MAP_FIELD = IReflection.getField(PacketUtils.NBTTagCompoundClass, Version.since(17, "map", "x"));
+        TAG_FIELD = IReflection.getField(PacketUtils.ItemStackClass, PacketUtils.NBTTagCompoundClass, 0);
+        MAP_FIELD = IReflection.getField(PacketUtils.NBTTagCompoundClass, Map.class, 0);
         asBukkitCopy = IReflection.getMethod(PacketUtils.CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[] {PacketUtils.ItemStackClass});
     }
 
@@ -86,6 +86,7 @@ public class NBTTagCompound {
     }
 
     public Map<String, Object> getMap() {
+        //noinspection unchecked
         return (Map<String, Object>) MAP_FIELD.get(this.tag);
     }
 

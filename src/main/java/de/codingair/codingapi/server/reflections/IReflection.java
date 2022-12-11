@@ -334,6 +334,7 @@ public class IReflection {
         WORLD_LEVEL(17, "net.minecraft.world.level"),
         INVENTORY(17, "net.minecraft.world.inventory"),
         BLOCK(17, "net.minecraft.world.level.block"),
+        COMMANDS(17, "net.minecraft.commands"),
         ;
 
         private final String path;

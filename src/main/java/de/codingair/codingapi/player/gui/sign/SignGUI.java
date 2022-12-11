@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public abstract class SignGUI {
     private static final Class<?> packetClass;
@@ -271,11 +272,11 @@ public abstract class SignGUI {
                 tileEntity = getTileEntity.invoke(sign);
             } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);
 
-            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), Version.since(17, "isEditable", "f"));
+            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), boolean.class, 0);
             editable.set(tileEntity, true);
 
             if (Version.atLeast(17)) {
-                IReflection.FieldAccessor<?> id = IReflection.getField(tileEntity.getClass(), "g");
+                IReflection.FieldAccessor<UUID> id = IReflection.getField(tileEntity.getClass(), UUID.class, 0);
                 id.set(tileEntity, player.getUniqueId());
             } else {
                 IReflection.FieldAccessor<?> owner = IReflection.getField(tileEntity.getClass(), Version.since(13, "h", "g", "j", "c"));

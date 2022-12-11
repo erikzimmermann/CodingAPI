@@ -23,6 +23,7 @@ public enum Version {
     v1_19(19),
     v1_19_1(19.1),
     v1_19_2(19.2),
+    v1_19_3(19.3),
     ;
 
     private static boolean supportWarning = true;
@@ -114,6 +115,8 @@ public enum Version {
 
         //1.16.5 -> 1.16
         int casted = (int) version;
+        if (highest != null && ((int) highest.id[highest.id.length - 1]) == casted) return highest;
+
         for (Version value : Version.values()) {
             for (double id : value.id) {
                 if (id == casted) return value;
