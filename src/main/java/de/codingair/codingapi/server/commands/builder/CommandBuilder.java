@@ -69,11 +69,16 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             }
 
         if (Version.get().isBiggerThan(12) && wrapper == null) {
+            String path = CommandBuilder.class.getName();
+            path = path.substring(0, path.lastIndexOf("."));
+
             try {
-                wrapper = Class.forName("de.codingair.codingapi.server.commands.builder.CommandWrapper");
-                register = IReflection.getMethod(wrapper, "a", wrapper, new Class[] {CommandBuilder.class});
+                // use package name in case of relocation
+                wrapper = Class.forName(path + ".CommandWrapper");
+                register = IReflection.getMethod(wrapper, "register", wrapper, new Class[] {CommandBuilder.class});
                 unregister = IReflection.getMethod(wrapper, "unregister");
-            } catch (ClassNotFoundException ignored) {
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
             }
         }
     }

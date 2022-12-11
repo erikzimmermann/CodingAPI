@@ -23,10 +23,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public class CommandWrapper implements Predicate<Object>, Command<Object>, SuggestionProvider<Object> {
-    private static CommandDispatcher<Object> dispatcher = null;
-    private static Map<String, CommandNode<?>> CHILDREN = null;
-    private static Map<String, CommandNode<?>> LITERALS = null;
-    private static Map<String, CommandNode<?>> ARGUMENTS = null;
     private final CommandListenerWrapper wrapper;
 
     private final CommandBuilder builder;
@@ -36,27 +32,33 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         this.wrapper = new CommandListenerWrapper();
     }
 
-    public static CommandWrapper a(CommandBuilder builder) {
+    public static CommandWrapper register(CommandBuilder builder) {
         return new CommandWrapper(builder).register();
     }
 
     private CommandWrapper register() {
+        registerCommand(builder.getName());
+        for (String alias : builder.getMain().getAliases()) {
+            registerCommand(alias);
+        }
+        return this;
+    }
+
+    public void unregister() {
+        unregisterCommand(builder.getName());
+        for (String alias : builder.getMain().getAliases()) {
+            unregisterCommand(alias);
+        }
+    }
+
+    private void registerCommand(String name) {
         CommandDispatcher<Object> dispatcher = dispatcher();
-        LiteralArgumentBuilder<Object> l = LiteralArgumentBuilder.literal(builder.getName());
+        LiteralArgumentBuilder<Object> l = LiteralArgumentBuilder.literal(name);
         l.requires(this).executes(this);
         RequiredArgumentBuilder<Object, ?> r = RequiredArgumentBuilder.argument("args", StringArgumentType.greedyString());
         l.then(r.suggests(this).executes(this));
 
         dispatcher.register(l);
-        return this;
-    }
-
-    public void unregister() {
-        removeCommand(builder.getName(), false);
-
-        for(String alias : builder.getMain().getAliases()) {
-            removeCommand(alias, false);
-        }
     }
 
     public boolean test(Object context) {
@@ -71,52 +73,45 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         List<String> results = wrapper.tabComplete(Bukkit.getServer(), context, builder.getInput());
         builder = builder.createOffset(builder.getInput().lastIndexOf(32) + 1);
 
-        for(String s : results) {
+        for (String s : results) {
             builder.suggest(s);
         }
 
         return builder.buildFuture();
     }
 
-    private Backup removeCommand(String command, boolean backup) {
-        if(CHILDREN == null) {
-            RootCommandNode<?> root = dispatcher().getRoot();
+    private void unregisterCommand(String name) {
+        RootCommandNode<?> root = dispatcher().getRoot();
 
-            IReflection.FieldAccessor<Map<String, CommandNode<?>>> children = IReflection.getField(CommandNode.class, "children");
-            CHILDREN = children.get(root);
+        IReflection.FieldAccessor<Map<String, CommandNode<?>>> children = IReflection.getField(CommandNode.class, "children");
+        children.get(root).remove(name);
 
-            IReflection.FieldAccessor<Map<String, CommandNode<?>>> literals = IReflection.getField(CommandNode.class, "literals");
-            LITERALS = literals.get(root);
+        IReflection.FieldAccessor<Map<String, CommandNode<?>>> literals = IReflection.getField(CommandNode.class, "literals");
+        literals.get(root).remove(name);
 
-            IReflection.FieldAccessor<Map<String, CommandNode<?>>> arguments = IReflection.getField(CommandNode.class, "arguments");
-            ARGUMENTS = arguments.get(root);
-        }
-
-        if(!backup) return null;
-        return new Backup(new CommandNode[] {CHILDREN.remove(command), LITERALS.remove(command), ARGUMENTS.remove(command)}, command);
+        IReflection.FieldAccessor<Map<String, CommandNode<?>>> arguments = IReflection.getField(CommandNode.class, "arguments");
+        arguments.get(root).remove(name);
     }
 
     public static CommandDispatcher<Object> dispatcher() {
-        if(dispatcher == null) {
-            Object commandDispatcher;
-            if (Version.atLeast(18)) {
-                IReflection.FieldAccessor<?> vanillaCommandDispatcher = IReflection.getField(PacketUtils.MinecraftServerClass, "vanillaCommandDispatcher");
-                commandDispatcher = vanillaCommandDispatcher.get(PacketUtils.getMinecraftServer());
-            } else {
-                IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
-                commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
-            }
+        Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, "CommandDispatcher");
 
-            Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandDispatcher");
-            assert commandDispatcherClass != null;
-
-            Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
-            IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, "a", commandDispatcherBrigadierClass, new Class[] {});
-            //noinspection unchecked
-            dispatcher = (CommandDispatcher<Object>) a.invoke(commandDispatcher);
+        Object commandDispatcher;
+        if (Version.atLeast(19.3)) {
+            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, commandDispatcherClass, new Class[0]);
+            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
+        } else if (Version.atLeast(18)) {
+            IReflection.FieldAccessor<?> vanillaCommandDispatcher = IReflection.getField(PacketUtils.MinecraftServerClass, "vanillaCommandDispatcher");
+            commandDispatcher = vanillaCommandDispatcher.get(PacketUtils.getMinecraftServer());
+        } else {
+            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
+            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
         }
 
-        return dispatcher;
+        Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+        IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, commandDispatcherBrigadierClass, new Class[] {});
+        //noinspection unchecked
+        return (CommandDispatcher<Object>) a.invoke(commandDispatcher);
     }
 
     protected static class Backup {
