@@ -167,21 +167,15 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     private double trim(double d, int decimalPlaces) {
-        StringBuilder b = new StringBuilder();
-        for(int i = 0; i < decimalPlaces; i++) {
-            b.append("#");
-        }
-
-        return Double.parseDouble(new DecimalFormat("#." + b).format(d).replace(",", "."));
+        // return trimmed double by using int casting
+        double factor = Math.pow(10, decimalPlaces);
+        return (double) ((int) (d * factor)) / factor;
     }
 
-    private float trim(float d, int decimalPlaces) {
-        StringBuilder b = new StringBuilder();
-        for(int i = 0; i < decimalPlaces; i++) {
-            b.append("#");
-        }
-
-        return Float.parseFloat(new DecimalFormat("#." + b).format(d).replace(",", "."));
+    private float trim(float f, int decimalPlaces) {
+        // return trimmed float by using int casting
+        float factor = (float) Math.pow(10, decimalPlaces);
+        return (float) ((int) (f * factor)) / factor;
     }
 
     public String toJSONString(int decimalPlaces) {
