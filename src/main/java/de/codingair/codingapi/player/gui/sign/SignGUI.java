@@ -272,14 +272,14 @@ public abstract class SignGUI {
                 tileEntity = getTileEntity.invoke(sign);
             } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);
 
-            IReflection.FieldAccessor<Boolean> editable = IReflection.getField(tileEntity.getClass(), boolean.class, 0);
+            IReflection.FieldAccessor<Boolean> editable = IReflection.getNonStaticField(PacketUtils.TileEntitySignClass, boolean.class, 0);
             editable.set(tileEntity, true);
 
             if (Version.atLeast(17)) {
-                IReflection.FieldAccessor<UUID> id = IReflection.getField(tileEntity.getClass(), UUID.class, 0);
+                IReflection.FieldAccessor<UUID> id = IReflection.getNonStaticField(PacketUtils.TileEntitySignClass, UUID.class, 0);
                 id.set(tileEntity, player.getUniqueId());
             } else {
-                IReflection.FieldAccessor<?> owner = IReflection.getField(tileEntity.getClass(), Version.since(13, "h", "g", "j", "c"));
+                IReflection.FieldAccessor<?> owner = IReflection.getField(PacketUtils.TileEntitySignClass, Version.since(13, "h", "g", "j", "c"));
                 owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
             }
         }

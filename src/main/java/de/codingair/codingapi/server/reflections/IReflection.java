@@ -5,10 +5,7 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 /**
@@ -210,15 +207,25 @@ public class IReflection {
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
-        return IReflection.getField(target, fieldName, null, 0);
+        return IReflection.getField(target, fieldName, null, 0, false);
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index) {
-        return IReflection.getField(target, null, fieldType, index);
+        return IReflection.getField(target, null, fieldType, index, false);
     }
 
-    private static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, Class<T> fieldType, int index) {
-        for (Field field : target.getDeclaredFields())
+    public static <T> FieldAccessor<T> getNonStaticField(Class<?> target, String fieldName) {
+        return IReflection.getField(target, fieldName, null, 0, true);
+    }
+
+    public static <T> FieldAccessor<T> getNonStaticField(Class<?> target, Class<T> fieldType, int index) {
+        return IReflection.getField(target, null, fieldType, index, true);
+    }
+
+    private static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, Class<T> fieldType, int index, boolean ignoreStatic) {
+        for (Field field : target.getDeclaredFields()) {
+            if (ignoreStatic && Modifier.isStatic(field.getModifiers())) continue;
+
             if ((fieldName == null || fieldName.equals(field.getName())) && (fieldType == null || (fieldType.isAssignableFrom(field.getType()) && index-- <= 0))) {
                 field.setAccessible(true);
                 return new FieldAccessor<T>() {
@@ -248,9 +255,10 @@ public class IReflection {
                     }
                 };
             }
+        }
 
         if (target.getSuperclass() != null)
-            return IReflection.getField(target.getSuperclass(), fieldName, fieldType, index);
+            return IReflection.getField(target.getSuperclass(), fieldName, fieldType, index, ignoreStatic);
 
         throw new IllegalStateException(String.format("Unable to find field %s (%s).", fieldName, fieldType));
     }
