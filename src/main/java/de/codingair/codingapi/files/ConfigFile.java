@@ -2,13 +2,16 @@ package de.codingair.codingapi.files;
 
 import com.google.common.base.Charsets;
 import de.codingair.codingapi.files.loader.UTFConfig;
+import de.codingair.codingapi.server.specification.Version;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.util.logging.Level;
 
 public class ConfigFile {
-    private UTFConfig config = null;
+    private YamlConfiguration config = null;
     private File configFile = null;
     private final JavaPlugin plugin;
     private final String name;
@@ -70,11 +73,15 @@ public class ConfigFile {
             if (builder.toString().startsWith("~Config\n")) read = builder.toString().replaceFirst("~Config\n", "");
             else read = builder.toString();
 
-            this.config.deployExtras(read);
+            if (config instanceof UTFConfig) {
+                ((UTFConfig) config).deployExtras(read);
+            }
 
             if (removeUnused) {
                 in = plugin.getResource((this.srcPath == null ? "" : this.srcPath) + this.name + ".yml");
-                if (in != null) this.config.removeUnused(UTFConfig.loadConf(in));
+                if (in != null) {
+                    if (config instanceof UTFConfig) ((UTFConfig) config).removeUnused(UTFConfig.loadConf(in));
+                }
             }
 
             this.config.options().copyDefaults(true);
@@ -117,13 +124,30 @@ public class ConfigFile {
 
             InputStream reader = raw ? null : plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
             if (reader != null) {
-                config = UTFConfig.loadConf(reader);
-                config.load(configFile);
+                if (Version.atLeast(19.3)) {
+                    config = YamlConfiguration.loadConfiguration(new InputStreamReader(reader, Charsets.UTF_8));
+                } else config = UTFConfig.loadConf(reader);
+
+                mergeConfigFile();
             } else {
                 config = UTFConfig.loadConf(configFile);
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void mergeConfigFile() {
+        YamlConfiguration c = YamlConfiguration.loadConfiguration(configFile);
+
+        // just apply all values; this is only important for new entries from the plugin resource
+        for (String key : config.getKeys(true)) {
+            Object current = config.get(key);
+            Object fileValue = c.get(key);
+
+            if (current != null && fileValue != null && current.getClass() == fileValue.getClass() && !(current instanceof ConfigurationSection)) {
+                config.set(key, fileValue);
+            }
         }
     }
 
@@ -150,7 +174,7 @@ public class ConfigFile {
         loadConfig();
     }
 
-    public UTFConfig getConfig() {
+    public YamlConfiguration getConfig() {
         if (config == null) reloadConfig();
 
         return config;
@@ -161,7 +185,9 @@ public class ConfigFile {
     }
 
     public void destroy() {
-        getConfig().destroy();
+        if (config instanceof UTFConfig) {
+            ((UTFConfig) config).destroy();
+        }
     }
 
     public void saveConfig(boolean destroy) {
