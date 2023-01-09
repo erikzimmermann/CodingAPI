@@ -8,6 +8,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.text.DecimalFormat;
 
 public class Location extends org.bukkit.Location implements Serializable {
@@ -167,15 +169,21 @@ public class Location extends org.bukkit.Location implements Serializable {
     }
 
     private double trim(double d, int decimalPlaces) {
-        // return trimmed double by using int casting
-        double factor = Math.pow(10, decimalPlaces);
-        return (double) ((int) (d * factor)) / factor;
+        // ensure trimming without data loss with big numbers
+        float dec = (float) (d - ((double) (int) d));
+        return d + round(dec, decimalPlaces);
     }
 
     private float trim(float f, int decimalPlaces) {
+        // ensure trimming without data loss with big numbers
+        float dec = f - ((float) (int) f);
+        return f + round(dec, decimalPlaces);
+    }
+
+    private float round(float decimal, int decimalPlaces) {
         // return trimmed float by using int casting
         float factor = (float) Math.pow(10, decimalPlaces);
-        return (float) ((int) (f * factor)) / factor;
+        return (float) ((int) (decimal * factor)) / factor;
     }
 
     public String toJSONString(int decimalPlaces) {
