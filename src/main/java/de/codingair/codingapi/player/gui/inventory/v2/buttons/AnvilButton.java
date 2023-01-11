@@ -11,8 +11,7 @@ public abstract class AnvilButton extends Button implements GUISwitchButton {
 
     public abstract ItemStack buildAnvilItem();
 
-    @Override
-    public boolean open(ClickType clickType, GUI gui, Call call) {
+    public boolean open(GUI gui, Call call, String title) {
         AnvilGUI.openAnvil(gui.getPlugin(), gui.getPlayer(), new AnvilListener() {
             @Override
             public void onClick(AnvilClickEvent e) {
@@ -29,7 +28,12 @@ public abstract class AnvilButton extends Button implements GUISwitchButton {
             public void onClose(AnvilCloseEvent e) {
                 e.setPost(call::proceed);
             }
-        }, buildAnvilItem());
+        }, buildAnvilItem(), title);
         return false;
+    }
+
+    @Override
+    public boolean open(ClickType clickType, GUI gui, Call call) {
+        return open(gui, call, null);
     }
 }

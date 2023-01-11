@@ -128,6 +128,10 @@ public class AnvilGUI implements Removable {
         return new AnvilGUI(plugin, p, listener).setSlot(AnvilSlot.INPUT_LEFT, item).open();
     }
 
+    public static AnvilGUI openAnvil(JavaPlugin plugin, Player p, AnvilListener listener, ItemStack item, String title) {
+        return new AnvilGUI(plugin, p, listener, title).setSlot(AnvilSlot.INPUT_LEFT, item).open();
+    }
+
     @Override
     public Player getPlayer() {
         return this.player;
