@@ -170,20 +170,18 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     private double trim(double d, int decimalPlaces) {
         // ensure trimming without data loss with big numbers
-        float dec = (float) (d - ((double) (int) d));
-        return d + round(dec, decimalPlaces);
+        return ((double) (long) d) + round((float) (d % 1), decimalPlaces);
     }
 
     private float trim(float f, int decimalPlaces) {
         // ensure trimming without data loss with big numbers
-        float dec = f - ((float) (int) f);
-        return f + round(dec, decimalPlaces);
+        return (float) (((double) (long) f) + round(f % 1, decimalPlaces));
     }
 
-    private float round(float decimal, int decimalPlaces) {
+    private double round(double decimal, int decimalPlaces) {
         // return trimmed float by using int casting
-        float factor = (float) Math.pow(10, decimalPlaces);
-        return (float) ((int) (decimal * factor)) / factor;
+        double factor = Math.pow(10, decimalPlaces);
+        return ((long) (decimal * factor)) / factor;
     }
 
     public String toJSONString(int decimalPlaces) {
