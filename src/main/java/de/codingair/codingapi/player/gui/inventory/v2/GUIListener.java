@@ -33,7 +33,9 @@ public class GUIListener implements Listener {
             if (gui.closing != null) Bukkit.getScheduler().runTaskLater(gui.getPlugin(), () -> gui.closing.accept(gui.getPlayer()), 1); //use short delay
             else gui.forceClose(this, null);
         } else if (closeListener != null && e.getPlayer().equals(gui.getPlayer())) {
-            Bukkit.getScheduler().runTaskLater(gui.getPlugin(), () -> closeListener.proceed(), 1);
+            Bukkit.getScheduler().runTaskLater(gui.getPlugin(), () -> {
+                if (closeListener != null) closeListener.proceed();
+            }, 1);
         }
     }
 
@@ -58,7 +60,6 @@ public class GUIListener implements Listener {
                                 Call closing;
                                 boolean listenOnClose = ((GUISwitchButton) b).open(e.getClick(), gui, closing = () -> {
                                     try {
-                                        closeListener = null;
                                         gui.continueGUI();
                                     } catch (IsNotWaitingException ex) {
                                         ex.printStackTrace();
@@ -122,5 +123,10 @@ public class GUIListener implements Listener {
                 }
             }
         }
+    }
+
+    public GUIListener setCloseListener(Call closeListener) {
+        this.closeListener = closeListener;
+        return this;
     }
 }

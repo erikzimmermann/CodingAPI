@@ -3,7 +3,10 @@ package de.codingair.codingapi.player.gui.inventory.v2;
 import com.google.common.base.Preconditions;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
+import de.codingair.codingapi.player.gui.inventory.v2.buttons.Button;
+import de.codingair.codingapi.player.gui.inventory.v2.buttons.GUISwitchButton;
 import de.codingair.codingapi.player.gui.inventory.v2.exceptions.*;
+import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -77,6 +80,8 @@ public class GUI extends InventoryBuilder {
         if (!waiting) throw new IsNotWaitingException();
 
         waiting = false;
+        listener.setCloseListener(null);  // this gui is going to be reopened - no need to listen for close events
+
         player.openInventory(inventory);
     }
 
@@ -88,7 +93,7 @@ public class GUI extends InventoryBuilder {
         if (!isOpen()) throw new AlreadyClosedException();
         GUIListener listener = this.listener;
 
-        //indicates that this GUI is no open anymore
+        //indicates that this GUI is not open anymore
         this.listener = null;
 
         if (fallback != null) {
@@ -121,6 +126,23 @@ public class GUI extends InventoryBuilder {
         }
     }
 
+    public void openNestedGUI(GUI gui, boolean listenOnClose, boolean clickSound) throws AlreadyOpenedException, NoPageException, IsWaitingException {
+        waiting = true;
+
+        if (clickSound) Button.defaultSound().play(player);
+
+        gui.setFallback(this);
+        gui.open();
+
+        if (listenOnClose) listener.setCloseListener(() -> {
+            try {
+                continueGUI();
+            } catch (IsNotWaitingException ex) {
+                ex.printStackTrace();
+            }
+        });
+    }
+
     void forceClose(GUIListener listener, Callback<Player> callback) {
         HandlerList.unregisterAll(listener);
         this.listener = null;
@@ -129,11 +151,13 @@ public class GUI extends InventoryBuilder {
         if (callback != null) callback.accept(player);
         closing = null;
 
-        if (fallback != null) {
+        if (fallback != null && fallback.waiting) {
+            // only open if fallback is still waiting
+
             Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
                 try {
                     //safety check
-                    if (fallback != null) fallback.continueGUI();
+                    if (fallback != null && fallback.waiting) fallback.continueGUI();
                 } catch (IsNotWaitingException e) {
                     e.printStackTrace();
                 }

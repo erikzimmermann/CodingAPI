@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Button {
-    private SoundData clickSound = new SoundData(Sound.UI_BUTTON_CLICK, 0.7F, 1F);
+    private SoundData clickSound = defaultSound();
 
     public abstract @Nullable ItemStack buildItem();
 
@@ -28,5 +28,9 @@ public abstract class Button {
 
     public void setClickSound(SoundData clickSound) {
         this.clickSound = clickSound;
+    }
+
+    public static SoundData defaultSound() {
+        return new SoundData(Sound.UI_BUTTON_CLICK, 0.7F, 1F);
     }
 }
