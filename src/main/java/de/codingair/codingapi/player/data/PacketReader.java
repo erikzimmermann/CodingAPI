@@ -104,23 +104,16 @@ public abstract class PacketReader implements Removable {
     public synchronized void unInject(@Nullable Runnable later) {
         JavaPlugin plugin = API.getInstance().getMainPlugin();
 
-        Runnable runnable = () -> {
-            if (currentHandler != null && channel != null && player.isOnline()) {
-                try {
-                    channel.pipeline().remove(this.currentHandler);
-                } catch (Throwable ignored) {
-                    //thrown when this handler is not registered anymore -> ignore
-                }
+        if (currentHandler != null && channel != null && player.isOnline()) {
+            try {
+                channel.pipeline().remove(this.currentHandler);
+            } catch (Throwable ignored) {
+                //thrown when this handler is not registered anymore -> ignore
             }
+        }
 
-            this.currentHandler = null;
-            if (later != null) Bukkit.getScheduler().runTask(plugin, later);
-        };
-
-        if (plugin.isEnabled()) {
-            //uninject asynchronously.
-            new Thread(runnable).start();
-        } else runnable.run();
+        this.currentHandler = null;
+        if (later != null) Bukkit.getScheduler().runTask(plugin, later);
 
         API.removeRemovable(this);
     }
