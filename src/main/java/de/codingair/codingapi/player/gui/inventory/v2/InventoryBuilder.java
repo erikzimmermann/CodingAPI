@@ -2,6 +2,7 @@ package de.codingair.codingapi.player.gui.inventory.v2;
 
 import com.google.common.base.Preconditions;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -29,15 +30,19 @@ public class InventoryBuilder implements Removable {
     public void buildInventory(int size, String title) {
         Preconditions.checkState(size % 9 == 0);
 
-        int colors = count(title, '§') * 2;
-        if(title.length() > 32 + colors) title = title.substring(0, 32 + colors);
+        // This version tag is not tested. It's only sure, that recent versions of Minecraft support longer titles.
+        if (Version.before(11)) {
+            int colors = count(title, '§') * 2;
+            if (title.length() > 32 + colors) title = title.substring(0, 32 + colors);
+        }
+
         this.inventory = Bukkit.createInventory(null, size, this.title = title);
     }
 
     private int count(String s, char c) {
         int i = 0;
-        for(char c1 : s.toCharArray()) {
-            if(c1 == c) i++;
+        for (char c1 : s.toCharArray()) {
+            if (c1 == c) i++;
         }
         return i;
     }
@@ -49,14 +54,14 @@ public class InventoryBuilder implements Removable {
 
     public void clear(Collection<Integer> slots) {
         Preconditions.checkNotNull(inventory);
-        for(Integer slot : slots) {
+        for (Integer slot : slots) {
             inventory.clear(slot);
         }
     }
 
     public boolean setItem(int slot, ItemStack item) {
         Preconditions.checkNotNull(inventory);
-        if(compare(getItem(slot), item)) return false;
+        if (compare(getItem(slot), item)) return false;
 
         this.inventory.setItem(slot, item);
         return true;
@@ -80,15 +85,16 @@ public class InventoryBuilder implements Removable {
     }
 
     public void updateTitle(String invTitle) {
-        if(invTitle.length() > 32) invTitle = invTitle.substring(0, 32);
-        if(this.title.equals(invTitle)) return;
+        if (invTitle.length() > 32) invTitle = invTitle.substring(0, 32);
+        if (this.title.equals(invTitle)) return;
         this.title = invTitle;
 
         InventoryUtils.updateTitle(player, title, inventory);
     }
+
     @Override
     public void destroy() {
-        if(inventory != null) player.closeInventory();
+        if (inventory != null) player.closeInventory();
     }
 
     @Override
