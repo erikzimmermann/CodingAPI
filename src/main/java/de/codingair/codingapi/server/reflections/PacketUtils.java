@@ -107,7 +107,7 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[] {PacketClass});
     public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
-    public static final IReflection.MethodAccessor getId = getMethod(EntityClass, Version.since(19.3, Version.since(18, "getId", "ae"), "ah"), int.class, new Class[0]);
+    public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
     public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
 
@@ -260,8 +260,13 @@ public class PacketUtils {
     }
 
     public static Object getBlockPosition(Location location) {
-        IReflection.ConstructorAccessor con = IReflection.getConstructor(BlockPositionClass, Double.class, Double.class, Double.class);
-        return con.newInstance(location.getX(), location.getY(), location.getZ());
+        if (Version.atLeast(19.4)) {
+            IReflection.ConstructorAccessor con = IReflection.getConstructor(BlockPositionClass, int.class, int.class, int.class);
+            return con.newInstance(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        } else {
+            IReflection.ConstructorAccessor con = IReflection.getConstructor(BlockPositionClass, Double.class, Double.class, Double.class);
+            return con.newInstance(location.getX(), location.getY(), location.getZ());
+        }
     }
 
     public static Object getIBlockData(MaterialData data) {
@@ -333,7 +338,7 @@ public class PacketUtils {
         }
 
         public static int getId(Object entity) {
-            return (int) getId.invoke(entity);
+            return getId.get(entity);
         }
 
         public static Packet getVelocityPacket(Object entity, Vector vector) {
