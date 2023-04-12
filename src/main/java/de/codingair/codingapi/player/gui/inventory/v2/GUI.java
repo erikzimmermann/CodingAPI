@@ -209,6 +209,9 @@ public class GUI extends InventoryBuilder {
         this.pages.forEach(Page::destroy);
         this.pages.clear();
         this.pageLink.clear();
+
+        // make sure to remove the GUI from the removable list
+        API.removeRemovable(GUI.this);
     }
 
     public void updateTitle(String title) {
