@@ -4,16 +4,15 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public abstract class PacketReader implements Removable {
     private static final IReflection.FieldAccessor<?> getPlayerConnection;
@@ -31,8 +30,7 @@ public abstract class PacketReader implements Removable {
     private final String name;
     private final UUID id = UUID.randomUUID();
     private final JavaPlugin plugin;
-    private Channel channel;
-    private ChannelDuplexHandler currentHandler = null;
+    private boolean injected = false;
 
     public PacketReader(Player player, String name, JavaPlugin plugin) {
         this.player = player;
@@ -55,44 +53,38 @@ public abstract class PacketReader implements Removable {
         unInject();
     }
 
-    public void inject() {
-        if (currentHandler != null) {
+    public synchronized void inject() {
+        if (injected) {
             unInject(this::inject);
             return;
         }
 
-        Object ep = PacketUtils.getEntityPlayer(player);
-        if (ep == null) return;
-        Object playerCon = getPlayerConnection.get(ep);
-        if (playerCon == null) return;
-        Object networkMan = getNetworkManager.get(playerCon);
-        if (networkMan == null) return;
-        channel = (Channel) getChannel.get(networkMan);
-        if (channel == null) return;
-
-        currentHandler = new ChannelDuplexHandler() {
-            @Override
-            public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
-                try {
-                    if (!readPacket(o)) super.channelRead(ctx, o);
-                } catch (Exception ex) {
-                    super.channelRead(ctx, o);
+        injected = true;
+        modify(pipe -> {
+            ChannelDuplexHandler currentHandler = new ChannelDuplexHandler() {
+                @Override
+                public void channelRead(ChannelHandlerContext ctx, Object o) throws Exception {
+                    try {
+                        if (!readPacket(o)) super.channelRead(ctx, o);
+                    } catch (Exception ex) {
+                        super.channelRead(ctx, o);
+                    }
                 }
-            }
 
-            @Override
-            public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) throws Exception {
-                try {
-                    if (!writePacket(o)) super.write(ctx, o, promise);
-                } catch (Exception ex) {
-                    super.write(ctx, o, promise);
+                @Override
+                public void write(ChannelHandlerContext ctx, Object o, ChannelPromise promise) throws Exception {
+                    try {
+                        if (!writePacket(o)) super.write(ctx, o, promise);
+                    } catch (Exception ex) {
+                        super.write(ctx, o, promise);
+                    }
                 }
-            }
-        };
+            };
 
-        if (channel.pipeline().get(getCombinedName()) != null) channel.pipeline().remove(getCombinedName());
-        if (channel.pipeline().get("packet_handler") != null) channel.pipeline().addBefore("packet_handler", getCombinedName(), currentHandler);
-        else channel.pipeline().addFirst(getCombinedName(), currentHandler);
+            if (pipe.get(getCombinedName()) != null) pipe.remove(getCombinedName());
+            if (pipe.get("packet_handler") != null) pipe.addBefore("packet_handler", getCombinedName(), currentHandler);
+            else pipe.addFirst(getCombinedName(), currentHandler);
+        });
 
         API.addRemovable(this);
     }
@@ -102,27 +94,40 @@ public abstract class PacketReader implements Removable {
     }
 
     public synchronized void unInject(@Nullable Runnable later) {
-        JavaPlugin plugin = API.getInstance().getMainPlugin();
-
-        Runnable runnable = () -> {
-            if (currentHandler != null && channel != null && player.isOnline()) {
-                try {
-                    channel.pipeline().remove(this.currentHandler);
-                } catch (Throwable ignored) {
-                    //thrown when this handler is not registered anymore -> ignore
-                }
-            }
-
-            this.currentHandler = null;
-            if (later != null) Bukkit.getScheduler().runTask(plugin, later);
-        };
-
-        if (plugin.isEnabled()) {
-            //uninject asynchronously.
-            new Thread(runnable).start();
-        } else runnable.run();
+        modify(pipe -> {
+            if (pipe.get(getCombinedName()) != null) pipe.remove(getCombinedName());
+        });
 
         API.removeRemovable(this);
+        injected = false;
+
+        if (later != null) {
+            if (plugin.isEnabled()) {
+                //uninject asynchronously.
+                Bukkit.getScheduler().runTask(plugin, later);
+            } else later.run();
+        }
+    }
+
+    private void modify(@NotNull Consumer<ChannelPipeline> modifier) {
+        Object ep = PacketUtils.getEntityPlayer(player);
+        if (ep == null) return;
+        Object playerCon = getPlayerConnection.get(ep);
+        if (playerCon == null) return;
+        Object networkMan = getNetworkManager.get(playerCon);
+        if (networkMan == null) return;
+        Channel channel = (Channel) getChannel.get(networkMan);
+        if (channel == null) return;
+
+        channel.eventLoop().execute(() -> {
+            if (!player.isOnline()) return;
+
+            try {
+                modifier.accept(channel.pipeline());
+            } catch (Throwable t) {
+                throw new RuntimeException("Cannot modify channel pipeline of player '" + player.getName() + "'", t);
+            }
+        });
     }
 
     @Override
