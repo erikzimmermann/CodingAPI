@@ -7,6 +7,7 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
@@ -25,12 +26,13 @@ public class UTFConfiguration extends ConfigurationProvider {
 
     private final ThreadLocal<Yaml> yaml = new ThreadLocal<Yaml>() {
         protected Yaml initialValue() {
-            Representer representer = new Representer() {{
-                this.representers.put(Configuration.class, data -> represent(getSelf((Configuration) data)));
-            }};
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-            return new Yaml(new Constructor(), representer, options);
+            Representer representer = new Representer(options) {{
+                this.representers.put(Configuration.class, data -> represent(getSelf((Configuration) data)));
+            }};
+
+            return new Yaml(new Constructor(new LoaderOptions()), representer, options);
         }
     };
 
