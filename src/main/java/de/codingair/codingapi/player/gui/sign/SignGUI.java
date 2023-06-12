@@ -292,7 +292,7 @@ public abstract class SignGUI {
         if (sign == null) location = PacketUtils.getBlockPosition(new Location(player.getWorld(), 0, 0, 0));
         else location = PacketUtils.getBlockPosition(sign.getLocation());
 
-        packet.initialize(location);
+        packet.initialize(location, Version.since(20, Packet.IGNORE, true));
         packet.send();
     }
 

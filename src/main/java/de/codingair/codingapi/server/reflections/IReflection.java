@@ -210,6 +210,11 @@ public class IReflection {
         return IReflection.getField(target, fieldName, null, 0, false);
     }
 
+    public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, double since, Class<T> fieldType, int index, boolean ignoreStatic) {
+        if (Version.atLeast(since)) return IReflection.getField(target, null, fieldType, index, ignoreStatic);
+        return IReflection.getField(target, fieldName, null, 0, ignoreStatic);
+    }
+
     public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index) {
         return IReflection.getField(target, null, fieldType, index, false);
     }

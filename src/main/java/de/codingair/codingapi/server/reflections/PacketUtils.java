@@ -109,7 +109,7 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
     public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
-    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"));
+    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, true);
 
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
         return getMethod(target, methodName, null, parameterTypes);

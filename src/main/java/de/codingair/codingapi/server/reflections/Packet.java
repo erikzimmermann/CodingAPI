@@ -2,9 +2,11 @@ package de.codingair.codingapi.server.reflections;
 
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Packet {
+	public static final Object IGNORE = new Object();
 	private final Class<?> clazz;
 	private Object packet;
 	private Player[] players;
@@ -22,6 +24,8 @@ public class Packet {
 	}
 	
 	public void initialize(Object... parameters) {
+		parameters = Arrays.stream(parameters).filter(o -> o == null || !o.equals(IGNORE)).toArray();
+
 		Class<?>[] clazzes = new Class<?>[parameters.length];
 		
 		for(int i = 0; i < parameters.length; i++) {
