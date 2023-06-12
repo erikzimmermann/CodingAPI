@@ -138,7 +138,6 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvClickEvent(InventoryClickEvent e) {
-        System.out.println("InventoryClickEvent#1");
         if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())) || e.getInventory().getType() != InventoryType.CHEST) return;
         Player p = (Player) e.getWhoClicked();
 
