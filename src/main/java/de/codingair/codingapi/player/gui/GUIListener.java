@@ -25,21 +25,30 @@ import java.util.List;
 
 public class GUIListener implements Listener {
     private static GUIListener instance = null;
+    private final Plugin plugin;
 
-    private GUIListener() {
+    private GUIListener(Plugin plugin) {
+        this.plugin = plugin;
         if(instance != null) HandlerList.unregisterAll(instance);
         instance = this;
     }
 
     public static void register(Plugin plugin) {
         if(isRegistered()) return;
-        Bukkit.getPluginManager().registerEvents(new GUIListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new GUIListener(plugin), plugin);
     }
 
     public static boolean isRegistered() {
         return instance != null;
     }
 
+    public static void setUnregistered() {
+        instance = null;
+    }
+
+    public static Plugin getPlugin() {
+        return instance == null ? null : instance.plugin;
+    }
     /*
      * PlayerItem
      */
@@ -129,6 +138,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInvClickEvent(InventoryClickEvent e) {
+        System.out.println("InventoryClickEvent#1");
         if(e.getInventory() == null || (!GUI.usesGUI((Player) e.getWhoClicked()) && !GUI.usesOldGUI((Player) e.getWhoClicked())) || e.getInventory().getType() != InventoryType.CHEST) return;
         Player p = (Player) e.getWhoClicked();
 

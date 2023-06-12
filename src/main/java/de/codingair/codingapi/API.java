@@ -137,6 +137,8 @@ public class API {
         removables.clear();
         AnimationType.clearCache();
 
+        if (plugin.equals(GUIListener.getPlugin())) GUIListener.setUnregistered();
+
         initialized = false;
     }
 
