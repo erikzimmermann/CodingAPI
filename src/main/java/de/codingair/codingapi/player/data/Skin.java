@@ -106,6 +106,9 @@ public abstract class Skin {
 			if(uc.getResponseCode() == 204) {
 				// Skin for profile UUID not found - do not continue loading
 				return;
+			} else if(uc.getResponseCode() != 200) {
+				// another error; do not continue loading, but log the error
+				throw new RuntimeException("Error loading skin data: " + uc.getResponseCode());
 			}
 			
 			String json = new Scanner(uc.getInputStream(), "UTF-8").useDelimiter("\\A").next();
