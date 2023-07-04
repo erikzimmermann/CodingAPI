@@ -7,6 +7,7 @@ import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Base64;
@@ -93,12 +94,19 @@ public abstract class Skin {
 	private void load() {
 		try {
 			URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + this.uuid.toString().replace("-", "") + "?unsigned=" + unsigned);
-			URLConnection uc = url.openConnection();
+			HttpURLConnection uc = (HttpURLConnection) url.openConnection();
 			uc.setUseCaches(false);
 			uc.setDefaultUseCaches(false);
 			uc.addRequestProperty("User-Agent", "Mozilla/5.0");
 			uc.addRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
 			uc.addRequestProperty("Pragma", "no-cache");
+			uc.setRequestMethod("GET");
+			uc.connect();
+
+			if(uc.getResponseCode() == 204) {
+				// Skin for profile UUID not found - do not continue loading
+				return;
+			}
 			
 			String json = new Scanner(uc.getInputStream(), "UTF-8").useDelimiter("\\A").next();
 			JSONObject data = (JSONObject) new JSONParser().parse(json);
