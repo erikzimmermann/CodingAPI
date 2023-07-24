@@ -11,6 +11,7 @@ import de.codingair.codingapi.tools.io.JSON.JSONParser;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.util.ArrayList;
@@ -19,7 +20,6 @@ import java.util.UUID;
 
 public class GameProfileUtils {
     public static GameProfile getGameProfile(Player p) {
-        //Version.since(18, "getProfile", "fp"),
         IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, GameProfile.class, new Class[] {});
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
     }
@@ -28,7 +28,8 @@ public class GameProfileUtils {
         return extractSkinId(getGameProfile(p));
     }
 
-    public static String extractSkinId(GameProfile gameProfile) {
+    @Nullable
+    public static String extractSkinId(@Nullable GameProfile gameProfile) {
         if(gameProfile == null) return null;
 
         Skin skin = new Skin(gameProfile, true) {
@@ -41,7 +42,10 @@ public class GameProfileUtils {
             }
         };
 
-        return ((String) skin.getElement(Skin.SkinElement.SKIN)).replace("http://textures.minecraft.net/texture/", "");
+        String data = skin.getElement(Skin.SkinElement.SKIN);
+        if (data == null) return null;
+
+        return data.replace("http://textures.minecraft.net/texture/", "");
     }
 
     public static GameProfile createBySkinId(String skinId) {

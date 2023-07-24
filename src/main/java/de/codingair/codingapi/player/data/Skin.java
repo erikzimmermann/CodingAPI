@@ -6,6 +6,8 @@ import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -175,10 +177,12 @@ public abstract class Skin {
         return profile;
     }
 
-    public <T> T getElement(SkinElement element) {
+    @Nullable
+    public <T> T getElement(@NotNull SkinElement element) {
         if (!this.isLoaded()) return null;
 
         String code = getDecodedValue();
+        if (code == null) return null;
 
         //fix malformed JSON
         code = code.replace("{textures:", "{\"textures\":")
