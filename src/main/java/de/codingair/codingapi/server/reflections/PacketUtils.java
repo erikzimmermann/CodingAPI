@@ -2,15 +2,18 @@ package de.codingair.codingapi.server.reflections;
 
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.server.specification.Version;
+import de.codingair.codingapi.tools.items.XMaterial;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -18,6 +21,7 @@ public class PacketUtils {
     public static final Class<?> CraftPlayerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftPlayer");
     public static final Class<?> CraftEntityClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "entity.CraftEntity");
     public static final Class<?> CraftServerClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftServer");
+    public static final Class<?> CraftBlockClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_BLOCK, "CraftBlock");
     public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server"), "MinecraftServer");
     public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.dedicated"), "DedicatedServer");
     public static final Class<?> CraftWorldClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftWorld");
@@ -97,16 +101,16 @@ public class PacketUtils {
     public static final Class<?> ChatMessageClass = getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
     public static final Class<?> ChatComponentTextClass = getClass(IReflection.ServerPacket.CHAT, "ChatComponentText");
 
-    public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[] {});
-    public static final IReflection.MethodAccessor getHandleCraftServer = getMethod(CraftServerClass, "getHandle", DedicatedPlayerListClass, new Class[] {});
-    public static final IReflection.MethodAccessor moveToWorld = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[] {EntityPlayerClass, int.class, boolean.class, Location.class, boolean.class});
-    public static final IReflection.MethodAccessor moveToWorldV1_13 = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[] {EntityPlayerClass, DimensionManagerClass, boolean.class, Location.class, boolean.class});
-    public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[] {});
-    public static final IReflection.MethodAccessor getBukkitEntity = getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[] {});
-    public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[] {});
-    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[] {PacketClass});
-    public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[] {});
-    public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[] {BlockPositionClass});
+    public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[]{});
+    public static final IReflection.MethodAccessor getHandleCraftServer = getMethod(CraftServerClass, "getHandle", DedicatedPlayerListClass, new Class[]{});
+    public static final IReflection.MethodAccessor moveToWorld = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[]{EntityPlayerClass, int.class, boolean.class, Location.class, boolean.class});
+    public static final IReflection.MethodAccessor moveToWorldV1_13 = getMethod(PlayerListClass, "moveToWorld", EntityPlayerClass, new Class[]{EntityPlayerClass, DimensionManagerClass, boolean.class, Location.class, boolean.class});
+    public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[]{});
+    public static final IReflection.MethodAccessor getBukkitEntity = getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[]{});
+    public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[]{});
+    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
+    public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[]{});
+    public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[]{BlockPositionClass});
     public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
     public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, true);
@@ -121,6 +125,49 @@ public class PacketUtils {
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull XMaterial data) {
+        Object iBlockData = PacketUtils.getIBlockData(data);
+        sendBlockChange(player, location, iBlockData);
+    }
+
+    public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Block data) {
+        IReflection.MethodAccessor getState = IReflection.getMethod(PacketUtils.CraftBlockClass, PacketUtils.BlockClass, new Class[0]);
+        IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[0]);
+        Object nms = getState.invoke(data);
+        Object iBlockData = getBlockData.invoke(nms);
+
+        sendBlockChange(player, location, iBlockData);
+    }
+
+    public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Object iBlockData) {
+        Class<?> packetPlayOutBlockChange = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockChange");
+
+        Object packet;
+        Object blockPos = PacketUtils.getBlockPosition(location);
+
+        if (Version.atLeast(17)) {
+            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutBlockChange, PacketUtils.BlockPositionClass, PacketUtils.IBlockDataClass);
+            if (con == null)
+                throw new NullPointerException("Cannot prepare temporary sign: Could not find PacketPlayOutBlockChange constructor.");
+
+            packet = con.newInstance(blockPos, iBlockData);
+        } else {
+            IReflection.ConstructorAccessor con = IReflection.getConstructor(packetPlayOutBlockChange);
+            if (con == null)
+                throw new NullPointerException("Cannot prepare temporary sign: Could not find PacketPlayOutBlockChange constructor.");
+
+            packet = con.newInstance();
+
+            IReflection.FieldAccessor<?> blockPosition = IReflection.getField(packetPlayOutBlockChange, PacketUtils.BlockPositionClass, 0);
+            IReflection.FieldAccessor<?> blockData = IReflection.getField(packetPlayOutBlockChange, PacketUtils.IBlockDataClass, 0);
+
+            blockPosition.set(packet, blockPos);
+            blockData.set(packet, iBlockData);
+        }
+
+        sendPacket(player, packet);
     }
 
     public static Class<?> getClass(IReflection.ServerPacket packet, String className) {
@@ -187,9 +234,9 @@ public class PacketUtils {
         IReflection.MethodAccessor a;
 
         if (Version.get().isBiggerThan(15)) {
-            a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[] {String.class});
+            a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[]{String.class});
         } else {
-            a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[] {String.class});
+            a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[]{String.class});
         }
 
         return a.invoke(IChatBaseComponentClass, jsonFormat);
@@ -197,11 +244,11 @@ public class PacketUtils {
 
     public static Object getChatMessage(String text) {
         if (Version.atLeast(19)) {
-            IReflection.MethodAccessor creator = IReflection.getMethod(IChatBaseComponentClass, IChatBaseComponentClass, new Class[] {String.class});
+            IReflection.MethodAccessor creator = IReflection.getMethod(IChatBaseComponentClass, IChatBaseComponentClass, new Class[]{String.class});
             return creator.invoke(null, text);
         } else {
             IReflection.ConstructorAccessor chatMessageCon = IReflection.getConstructor(ChatMessageClass, String.class, Object[].class);
-            return chatMessageCon.newInstance(text, new Object[] {});
+            return chatMessageCon.newInstance(text, new Object[]{});
         }
     }
 
@@ -211,8 +258,9 @@ public class PacketUtils {
     }
 
     public static Object getMinecraftServer() {
-        IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[] {});
-        if (getServer == null) getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[] {});
+        IReflection.MethodAccessor getServer = getMethod(CraftServerClass, "getServer", MinecraftServerClass, new Class[]{});
+        if (getServer == null)
+            getServer = getMethod(CraftServerClass, "getServer", DedicatedServerClass, new Class[]{});
         return getServer.invoke(getCraftServer());
     }
 
@@ -250,12 +298,12 @@ public class PacketUtils {
     }
 
     public static Object getItemStack(ItemStack item) {
-        IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asNMSCopy", ItemStackClass, new Class[] {ItemStack.class});
+        IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asNMSCopy", ItemStackClass, new Class[]{ItemStack.class});
         return asNMSCopy.invoke(null, item);
     }
 
     public static ItemStack getItemStack(Object item) {
-        IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[] {ItemStackClass});
+        IReflection.MethodAccessor asNMSCopy = IReflection.getMethod(CraftItemStackClass, "asBukkitCopy", ItemStack.class, new Class[]{ItemStackClass});
         return (ItemStack) asNMSCopy.invoke(null, item);
     }
 
@@ -269,10 +317,24 @@ public class PacketUtils {
         }
     }
 
-    public static Object getIBlockData(MaterialData data) {
-        IReflection.MethodAccessor getByCombinedId = IReflection.getMethod(BlockClass, "getByCombinedId", IBlockDataClass, new Class[] {int.class});
+    public static Object getIBlockData(XMaterial material) {
+        if (Version.atLeast(13)) {
+            Class<?> craftMagicNumbers = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_UTILS, "CraftMagicNumbers");
+            IReflection.MethodAccessor getBlock = IReflection.getMethod(craftMagicNumbers, PacketUtils.IBlockDataClass, new Class[]{Material.class, byte.class});
+            return getBlock.invoke(null, material.parseMaterial(), (byte) 0);
+        } else {
+            if (material.name().contains("_SIGN")) {
+                Class<?> blocks = IReflection.getClass(IReflection.ServerPacket.PACKETS, "Blocks");
+                IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[]{});
 
-        return getByCombinedId.invoke(null, getCombinedId(data.getItemType().getId(), data.getData()));
+                String name = Version.since(13, "STANDING_SIGN", "SIGN");
+                Object standingSign = IReflection.getField(blocks, name).get(null);
+                return getBlockData.invoke(standingSign);
+            }
+
+            IReflection.MethodAccessor getByCombinedId = IReflection.getMethod(BlockClass, "getByCombinedId", IBlockDataClass, new Class[]{int.class});
+            return getByCombinedId.invoke(null, getCombinedId(material.getId(), (byte) 0));
+        }
     }
 
     public static int getCombinedId(int id, byte data) {
@@ -298,7 +360,7 @@ public class PacketUtils {
         }
 
         public static void destroyEntity(Object entity, Player... players) {
-            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class).newInstance(new int[] {getId(entity)});
+            Object packet = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class).newInstance(new int[]{getId(entity)});
             sendPacket(packet, players);
         }
 
@@ -354,9 +416,9 @@ public class PacketUtils {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
             if (Version.get().isBiggerThan(Version.v1_8)) {
-                packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, passenger);
+                packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, passenger);
             } else {
-                packet.initialize(new Class[] {int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
+                packet.initialize(new Class[]{int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
             }
 
             return packet;
@@ -366,10 +428,10 @@ public class PacketUtils {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
             if (Version.get().isBiggerThan(Version.v1_8)) {
-                packet.initialize(new Class[] {EntityClass, EntityClass}, vehicle, null);
+                packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {
-                packet.initialize(new Class[] {int.class, EntityClass, EntityClass}, 0, vehicle, null);
+                packet.initialize(new Class[]{int.class, EntityClass, EntityClass}, 0, vehicle, null);
                 return packet;
             }
         }

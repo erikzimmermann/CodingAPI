@@ -334,8 +334,10 @@ public class IReflection {
         @Deprecated
         MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
         MOJANG_AUTHLIB("com.mojang.authlib"),
-        CRAFTBUKKIT_PACKAGE( Bukkit.getServer().getClass().getPackage().getName()),
-        BUKKIT_PACKET( "org.bukkit"),
+        CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),
+        CRAFTBUKKIT_UTILS(CRAFTBUKKIT_PACKAGE.path + ".util"),
+        CRAFTBUKKIT_BLOCK(CRAFTBUKKIT_PACKAGE.path + ".block"),
+        BUKKIT_PACKET("org.bukkit"),
 
         PROTOCOL(17, "net.minecraft.network.protocol"),
         PACKETS(17, "net.minecraft.network.protocol.game"),
@@ -345,8 +347,10 @@ public class IReflection {
         PARTICLES(17, "net.minecraft.core.particles"),
         SERVER_LEVEL(17, "net.minecraft.server.level"),
         WORLD_LEVEL(17, "net.minecraft.world.level"),
+        WORLD_ITEM(17, "net.minecraft.world.item"),
         INVENTORY(17, "net.minecraft.world.inventory"),
         BLOCK(17, "net.minecraft.world.level.block"),
+        BLOCK_ENTITY(17, "net.minecraft.world.level.block.entity"),
         COMMANDS(17, "net.minecraft.commands"),
         ;
 
