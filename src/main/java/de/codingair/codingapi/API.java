@@ -7,7 +7,6 @@ import de.codingair.codingapi.particles.animations.customanimations.AnimationTyp
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
 import de.codingair.codingapi.player.gui.GUIListener;
-import de.codingair.codingapi.player.gui.book.BookListener;
 import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.events.WalkListener;
 import de.codingair.codingapi.server.listeners.PickItemListener;
@@ -147,7 +146,6 @@ public class API {
         GUIListener.register(plugin);
         Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new BookListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new PickItemListener(plugin), plugin);
         Bukkit.getPluginManager().registerEvents(new Listener() {

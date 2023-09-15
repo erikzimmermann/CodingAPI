@@ -1,21 +1,20 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.player.gui.hovereditems.ItemGUI;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.Interface;
 import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -519,44 +518,5 @@ public class GUIListener implements Listener {
                 if(!topInv) e.setCancelled(false);
             }
         }
-    }
-
-    /*
-     * ItemGUI
-     */
-
-    @EventHandler
-    public void onSneak(PlayerToggleSneakEvent e) {
-        Player p = e.getPlayer();
-
-        if(!ItemGUI.usesGUI(p)) return;
-        ItemGUI gui = ItemGUI.getGUI(p);
-
-        if(gui.isVisibleOnSneak()) gui.setVisible(e.isSneaking());
-    }
-
-    @EventHandler
-    public void onMove(PlayerMoveEvent e) {
-        Player p = e.getPlayer();
-
-        if(!ItemGUI.usesGUI(p)) return;
-        ItemGUI gui = ItemGUI.getGUI(p);
-        if(gui.isCloseOnWalk()) return;
-
-        Location from = e.getFrom().clone(), to = e.getTo().clone();
-        double diffX = to.getX() - from.getX(), diffY = to.getY() - from.getY(), diffZ = to.getZ() - from.getZ();
-
-        if(Math.abs(diffX) + Math.abs(diffY) + Math.abs(diffZ) == 0) return;
-
-        gui.move(from, to);
-    }
-
-    @EventHandler
-    public void onWalk(PlayerWalkEvent e) {
-        Player p = e.getPlayer();
-
-        if(!ItemGUI.usesGUI(p)) return;
-        ItemGUI gui = ItemGUI.getGUI(p);
-        if(gui.isVisible() && gui.isCloseOnWalk()) gui.setVisible(false);
     }
 }
