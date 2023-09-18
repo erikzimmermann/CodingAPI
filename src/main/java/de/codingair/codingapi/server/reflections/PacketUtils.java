@@ -133,10 +133,16 @@ public class PacketUtils {
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Block data) {
-        IReflection.MethodAccessor getState = IReflection.getMethod(PacketUtils.CraftBlockClass, PacketUtils.BlockClass, new Class[0]);
-        IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[0]);
-        Object nms = getState.invoke(data);
-        Object iBlockData = getBlockData.invoke(nms);
+        Object iBlockData;
+        if (Version.atLeast(13)) {
+            IReflection.MethodAccessor getState = IReflection.getMethod(PacketUtils.CraftBlockClass, PacketUtils.IBlockDataClass, new Class[0]);
+            iBlockData = getState.invoke(data);
+        } else {
+            IReflection.MethodAccessor getState = IReflection.getMethod(PacketUtils.CraftBlockClass, PacketUtils.BlockClass, new Class[0]);
+            IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[0]);
+            Object nmsBlock = getState.invoke(data);
+            iBlockData = getBlockData.invoke(nmsBlock);
+        }
 
         sendBlockChange(player, location, iBlockData);
     }
@@ -318,22 +324,24 @@ public class PacketUtils {
     }
 
     public static Object getIBlockData(XMaterial material) {
+        IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[]{});
+
         if (Version.atLeast(13)) {
             Class<?> craftMagicNumbers = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_UTILS, "CraftMagicNumbers");
-            IReflection.MethodAccessor getBlock = IReflection.getMethod(craftMagicNumbers, PacketUtils.IBlockDataClass, new Class[]{Material.class, byte.class});
-            return getBlock.invoke(null, material.parseMaterial(), (byte) 0);
+            IReflection.MethodAccessor getBlock = IReflection.getMethod(craftMagicNumbers, PacketUtils.BlockClass, new Class[]{Material.class});
+            Object block = getBlock.invoke(null, material.parseMaterial());
+            return getBlockData.invoke(block);
         } else {
             if (material.name().contains("_SIGN")) {
                 Class<?> blocks = IReflection.getClass(IReflection.ServerPacket.PACKETS, "Blocks");
-                IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[]{});
 
                 String name = Version.since(13, "STANDING_SIGN", "SIGN");
                 Object standingSign = IReflection.getField(blocks, name).get(null);
                 return getBlockData.invoke(standingSign);
+            } else {
+                IReflection.MethodAccessor getByCombinedId = IReflection.getMethod(BlockClass, "getByCombinedId", IBlockDataClass, new Class[]{int.class});
+                return getByCombinedId.invoke(null, getCombinedId(material.getId(), (byte) 0));
             }
-
-            IReflection.MethodAccessor getByCombinedId = IReflection.getMethod(BlockClass, "getByCombinedId", IBlockDataClass, new Class[]{int.class});
-            return getByCombinedId.invoke(null, getCombinedId(material.getId(), (byte) 0));
         }
     }
 
