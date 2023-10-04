@@ -130,7 +130,7 @@ public class GameProfileUtils {
 
         List<Object> args = new ArrayList<>();
         args.add(timestamp);
-        args.add(UUIDTypeAdapter.fromUUID(uuid));
+        args.add(uuid.toString());
         args.add(name);
         args.add(skinUrl);
         if(cape) args.add(capeUrl);

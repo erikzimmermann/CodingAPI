@@ -2,10 +2,13 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
 import de.codingair.codingapi.tools.io.lib.ParseException;
+import de.codingair.codingapi.utils.PropertyUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,8 +67,8 @@ public abstract class Skin {
         this.name = profile.getName();
 
         profile.getProperties().get("textures").forEach(property -> {
-            this.value = property.getValue();
-            this.signature = property.getSignature();
+            this.value = PropertyUtils.getValue(property);
+            this.signature = PropertyUtils.getSignature(property);
         });
 
         loaded = true;
@@ -85,8 +88,8 @@ public abstract class Skin {
         this.unsigned = unsigned;
 
         profile.getProperties().get("textures").forEach(property -> {
-            this.value = property.getValue();
-            this.signature = property.getSignature();
+            this.value = PropertyUtils.getValue(property);
+            this.signature = PropertyUtils.getSignature(property);
         });
 
         loaded = true;
