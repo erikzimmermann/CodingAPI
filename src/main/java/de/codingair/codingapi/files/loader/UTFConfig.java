@@ -5,7 +5,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.io.Files;
 import de.codingair.codingapi.server.specification.Version;
-import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -49,7 +48,6 @@ public class UTFConfig extends YamlConfiguration {
         UTFConfig loader = new UTFConfig();
 
         try {
-            Validate.notNull(stream, "File cannot be null");
             loader.load(new InputStreamReader(stream, Charsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
@@ -89,7 +87,6 @@ public class UTFConfig extends YamlConfiguration {
 
     @Override
     public void save(@NotNull File file) throws IOException {
-        Validate.notNull(file, "File cannot be null");
         //noinspection UnstableApiUsage
         Files.createParentDirs(file);
 
@@ -118,7 +115,6 @@ public class UTFConfig extends YamlConfiguration {
         }
     }
 
-    @Override
     protected @NotNull String parseHeader(@NotNull String input) {
         return "";
     }

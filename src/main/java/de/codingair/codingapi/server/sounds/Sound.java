@@ -22,20 +22,12 @@
 package de.codingair.codingapi.server.sounds;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import de.codingair.codingapi.server.specification.Version;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
-import org.bukkit.Instrument;
 import org.bukkit.Location;
-import org.bukkit.Note;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1342,62 +1334,6 @@ public enum Sound {
     }
 
     /**
-     * Just an extra feature that loads sounds from strings.
-     * Useful for getting sounds from config files.
-     * <p>
-     * This will also ignore {@code none} and {@code null} strings.
-     * <p>
-     * <b>Format:</b> Sound, Volume, Pitch<br>
-     * Comma separators are optional.
-     * <p>
-     * <b>Examples:</b>
-     * <p>
-     * <pre>
-     *     ENTITY_PLAYER_BURP, 0.5, 1f
-     *     BURP 0.5f 1
-     *     MUSIC_END, 10f
-     *     none
-     *     null
-     * </pre>
-     *
-     * @param player the player to play the sound to.
-     * @param sound  the string of the sound with volume and pitch (if needed).
-     * @since 1.0.0
-     */
-    public static CompletableFuture<Void> playSoundFromString(@Nonnull Player player, @Nullable String sound) {
-        Objects.requireNonNull(player, "Cannot play sound to null player");
-        return CompletableFuture.runAsync(() -> {
-            if (Strings.isNullOrEmpty(sound) || sound.equalsIgnoreCase("none")) return;
-
-            String[] split = StringUtils.contains(sound, ',') ?
-                    StringUtils.split(StringUtils.deleteWhitespace(sound), ',') :
-                    StringUtils.split(sound.replaceAll("  +", " "), ' ');
-
-            // You should replace the exception with your own message handler.
-            Validate.isTrue(split.length != 0, "Sound string must at least have a sound name: ", sound);
-
-            String name = split[0];
-            Optional<Sound> typeOpt = matchXSound(name);
-            if (!typeOpt.isPresent()) return;
-            org.bukkit.Sound type = typeOpt.get().parseSound();
-            if (type == null) return;
-
-            float volume = 1.0f;
-            float pitch = 1.0f;
-
-            try {
-                if (split.length > 1) {
-                    volume = Float.parseFloat(split[1]);
-                    if (split.length > 2) pitch = Float.parseFloat(split[2]);
-                }
-            } catch (NumberFormatException ignored) {
-            }
-
-            if (player.isOnline()) player.playSound(player.getLocation(), type, volume, pitch);
-        });
-    }
-
-    /**
      * Stops all the playing musics (not all the sounds)
      * <p>
      * Note that this method will only work for the sound
@@ -1439,7 +1375,6 @@ public enum Sound {
      */
     @Nonnull
     public static Optional<Sound> matchXSound(@Nonnull String sound) {
-        Validate.notEmpty(sound, "Cannot match XSound of a null or empty sound name");
         return Optional.ofNullable(Data.NAMES.get(format(sound)));
     }
 
@@ -1464,7 +1399,7 @@ public enum Sound {
      */
     @Override
     public String toString() {
-        return WordUtils.capitalize(this.name().replace('_', ' ').toLowerCase(Locale.ENGLISH));
+        return name();
     }
 
     /**
@@ -1492,67 +1427,6 @@ public enum Sound {
      */
     public boolean isSupported() {
         return this.parseSound() != null;
-    }
-
-    /**
-     * Plays a sound repeatedly with the given delay at a moving target's location.
-     *
-     * @param plugin the plugin handling schedulers. (You can replace this with a static instance)
-     * @param entity the entity to play the sound to. We exactly need an entity to keep the track of location changes.
-     * @param volume the volume of the sound.
-     * @param pitch  the pitch of the sound.
-     * @param repeat the amount of times to repeat playing.
-     * @param delay  the delay between each repeat.
-     * @see #playSound(Location, float, float)
-     * @since 2.0.0
-     */
-    public void playSoundRepeatedly(JavaPlugin plugin, Entity entity, float volume, float pitch, int repeat, int delay) {
-        Objects.requireNonNull(plugin, "Cannot play repeating sound from null plugin");
-        Objects.requireNonNull(entity, "Cannot play repeating sound at null location");
-
-        Validate.isTrue(repeat > 0, "Cannot repeat playing sound " + repeat + " times");
-        Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
-
-        new BukkitRunnable() {
-            int repeating = repeat;
-
-            @Override
-            public void run() {
-                playSound(entity.getLocation(), volume, pitch);
-                if (repeating-- == 0) cancel();
-            }
-        }.runTaskTimer(plugin, 0, delay);
-    }
-
-    /**
-     * Plays an instrument's notes in an ascending form.
-     * This method is not really relevant to this utility class, but a nice feature.
-     *
-     * @param plugin      the plugin handling schedulers.
-     * @param player      the player to play the note from.
-     * @param playTo      the entity to play the note to.
-     * @param instrument  the instrument.
-     * @param ascendLevel the ascend level of notes. Can only be positive and not higher than 7
-     * @param delay       the delay between each play.
-     * @since 2.0.0
-     */
-    public void playAscendingNote(@Nonnull JavaPlugin plugin, @Nonnull Player player, @Nonnull Entity playTo, Instrument instrument, int ascendLevel, int delay) {
-        Objects.requireNonNull(player, "Cannot play note from null player");
-        Objects.requireNonNull(playTo, "Cannot play note to null entity");
-
-        Validate.isTrue(ascendLevel > 0, "Note ascend level cannot be lower than 1");
-        Validate.isTrue(ascendLevel <= 7, "Note ascend level cannot be greater than 7");
-        Validate.isTrue(delay > 0, "Delay ticks must be at least 1");
-
-        new BukkitRunnable() {
-            int repeating = ascendLevel;
-
-            @Override
-            public void run() {
-                player.playNote(playTo.getLocation(), instrument, Note.natural(1, Note.Tone.values()[ascendLevel - repeating]));
-                if (repeating-- == 0) cancel();
-            }
-        }.runTaskTimerAsynchronously(plugin, 0, delay);
     }
 
     /**
@@ -1619,7 +1493,6 @@ public enum Sound {
         Objects.requireNonNull(location, "Cannot play sound to null location");
         org.bukkit.Sound sound = this.parseSound();
 
-        Validate.isTrue(sound != null, "Unsupported sound type: ", this.name());
         location.getWorld().playSound(location, sound, volume, pitch);
     }
 
