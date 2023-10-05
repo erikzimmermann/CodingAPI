@@ -342,6 +342,7 @@ public class IReflection {
         PROTOCOL(17, "net.minecraft.network.protocol"),
         PACKETS(17, "net.minecraft.network.protocol.game"),
         CHAT(17, "net.minecraft.network.chat"),
+        NETWORK(17, "net.minecraft.network"),
         NBT(17, "net.minecraft.nbt"),
         CORE(17, "net.minecraft.core"),
         PARTICLES(17, "net.minecraft.core.particles"),

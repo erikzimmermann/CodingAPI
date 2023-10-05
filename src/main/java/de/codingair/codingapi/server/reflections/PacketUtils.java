@@ -108,12 +108,21 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[]{});
     public static final IReflection.MethodAccessor getBukkitEntity = getMethod(EntityClass, "getBukkitEntity", CraftEntityClass, new Class[]{});
     public static final IReflection.MethodAccessor getHandleOfCraftWorld = getMethod(CraftWorldClass, "getHandle", WorldServerClass, new Class[]{});
-    public static final IReflection.MethodAccessor sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
+    public static final IReflection.MethodAccessor sendPacket;
     public static final IReflection.MethodAccessor getEntityId = getMethod(CraftPlayerClass, "getEntityId", int.class, new Class[]{});
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, "getTileEntity", TileEntityClass, new Class[]{BlockPositionClass});
     public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
     public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, true);
+
+    static {
+        if (Version.atLeast(20.2)) {
+            Class<?> packetSendListenerClass = IReflection.getClass(IReflection.ServerPacket.NETWORK, "PacketSendListener");
+            sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass, packetSendListenerClass});
+        } else {
+            sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
+        }
+    }
 
     public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
         return getMethod(target, methodName, null, parameterTypes);
@@ -194,15 +203,23 @@ public class PacketUtils {
 
     public static void sendPacket(Player target, Object packet) {
         if (!target.isOnline()) return;
-        Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(target));
-        sendPacket.invoke(playerConnection.get(entityPlayer), packet);
+
+        if (Version.atLeast(20.2)) {
+            sendPacket.invoke(getPlayerConnection(target), packet, null);
+        } else {
+            sendPacket.invoke(getPlayerConnection(target), packet);
+        }
+    }
+
+    public static Object getPlayerConnection(Player player) {
+        Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(player));
+        return playerConnection.get(entityPlayer);
     }
 
     public static void sendPacket(Object packet, Player... target) {
         for (Player player : target) {
             if (player == null) continue;
-            Object entityPlayer = getHandle.invoke(CraftPlayerClass.cast(player));
-            sendPacket.invoke(playerConnection.get(entityPlayer), packet);
+            sendPacket(player, packet);
         }
     }
 
