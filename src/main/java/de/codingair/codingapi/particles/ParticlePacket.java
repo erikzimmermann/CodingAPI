@@ -25,7 +25,7 @@ public class ParticlePacket {
             particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
             craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
             dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
-            toNMS = IReflection.getMethod(craftParticle, "toNMS", particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
+            toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
         } else {
             packetPlayOutWorldParticles = null;
             particleParam = null;
