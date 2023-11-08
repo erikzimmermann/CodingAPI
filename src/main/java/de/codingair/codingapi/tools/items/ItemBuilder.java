@@ -215,12 +215,26 @@ public class ItemBuilder implements Serializable {
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         if (meta != null) {
-            IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-            profile.set(meta, gameProfile);
+            applyGameProfile(meta, gameProfile);
             item.setItemMeta(meta);
         }
 
         return item;
+    }
+
+    private static void applyGameProfile(ItemMeta meta, GameProfile gameProfile) {
+        try {
+            // use setProfile for preventing warnings about `serializedProfile`
+            IReflection.MethodAccessor setProfile = IReflection.getMethod(meta.getClass(), new Class[]{GameProfile.class});
+            setProfile.invoke(meta, gameProfile);
+        } catch (Throwable t) {
+            // set profile for older versions
+            try {
+                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
+                profile.set(meta, gameProfile);
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
@@ -235,7 +249,7 @@ public class ItemBuilder implements Serializable {
                 if (Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
                 } else if (!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
-                    @SuppressWarnings ("deprecation")
+                    @SuppressWarnings("deprecation")
                     Potion potion = this.potionData.getPotion();
 
                     if (meta != null && potion.getType().getEffectType() != null) {
@@ -272,7 +286,7 @@ public class ItemBuilder implements Serializable {
             } else {
                 if (data != 0 && Version.before(13)) {
                     //avoid "Initializing Legacy Material Support. Unless you have legacy plugins and/or data this is a bug!"
-                    @SuppressWarnings ("deprecation")
+                    @SuppressWarnings("deprecation")
                     MaterialData data = new MaterialData(this.type, this.data);
                     item.setData(data);
                 }
@@ -291,11 +305,8 @@ public class ItemBuilder implements Serializable {
             }
 
             if (this.skullId != null) {
-                try {
-                    IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-                    profile.set(meta, GameProfileUtils.createBySkinId(skullId));
-                } catch (IllegalStateException ignored) {
-                }
+                GameProfile gameProfile = GameProfileUtils.createBySkinId(skullId);
+                applyGameProfile(meta, gameProfile);
             }
 
             if (Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
