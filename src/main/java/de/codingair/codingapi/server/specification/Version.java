@@ -27,6 +27,7 @@ public enum Version {
     v1_19_4(19.4),
     v1_20(20, 20.1),
     v1_20_2(20.2),
+    v1_20_4(20.4),
     ;
 
     private static boolean supportWarning = true;

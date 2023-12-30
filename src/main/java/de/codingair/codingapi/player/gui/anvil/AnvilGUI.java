@@ -279,7 +279,13 @@ public class AnvilGUI implements Removable {
         try {
             if (Version.get().isBiggerThan(Version.v1_13)) {
                 Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
-                IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, Version.since(17, "ANVIL", "h"));
+
+                String genericField;
+                if (Version.atLeast(20.4)) genericField = "i";
+                else if (Version.atLeast(17)) genericField = "h";
+                else genericField = "ANVIL";
+
+                IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, genericField);
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
 
                 assert packetPlayOutOpenWindowCon != null;
