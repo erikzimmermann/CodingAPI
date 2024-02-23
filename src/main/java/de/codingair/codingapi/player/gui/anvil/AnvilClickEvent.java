@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import com.google.common.base.CharMatcher;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -100,7 +101,10 @@ public class AnvilClickEvent extends Event {
 
     private CharMatcher getWhitespace() {
         if (Version.atLeast(18)) return CharMatcher.whitespace();
-        else return CharMatcher.WHITESPACE;
+        else {
+            IReflection.FieldAccessor<CharMatcher> WHITESPACE = IReflection.getField(CharMatcher.class, "WHITESPACE");
+            return WHITESPACE.get(null);
+        }
     }
 
     public String getRawInput() {

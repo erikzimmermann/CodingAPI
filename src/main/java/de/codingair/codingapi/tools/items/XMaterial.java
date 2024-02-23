@@ -2,7 +2,7 @@
  * The MIT License (MIT)
  *
  * Copyright (c) 2018 Hex_27
- * Copyright (c) 2022 Crypto Morin
+ * Copyright (c) 2024 Crypto Morin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,20 +48,20 @@ import java.util.stream.Collectors;
  * This class is mainly designed to support {@link ItemStack}. If you want to use it on blocks, you'll have to use
  * <a href="https://github.com/CryptoMorin/XSeries/blob/master/src/main/java/com/cryptomorin/xseries/XBlock.java">XBlock</a>
  * <p>
- * Pre-flattening: https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
+ * Pre-flattening: https://minecraft.wiki/w/Java_Edition_data_values/Pre-flattening
  * Materials: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
  * Materials (1.12): https://helpch.at/docs/1.12.2/index.html?org/bukkit/Material.html
  * Material IDs: https://minecraft-ids.grahamedgecombe.com/
  * Material Source Code: https://hub.spigotmc.org/stash/projects/SPIGOT/repos/bukkit/browse/src/main/java/org/bukkit/Material.java
  * XMaterial v1: https://www.spigotmc.org/threads/329630/
  * <p>
- * This class will throw a "unsupported material" error if someone tries to use an item with an invalid data value which can only happen in 1.12 servers and below or when the
+ * This class will throw an "unsupported material" error if someone tries to use an item with an invalid data value which can only happen in 1.12 servers and below or when the
  * utility is missing a new material in that specific version.
- * To get an invalid item, (aka <a href="https://minecraft.fandom.com/wiki/Missing_Texture_Block">Missing Texture Block</a>) you can use the command
+ * To get an invalid item, (aka <a href="https://minecraft.wiki/w/Missing_Texture_Block">Missing Texture Block</a>) you can use the command
  * <b>/give @p minecraft:dirt 1 10</b> where 1 is the item amount, and 10 is the data value. The material {@link #DIRT} with a data value of {@code 10} doesn't exist.
  *
  * @author Crypto Morin
- * @version 11.2.0
+ * @version 11.5.0
  * @see Material
  * @see ItemStack
  */
@@ -235,6 +235,7 @@ public enum XMaterial {
     BRAIN_CORAL_FAN,
     BRAIN_CORAL_WALL_FAN,
     BREAD,
+    BREEZE_SPAWN_EGG,
     BREWER_POTTERY_SHERD,
     BREWING_STAND("BREWING_STAND", "BREWING_STAND_ITEM"),
     BRICK("CLAY_BRICK"),
@@ -325,6 +326,7 @@ public enum XMaterial {
     CHICKEN_SPAWN_EGG(93, "MONSTER_EGG"),
     CHIPPED_ANVIL(1, "ANVIL"),
     CHISELED_BOOKSHELF,
+    CHISELED_COPPER,
     CHISELED_DEEPSLATE,
     CHISELED_NETHER_BRICKS(1, "NETHER_BRICKS"),
     CHISELED_POLISHED_BLACKSTONE("POLISHED_BLACKSTONE"),
@@ -332,6 +334,8 @@ public enum XMaterial {
     CHISELED_RED_SANDSTONE(1, "RED_SANDSTONE"),
     CHISELED_SANDSTONE(1, "SANDSTONE"),
     CHISELED_STONE_BRICKS(3, "SMOOTH_BRICK"),
+    CHISELED_TUFF,
+    CHISELED_TUFF_BRICKS,
     CHORUS_FLOWER,
     CHORUS_FRUIT,
     CHORUS_PLANT,
@@ -379,8 +383,12 @@ public enum XMaterial {
     COOKED_SALMON(1, "COOKED_FISH"),
     COOKIE,
     COPPER_BLOCK,
+    COPPER_BULB,
+    COPPER_DOOR,
+    COPPER_GRATE,
     COPPER_INGOT,
     COPPER_ORE,
+    COPPER_TRAPDOOR,
     CORNFLOWER,
     COW_SPAWN_EGG(92, "MONSTER_EGG"),
     CRACKED_DEEPSLATE_BRICKS,
@@ -388,6 +396,7 @@ public enum XMaterial {
     CRACKED_NETHER_BRICKS(2, "NETHER_BRICKS"),
     CRACKED_POLISHED_BLACKSTONE_BRICKS("POLISHED_BLACKSTONE_BRICKS"),
     CRACKED_STONE_BRICKS(2, "SMOOTH_BRICK"),
+    CRAFTER,
     CRAFTING_TABLE("WORKBENCH"),
     CREEPER_BANNER_PATTERN,
     CREEPER_HEAD(4, "SKULL", "SKULL_ITEM"),
@@ -567,7 +576,12 @@ public enum XMaterial {
     EVOKER_SPAWN_EGG(34, "MONSTER_EGG"),
     EXPERIENCE_BOTTLE("EXP_BOTTLE"),
     EXPLORER_POTTERY_SHERD,
+    EXPOSED_CHISELED_COPPER,
     EXPOSED_COPPER,
+    EXPOSED_COPPER_BULB,
+    EXPOSED_COPPER_DOOR,
+    EXPOSED_COPPER_GRATE,
+    EXPOSED_COPPER_TRAPDOOR,
     EXPOSED_CUT_COPPER,
     EXPOSED_CUT_COPPER_SLAB,
     EXPOSED_CUT_COPPER_STAIRS,
@@ -646,7 +660,6 @@ public enum XMaterial {
     GRANITE_SLAB,
     GRANITE_STAIRS,
     GRANITE_WALL,
-    GRASS(1, "LONG_GRASS"),
     GRASS_BLOCK("GRASS"),
     GRAVEL,
     GRAY_BANNER(8, "STANDING_BANNER", "BANNER"),
@@ -1013,7 +1026,12 @@ public enum XMaterial {
     ORANGE_WALL_BANNER(14, "WALL_BANNER"),
     ORANGE_WOOL(1, "WOOL"),
     OXEYE_DAISY(8, "RED_ROSE"),
+    OXIDIZED_CHISELED_COPPER,
     OXIDIZED_COPPER,
+    OXIDIZED_COPPER_BULB,
+    OXIDIZED_COPPER_DOOR,
+    OXIDIZED_COPPER_GRATE,
+    OXIDIZED_COPPER_TRAPDOOR,
     OXIDIZED_CUT_COPPER,
     OXIDIZED_CUT_COPPER_SLAB,
     OXIDIZED_CUT_COPPER_STAIRS,
@@ -1088,6 +1106,10 @@ public enum XMaterial {
     POLISHED_GRANITE(2, "STONE"),
     POLISHED_GRANITE_SLAB,
     POLISHED_GRANITE_STAIRS,
+    POLISHED_TUFF,
+    POLISHED_TUFF_SLAB,
+    POLISHED_TUFF_STAIRS,
+    POLISHED_TUFF_WALL,
     POPPED_CHORUS_FRUIT("CHORUS_FRUIT_POPPED"),
     POPPY("RED_ROSE"),
     PORKCHOP("PORK"),
@@ -1279,6 +1301,11 @@ public enum XMaterial {
     SHEEP_SPAWN_EGG(91, "MONSTER_EGG"),
     SHELTER_POTTERY_SHERD,
     SHIELD,
+    /**
+     * 1.13.0: LONG_GRASS:1
+     * 1.20.4: GRASS -> SHORT_GRASS
+     */
+    SHORT_GRASS(1, "GRASS", "LONG_GRASS"),
     SHROOMLIGHT,
     SHULKER_BOX("PURPLE_SHULKER_BOX"),
     SHULKER_SHELL,
@@ -1430,6 +1457,8 @@ public enum XMaterial {
     TOTEM_OF_UNDYING("TOTEM"),
     TRADER_LLAMA_SPAWN_EGG,
     TRAPPED_CHEST,
+    TRIAL_KEY,
+    TRIAL_SPAWNER,
     TRIDENT,
     TRIPWIRE,
     TRIPWIRE_HOOK,
@@ -1441,6 +1470,13 @@ public enum XMaterial {
     TUBE_CORAL_FAN,
     TUBE_CORAL_WALL_FAN,
     TUFF,
+    TUFF_BRICKS,
+    TUFF_BRICK_SLAB,
+    TUFF_BRICK_STAIRS,
+    TUFF_BRICK_WALL,
+    TUFF_SLAB,
+    TUFF_STAIRS,
+    TUFF_WALL,
     TURTLE_EGG,
     TURTLE_HELMET,
     TURTLE_SPAWN_EGG,
@@ -1491,24 +1527,49 @@ public enum XMaterial {
     WATER("STATIONARY_WATER"),
     WATER_BUCKET,
     WATER_CAULDRON,
+    WAXED_CHISELED_COPPER,
     WAXED_COPPER_BLOCK,
+    WAXED_COPPER_BULB,
+    WAXED_COPPER_DOOR,
+    WAXED_COPPER_GRATE,
+    WAXED_COPPER_TRAPDOOR,
     WAXED_CUT_COPPER,
     WAXED_CUT_COPPER_SLAB,
     WAXED_CUT_COPPER_STAIRS,
+    WAXED_EXPOSED_CHISELED_COPPER,
     WAXED_EXPOSED_COPPER,
+    WAXED_EXPOSED_COPPER_BULB,
+    WAXED_EXPOSED_COPPER_DOOR,
+    WAXED_EXPOSED_COPPER_GRATE,
+    WAXED_EXPOSED_COPPER_TRAPDOOR,
     WAXED_EXPOSED_CUT_COPPER,
     WAXED_EXPOSED_CUT_COPPER_SLAB,
     WAXED_EXPOSED_CUT_COPPER_STAIRS,
+    WAXED_OXIDIZED_CHISELED_COPPER,
     WAXED_OXIDIZED_COPPER,
+    WAXED_OXIDIZED_COPPER_BULB,
+    WAXED_OXIDIZED_COPPER_DOOR,
+    WAXED_OXIDIZED_COPPER_GRATE,
+    WAXED_OXIDIZED_COPPER_TRAPDOOR,
     WAXED_OXIDIZED_CUT_COPPER,
     WAXED_OXIDIZED_CUT_COPPER_SLAB,
     WAXED_OXIDIZED_CUT_COPPER_STAIRS,
+    WAXED_WEATHERED_CHISELED_COPPER,
     WAXED_WEATHERED_COPPER,
+    WAXED_WEATHERED_COPPER_BULB,
+    WAXED_WEATHERED_COPPER_DOOR,
+    WAXED_WEATHERED_COPPER_GRATE,
+    WAXED_WEATHERED_COPPER_TRAPDOOR,
     WAXED_WEATHERED_CUT_COPPER,
     WAXED_WEATHERED_CUT_COPPER_SLAB,
     WAXED_WEATHERED_CUT_COPPER_STAIRS,
     WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE,
+    WEATHERED_CHISELED_COPPER,
     WEATHERED_COPPER,
+    WEATHERED_COPPER_BULB,
+    WEATHERED_COPPER_DOOR,
+    WEATHERED_COPPER_GRATE,
+    WEATHERED_COPPER_TRAPDOOR,
     WEATHERED_CUT_COPPER,
     WEATHERED_CUT_COPPER_SLAB,
     WEATHERED_CUT_COPPER_STAIRS,
@@ -1613,7 +1674,7 @@ public enum XMaterial {
             .build();
     /**
      * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
-     * https://minecraftitemids.com/types/spawn-egg
+     * <a href="https://minecraftitemids.com/types/spawn-egg">Spawn Eggs</a>
      *
      * @see #matchXMaterialWithData(String)
      * @since 8.0.0
@@ -1657,7 +1718,7 @@ public enum XMaterial {
             // MELON_SLICE, CARROTS, POTATOES, BEETROOTS, GRASS_BLOCK, BRICKS, NETHER_BRICKS, BROWN_MUSHROOM
             // Using the constructor to add elements will decide to allocate more size which we don't need.
             DUPLICATED = new HashSet<>(4);
-            DUPLICATED.add(GRASS.name());
+            DUPLICATED.add("GRASS");
             DUPLICATED.add(MELON.name());
             DUPLICATED.add(BRICK.name());
             DUPLICATED.add(NETHER_BRICK.name());
@@ -1665,7 +1726,7 @@ public enum XMaterial {
     }
 
     /**
-     * The data value of this material https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
+     * The data value of this material <a href="https://minecraft.wiki/w/Java_Edition_data_values/Pre-flattening">Pre-flattening</a>
      * It's never a negative number.
      *
      * @see #getData()
@@ -1754,22 +1815,6 @@ public enum XMaterial {
     }
 
     /**
-     * Parses the given material name as an XMaterial with a given data
-     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
-     *
-     * @see #matchXMaterialWithData(String)
-     * @see #matchDefinedXMaterial(String, byte)
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
-        if (name == null || name.isEmpty())
-            throw new IllegalArgumentException("Cannot match a material with null or empty material name");
-        Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
-        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
-    }
-
-    /**
      * Parses material name and data value from the specified string.
      * The separator for the material name and its data value is {@code :}
      * Spaces are allowed. Mostly used when getting materials from config for old school minecrafters.
@@ -1803,6 +1848,22 @@ public enum XMaterial {
     }
 
     /**
+     * Parses the given material name as an XMaterial with a given data
+     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
+     *
+     * @see #matchXMaterialWithData(String)
+     * @see #matchDefinedXMaterial(String, byte)
+     * @since 2.0.0
+     */
+    @Nonnull
+    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
+        if (name == null || name.isEmpty())
+            throw new IllegalArgumentException("Cannot match a material with null or empty material name");
+        Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
+        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
+    }
+
+    /**
      * Parses the given material as an XMaterial.
      *
      * @throws IllegalArgumentException may be thrown as an unexpected exception.
@@ -1832,7 +1893,11 @@ public enum XMaterial {
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot match null ItemStack");
         String material = item.getType().name();
-        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
+
+        // 1.13+ doesn't use data values at all.
+        // Maps are given different data values for different parts of the map also some plugins use negative values for custom images.
+        // Items that have durability, such as armor and tools don't use the data value to distinguish their material.
+        byte data = (byte) (Data.ISFLAT || material.equals("MAP") || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
 
         // Versions 1.9-1.12 didn't really use the items data value.
         if (supports(9) && !supports(13) && item.hasItemMeta() && material.equals("MONSTER_EGG")) {
@@ -1871,58 +1936,6 @@ public enum XMaterial {
     }
 
     /**
-     * The main method that parses the given material name and data value as an XMaterial.
-     * All the values passed to this method will not be null or empty and are formatted correctly.
-     *
-     * @param name the formatted name of the material.
-     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
-     * @return an XMaterial (with the same data value if specified)
-     * @see #matchXMaterial(Material)
-     * @see #matchXMaterial(int, byte)
-     * @see #matchXMaterial(ItemStack)
-     * @since 3.0.0
-     */
-    @Nonnull
-    public static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
-        // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
-        Boolean duplicated = null;
-        boolean isAMap = name.equalsIgnoreCase("MAP");
-
-        // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (Data.ISFLAT || (!isAMap && data <= 0 && !(duplicated = isDuplicated(name)))) {
-            Optional<XMaterial> xMaterial = getIfPresent(name);
-            if (xMaterial.isPresent()) return xMaterial;
-        }
-        // Usually flat versions wouldn't pass this point, but some special materials do.
-
-        XMaterial oldXMaterial = requestOldXMaterial(name, data);
-        if (oldXMaterial == null) {
-            // Special case. Refer to FILLED_MAP for more info.
-            return (data >= 0 && isAMap) ? Optional.of(FILLED_MAP) : Optional.empty();
-        }
-
-        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated))
-            return getIfPresent(name);
-        return Optional.of(oldXMaterial);
-    }
-
-    /**
-     * <b>XMaterial Paradox (Duplication Check)</b>
-     * Checks if the material has any duplicates.
-     * <p>
-     * <b>Example:</b>
-     * <p>{@code MELON, CARROT, POTATO, BEETROOT -> true}
-     *
-     * @param name the name of the material to check.
-     * @return true if there's a duplicated material for this material, otherwise false.
-     * @since 2.0.0
-     */
-    private static boolean isDuplicated(@Nonnull String name) {
-        // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
-        return DUPLICATED.contains(name);
-    }
-
-    /**
      * Gets the XMaterial based on the material's ID (Magic Value) and data value.<br>
      * You should avoid using this for performance issues.
      *
@@ -1943,6 +1956,60 @@ public enum XMaterial {
             if (materials.data == data && materials.getId() == id) return Optional.of(materials);
         }
         return Optional.empty();
+    }
+
+    /**
+     * The main method that parses the given material name and data value as an XMaterial.
+     * All the values passed to this method will not be null or empty and are formatted correctly.
+     *
+     * @param name the formatted name of the material.
+     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
+     * @return an XMaterial (with the same data value if specified)
+     * @see #matchXMaterial(Material)
+     * @see #matchXMaterial(int, byte)
+     * @see #matchXMaterial(ItemStack)
+     * @since 3.0.0
+     */
+    @SuppressWarnings({"DanglingJavadoc", "JavadocBlankLines"})
+    @Nonnull
+    public static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
+        // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
+        Boolean duplicated = null;
+        boolean isAMap = name.equalsIgnoreCase("MAP");
+
+        // Do basic number and boolean checks before accessing more complex enum stuff.
+        if (Data.ISFLAT || (!isAMap && data <= 0 && !(duplicated = isDuplicated(name)))) {
+            Optional<XMaterial> xMaterial = getIfPresent(name);
+            if (xMaterial.isPresent()) return xMaterial;
+        }
+        // Usually flat versions wouldn't pass this point, but some special materials do.
+
+        XMaterial oldXMaterial = requestOldXMaterial(name, data);
+        if (oldXMaterial == null) {
+            // Special case. Refer to FILLED_MAP for more info.
+            return (data >= 0 && isAMap) ? Optional.of(FILLED_MAP) : Optional.empty();
+        }
+
+        /**
+         * XMaterial Paradox (Duplication Check)
+         * I've concluded that this is just an infinite loop that keeps
+         * going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
+         * This solution works just fine anyway.
+         *
+         * A solution for XMaterial Paradox.
+         * Manually parses the duplicated materials to find the exact material based on the server version.
+         * If the name ends with "S" -> Plural Form Material.
+         * Plural methods are only plural if they're also {@link #DUPLICATED}
+         *
+         * The only special exceptions are {@link #BRICKS} (??) and {@link #NETHER_BRICKS}
+         * Note: BRICKS was added because
+         * {@code XMaterial.matchXMaterial("BRICK")} would match {@link #BRICKS} instead in 1.8.
+         */
+        boolean isPlural = oldXMaterial == CARROTS || oldXMaterial == POTATOES || oldXMaterial == BRICKS;
+
+        if (!Data.ISFLAT && isPlural && (duplicated == null ? isDuplicated(name) : duplicated))
+            return getIfPresent(name);
+        return Optional.of(oldXMaterial);
     }
 
     /**
@@ -2001,27 +2068,6 @@ public enum XMaterial {
     }
 
     /**
-     * XMaterial Paradox (Duplication Check)
-     * I've concluded that this is just an infinite loop that keeps
-     * going around the Singular Form and the Plural Form materials. A waste of brain cells and a waste of time.
-     * This solution works just fine anyway.
-     * <p>
-     * A solution for XMaterial Paradox.
-     * Manually parses the duplicated materials to find the exact material based on the server version.
-     * If the name ends with "S" -> Plural Form Material.
-     * Plural methods are only plural if they're also {@link #DUPLICATED}
-     * <p>
-     * The only special exceptions are {@link #BRICKS} and {@link #NETHER_BRICKS}
-     *
-     * @return true if this material is a plural form material, otherwise false.
-     * @since 8.0.0
-     */
-    private boolean isPlural() {
-        // this.name().charAt(this.name().length() - 1) == 'S'
-        return this == CARROTS || this == POTATOES;
-    }
-
-    /**
      * Checks if the list of given material names matches the given base material.
      * Mostly used for configs.
      * <p>
@@ -2057,7 +2103,9 @@ public enum XMaterial {
      * @param materials the material names to check base material on.
      * @return true if one of the given material names is similar to the base material.
      * @since 3.1.1
+     * @deprecated Use XTag.stringMatcher() instead.
      */
+    @Deprecated
     public boolean isOneOf(@Nullable Collection<String> materials) {
         if (materials == null || materials.isEmpty()) return false;
         String name = this.name();
@@ -2110,6 +2158,10 @@ public enum XMaterial {
 
         item.setType(material);
         if (!Data.ISFLAT && material.getMaxDurability() <= 0) item.setDurability(this.data);
+        // Splash Potions weren't an official material pre-flattening.
+        if (!Data.ISFLAT && this == SPLASH_POTION) {
+            item.setDurability((short) 16384); // Hard-coded as 'data' is only a byte.
+        }
         return item;
     }
 
@@ -2152,7 +2204,7 @@ public enum XMaterial {
 
     /**
      * Gets the ID (Magic value) of the material.
-     * https://www.minecraftinfo.com/idlist.htm
+     * <a href="https://www.minecraftinfo.com/idlist.htm">ID List</a>
      * <p>
      * Spigot added material ID support back in 1.16+
      *
@@ -2174,7 +2226,7 @@ public enum XMaterial {
     }
 
     /**
-     * The data value of this material <a href="https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening">pre-flattening</a>.
+     * The data value of this material <a href="https://minecraft.wiki/w/Java_Edition_data_values/Pre-flattening">pre-flattening</a>.
      * <p>
      * Can be accessed with {@link ItemStack#getData()} then {@code MaterialData#getData()}
      * or {@link ItemStack#getDurability()} if not damageable.
@@ -2200,7 +2252,12 @@ public enum XMaterial {
     public ItemStack parseItem() {
         Material material = this.parseMaterial();
         if (material == null) return null;
-        return Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        ItemStack base = Data.ISFLAT ? new ItemStack(material) : new ItemStack(material, 1, this.data);
+        // Splash Potions weren't an official material pre-flattening.
+        if (!Data.ISFLAT && this == SPLASH_POTION) {
+            base.setDurability((short) 16384); // Hard-coded as 'data' is only a byte.
+        }
+        return base;
     }
 
     /**
@@ -2225,6 +2282,10 @@ public enum XMaterial {
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "Cannot compare with null ItemStack");
         if (item.getType() != this.parseMaterial()) return false;
+        // Special case for splash potions.
+        if (this == SPLASH_POTION) {
+            return Data.ISFLAT || item.getDurability() == (short) 16384;
+        }
         return Data.ISFLAT || item.getDurability() == this.data || item.getType().getMaxDurability() > 0;
     }
 
@@ -2255,6 +2316,22 @@ public enum XMaterial {
     @Nullable
     public XMaterial or(@Nullable XMaterial alternateMaterial) {
         return isSupported() ? this : alternateMaterial;
+    }
+
+    /**
+     * <b>XMaterial Paradox (Duplication Check)</b>
+     * Checks if the material has any duplicates.
+     * <p>
+     * <b>Example:</b>
+     * <p>{@code MELON, CARROT, POTATO, BEETROOT -> true}
+     *
+     * @param name the name of the material to check.
+     * @return true if there's a duplicated material for this material, otherwise false.
+     * @since 2.0.0
+     */
+    private static boolean isDuplicated(@Nonnull String name) {
+        // Don't use matchXMaterial() since this method is being called from matchXMaterial() itself and will cause a StackOverflowError.
+        return DUPLICATED.contains(name);
     }
 
     /**
