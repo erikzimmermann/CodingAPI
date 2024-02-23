@@ -1,28 +1,23 @@
 package de.codingair.codingapi.server.commands.builder.brigadier;
 
 import com.mojang.brigadier.context.CommandContext;
+import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.reflections.PacketUtils;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CommandListenerWrapper {
     private static IReflection.MethodAccessor getBukkitSender;
-    private static IReflection.FieldAccessor<?> getWorld;
-    private static IReflection.FieldAccessor<?> getPosition;
-    private static IReflection.MethodAccessor tabComplete;
+    private final CommandBuilder builder;
 
-    public CommandListenerWrapper() {
-        if(getBukkitSender == null) {
+    public CommandListenerWrapper(CommandBuilder builder) {
+        this.builder = builder;
+
+        if (getBukkitSender == null) {
             Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandListenerWrapper");
-
-            Class<?> vec3DClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D");
             getBukkitSender = IReflection.getMethod(commandListenerWrapperClass, "getBukkitSender", CommandSender.class, new Class[]{});
-
-            getWorld = IReflection.getField(commandListenerWrapperClass, PacketUtils.WorldServerClass, 0);
-            getPosition = IReflection.getField(commandListenerWrapperClass, vec3DClass, 0);
-            tabComplete = IReflection.getMethod(PacketUtils.CraftServerClass, "tabComplete", List.class, new Class[]{CommandSender.class, String.class, PacketUtils.WorldServerClass, vec3DClass, boolean.class});
         }
     }
 
@@ -30,15 +25,36 @@ public class CommandListenerWrapper {
         return (CommandSender) getBukkitSender.invoke(instance);
     }
 
-    private Object getWorld(Object instance) {
-        return getWorld.get(instance);
-    }
+    public List<String> tabComplete(CommandContext<Object> context, String input) {
+        String label = input.substring(
+                input.startsWith("/") ? 1 : 0,
+                input.contains(" ") ? input.indexOf(" ") : input.length()
+        ).toLowerCase();
+        if (!label.equals(builder.getName()) && !builder.getAliases().contains(label)) {
+            int idx = input.indexOf(builder.getName());
 
-    private Object getPosition(Object instance) {
-        return getPosition.get(instance);
-    }
+            if (idx == -1) {
+                for (String alias : builder.getAliases()) {
+                    idx = input.indexOf(alias);
+                    if (idx != -1) break;
+                }
+            }
 
-    public List<String> tabComplete(Object server, CommandContext<Object> context, String input) {
-        return (List<String>) tabComplete.invoke(server, getBukkitSender(context.getSource()), input, getWorld(context.getSource()), getPosition(context.getSource()), true);
+            if (idx == -1) return new ArrayList<>();
+            input = "/" + input.substring(idx);
+        }
+
+        label = input.substring(
+                input.startsWith("/") ? 1 : 0,
+                input.contains(" ") ? input.indexOf(" ") : input.length()
+        ).toLowerCase();
+
+        String cut_input = input.substring((input.startsWith("/") ? 1 : 0) + label.length());
+        while (cut_input.startsWith(" ") && cut_input.length() > 1)
+            cut_input = cut_input.substring(1);
+        while (cut_input.endsWith(" "))
+            cut_input = cut_input.substring(0, cut_input.length() - 1);
+
+        return builder.onTabComplete(getBukkitSender(context.getSource()), builder.getMain(), label, cut_input.split(" "));
     }
 }

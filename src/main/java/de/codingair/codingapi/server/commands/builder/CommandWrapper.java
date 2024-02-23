@@ -29,7 +29,7 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
 
     private CommandWrapper(CommandBuilder builder) {
         this.builder = builder;
-        this.wrapper = new CommandListenerWrapper();
+        this.wrapper = new CommandListenerWrapper(builder);
     }
 
     public static CommandWrapper register(CommandBuilder builder) {
@@ -70,7 +70,7 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
     }
 
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<Object> context, SuggestionsBuilder builder) {
-        List<String> results = wrapper.tabComplete(Bukkit.getServer(), context, builder.getInput());
+        List<String> results = wrapper.tabComplete(context, builder.getInput());
         builder = builder.createOffset(builder.getInput().lastIndexOf(32) + 1);
 
         for (String s : results) {

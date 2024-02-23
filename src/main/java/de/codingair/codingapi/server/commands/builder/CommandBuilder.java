@@ -458,6 +458,10 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         return importantAliases;
     }
 
+    public List<String> getAliases() {
+        return aliases;
+    }
+
     public boolean isMergeSpaceArguments() {
         return mergeSpaceArguments;
     }
