@@ -15,7 +15,7 @@ public class AnvilClickEvent extends Event {
     private final AnvilSlot slot;
     private final ClickType clickType;
 
-    private final ItemStack item;
+    private final String input;
     private String submitted = null;
 
     private boolean keepInventory = false; //for smoother GUI switch
@@ -33,7 +33,17 @@ public class AnvilClickEvent extends Event {
         this.player = player;
         this.clickType = clickType;
         this.slot = slot;
-        this.item = item;
+
+        if (item == null || !item.hasItemMeta()) input = null;
+        else input = item.getItemMeta().getDisplayName();
+    }
+
+    public AnvilClickEvent(Player player, ClickType clickType, AnvilSlot slot, String input, AnvilGUI anvil) {
+        this.anvil = anvil;
+        this.player = player;
+        this.clickType = clickType;
+        this.slot = slot;
+        this.input = input;
     }
 
     @Override
@@ -77,10 +87,6 @@ public class AnvilClickEvent extends Event {
         this.cancelled = cancelled;
     }
 
-    public ItemStack getItem() {
-        return item;
-    }
-
     public Player getPlayer() {
         return player;
     }
@@ -90,11 +96,12 @@ public class AnvilClickEvent extends Event {
     }
 
     public String getInput(boolean colors) {
-        if(this.item == null || !this.item.hasItemMeta()) return null;
-        String input = this.item.getItemMeta().getDisplayName();
+        String input = this.input;
 
-        if(colors) input = input.replace("§", "&");
-        else input = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', input));
+        if (input != null) {
+            if (colors) input = input.replace("§", "&");
+            else input = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', input));
+        }
 
         return input == null ? null : getWhitespace().trimFrom(input);
     }
@@ -108,9 +115,7 @@ public class AnvilClickEvent extends Event {
     }
 
     public String getRawInput() {
-        if(this.item == null || !this.item.hasItemMeta()) return null;
-
-        return this.item.getItemMeta().getDisplayName();
+        return input;
     }
 
     public boolean isPayExp() {

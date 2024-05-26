@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory;
 
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InventoryUtils {
     private static final Class<?> CONTAINER_CLASS;
+    public static final Class<?> CONTAINERS_CLASS;
     private static final IReflection.FieldAccessor<?> TITLE;
     private static final IReflection.MethodAccessor UPDATE_INVENTORY;
     private static final IReflection.FieldAccessor<?> ACTIVE_CONTAINER;
@@ -21,26 +23,37 @@ public class InventoryUtils {
     static {
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
 
-        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
+        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("Container", 20.5, "AbstractContainerMenu"));
 
-        if (Version.atLeast(17)) {
+        if (Version.atLeast(20.5)) UPDATE_INVENTORY = null;
+        else if (Version.atLeast(17)) {
             UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, Version.since(18, "updateInventory", "b"));
         } else {
-            UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[] {CONTAINER_CLASS});
+            UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[]{CONTAINER_CLASS});
         }
 
+        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.choose("windowId", 17, "j", 20.5, "containerId"));
         ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, CONTAINER_CLASS, 1);
-        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.since(17, "windowId", "j"));
 
         if (Version.get().isBiggerThan(Version.v1_13)) {
-            Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
             TITLE = IReflection.getField(CONTAINER_CLASS, "title");
 
-            PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
+            CONTAINERS_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("Containers", 20.5, "MenuType"));
+            PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, CONTAINERS_CLASS, PacketUtils.IChatBaseComponentClass);
         } else {
             TITLE = null;
+            CONTAINERS_CLASS = null;
             PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, String.class, PacketUtils.IChatBaseComponentClass, int.class);
         }
+
+        // testing NMS
+        for (int i = 0; i < 6; i++) {
+            getContainerType(i * 9 + 9);
+        }
+    }
+
+    @NmsLoader
+    private InventoryUtils() {
     }
 
     private static boolean isReady() {
@@ -103,15 +116,16 @@ public class InventoryUtils {
     }
 
     private static Object getContainerType(int size) {
-        Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
-        IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, getContainerTypeName(size));
+        IReflection.FieldAccessor<?> generic = IReflection.getField(CONTAINERS_CLASS, getContainerTypeName(size));
         return generic.get(null);
     }
 
     private static String getContainerTypeName(int size) {
         int id = size / 9;
 
-        if (Version.atLeast(17)) {
+        if (Version.atLeast(20.5)) {
+            return "GENERIC_9x" + id;
+        } else if (Version.atLeast(17)) {
             switch (id) {
                 case 1:
                     return "a";

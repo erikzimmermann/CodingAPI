@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.events.PlayerWalkEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -52,6 +53,13 @@ public class Hologram implements Removable {
     private boolean visible = false;
     private BukkitRunnable runnable;
 
+    @NmsLoader
+    private Hologram() {
+        this.plugin = null;
+        this.text = null;
+        this.updateInterval = 0;
+    }
+
     public Hologram(Location location, JavaPlugin plugin, String... text) {
         this(location, plugin, 0, text);
     }
@@ -60,7 +68,8 @@ public class Hologram implements Removable {
         if (!API.getInstance().isInitialized()) throw new IllegalStateException("API have to be initialized!");
 
         this.text = new ArrayList<>(Arrays.asList(text));
-        if (location.getWorld() == null) throw new IllegalStateException("Could not initialize Hologram with a location without world!");
+        if (location.getWorld() == null)
+            throw new IllegalStateException("Could not initialize Hologram with a location without world!");
         this.source = location.clone();
         this.plugin = plugin;
         this.updateInterval = updateInterval / 50;
@@ -68,7 +77,7 @@ public class Hologram implements Removable {
 
     public static Listener getListener() {
         return new Listener() {
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onSwitchWorld(PlayerChangedWorldEvent e) {
                 List<Hologram> l = API.getRemovables(null, Hologram.class);
                 for (Hologram hologram : l) {
@@ -77,12 +86,13 @@ public class Hologram implements Removable {
                     if (hologram.getLocation().getWorld() == e.getFrom()) {
                         hologram.remove(e.getPlayer());
                     } else if (hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
-                            hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
+                            hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE)
+                        hologram.update(e.getPlayer());
                 }
                 l.clear();
             }
 
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onTeleport(PlayerTeleportEvent e) {
                 if (e.getTo() == null) return;
                 if (e.getFrom().getWorld() != e.getTo().getWorld()) return;
@@ -105,7 +115,7 @@ public class Hologram implements Removable {
                 }, 2);
             }
 
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onJoin(PlayerJoinEvent e) {
                 List<Hologram> l = API.getRemovables(null, Hologram.class);
                 for (Hologram hologram : l) {
@@ -113,12 +123,13 @@ public class Hologram implements Removable {
                     if (hologram.getLocation().getWorld() != e.getPlayer().getWorld()) continue;
 
                     if (hologram.getLocation().getWorld() == e.getPlayer().getWorld() &&
-                            hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE) hologram.update(e.getPlayer());
+                            hologram.getLocation().distance(e.getPlayer().getLocation()) <= DISTANCE_TO_SEE)
+                        hologram.update(e.getPlayer());
                 }
                 l.clear();
             }
 
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onQuit(PlayerQuitEvent e) {
                 List<Hologram> l = API.getRemovables(null, Hologram.class);
                 for (Hologram hologram : l) {
@@ -128,13 +139,14 @@ public class Hologram implements Removable {
                 l.clear();
             }
 
-            @EventHandler (priority = EventPriority.LOWEST)
+            @EventHandler(priority = EventPriority.LOWEST)
             public void onWalk(PlayerWalkEvent e) {
                 List<Hologram> l = API.getRemovables(null, Hologram.class);
                 for (Hologram hologram : l) {
                     if (hologram.isNotWatching(e.getPlayer())) continue;
 
-                    if (e.getFrom().getWorld() != e.getTo().getWorld() || e.getTo().getWorld() != hologram.getLocation().getWorld()) continue;
+                    if (e.getFrom().getWorld() != e.getTo().getWorld() || e.getTo().getWorld() != hologram.getLocation().getWorld())
+                        continue;
 
                     double to = hologram.getLocation().distance(e.getTo());
                     double from = hologram.getLocation().distance(e.getFrom());
@@ -536,6 +548,38 @@ public class Hologram implements Removable {
     public static class HologramPackets {
         private final static IReflection.MethodAccessor setInvisible = IReflection.getSaveMethod(ArmorStand.class, "setInvisible", null, boolean.class);
         private final static IReflection.MethodAccessor setVisible = IReflection.getSaveMethod(ArmorStand.class, "setVisible", null, boolean.class);
+        private final static IReflection.FieldAccessor<Boolean> invulnerableField;
+        private final static Class<?> dataWatcherItemClass;
+        private final static Class<?> dataWatcherBClass;
+        private final static IReflection.MethodAccessor getDataWatcherItem;
+        private final static IReflection.MethodAccessor serializeItem;
+        private final static IReflection.MethodAccessor getDataWatcher;
+        private final static IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPosition", 18, "c", 19.3, "p", 20.5, "setPos"), new Class[]{double.class, double.class, double.class});
+        private final static IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
+
+        static {
+            if (Version.atMost(8)) {
+                invulnerableField = IReflection.getField(PacketUtils.EntityClass, "invulnerable");
+            } else invulnerableField = null;
+
+            if (Version.atLeast(19.3)) {
+                dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$Item", 20.5, "SynchedEntityData$DataItem"));
+                dataWatcherBClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$b", 20.5, "SynchedEntityData$DataValue"));
+                getDataWatcherItem = IReflection.getMethod(PacketUtils.DataWatcherClass, dataWatcherItemClass, new Class[]{PacketUtils.DataWatcherObjectClass});
+                serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherBClass, new Class[0]);
+            } else {
+                dataWatcherItemClass = null;
+                dataWatcherBClass = null;
+                getDataWatcherItem = null;
+                serializeItem = null;
+            }
+
+            getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.DataWatcherClass, new Class[]{});
+        }
+
+        @NmsLoader
+        private HologramPackets() {
+        }
 
         @NotNull
         private static ArmorStand bukkit(@NotNull Object nms) {
@@ -551,13 +595,13 @@ public class Hologram implements Removable {
 
             if (setInvisible != null) setInvisible.invoke(as, invisible);
             else if (setVisible != null) setVisible.invoke(as, !invisible);
-            else throw new IllegalStateException("Cannot find setInvisible nor setVisible for ArmorStands! Please contact the plugin author.");
+            else
+                throw new IllegalStateException("Cannot find setInvisible nor setVisible for ArmorStands! Please contact the plugin author.");
         }
 
         public static void setInvulnerable(Object armorStand, boolean invulnerable) {
             if (Version.atLeast(9)) bukkit(armorStand).setInvulnerable(invulnerable);
             else {
-                IReflection.FieldAccessor<Boolean> invulnerableField = IReflection.getField(PacketUtils.EntityClass, "invulnerable");
                 invulnerableField.set(armorStand, invulnerable);
             }
         }
@@ -580,16 +624,8 @@ public class Hologram implements Removable {
         }
 
         public static void sendDataWatcher(Player player, Object armorStand) {
-            assert PacketUtils.EntityClass != null;
-            IReflection.MethodAccessor getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.DataWatcherClass, new Class[] {});
-
             if (Version.atLeast(19.3)) {
                 assert PacketUtils.DataWatcherObjectClass != null;
-
-                Class<?> dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcher$Item");
-                Class<?> dataWatcherBClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), "DataWatcher$b");
-                IReflection.MethodAccessor getDataWatcherItem = IReflection.getMethod(PacketUtils.DataWatcherClass, dataWatcherItemClass, new Class[] {PacketUtils.DataWatcherObjectClass});
-                IReflection.MethodAccessor serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherBClass, new Class[0]);
 
                 Object watcher = getDataWatcher.invoke(armorStand);
 
@@ -601,11 +637,11 @@ public class Hologram implements Removable {
                 }
 
                 Packet packet = new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
-                packet.initialize(new Class[] {int.class, List.class}, PacketUtils.EntityPackets.getId(armorStand), items);
+                packet.initialize(new Class[]{int.class, List.class}, PacketUtils.EntityPackets.getId(armorStand), items);
                 packet.send();
             } else {
                 Packet packet = new Packet(PacketUtils.PacketPlayOutEntityMetadataClass, player);
-                packet.initialize(new Class[] {int.class, PacketUtils.DataWatcherClass, boolean.class}, PacketUtils.EntityPackets.getId(armorStand), getDataWatcher.invoke(armorStand), true);
+                packet.initialize(new Class[]{int.class, PacketUtils.DataWatcherClass, boolean.class}, PacketUtils.EntityPackets.getId(armorStand), getDataWatcher.invoke(armorStand), true);
                 packet.send();
             }
         }
@@ -619,7 +655,7 @@ public class Hologram implements Removable {
             } else {
                 IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
                 assert con != null;
-                packet = con.newInstance((Object) new int[] {PacketUtils.EntityPackets.getId(armorStand)});
+                packet = con.newInstance((Object) new int[]{PacketUtils.EntityPackets.getId(armorStand)});
             }
 
             PacketUtils.sendPacket(packet, player);
@@ -627,8 +663,10 @@ public class Hologram implements Removable {
 
         public static void spawn(Player player, Object armorStand) {
             IReflection.ConstructorAccessor con;
-            if (Version.atLeast(19)) con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass);
-            else con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
+            if (Version.atLeast(19))
+                con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass);
+            else
+                con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
             assert con != null;
 
             Object packet = con.newInstance(armorStand);
@@ -638,9 +676,6 @@ public class Hologram implements Removable {
         }
 
         public static void setLocation(Object armorStand, Location location) {
-            IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.since(19.3, Version.since(18, "setPosition", "c"), "p"), new Class[] {double.class, double.class, double.class});
-            IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
-
             world.set(armorStand, PacketUtils.getWorldServer(location.getWorld()));
             setPosition.invoke(armorStand, location.getX(), location.getY(), location.getZ());
         }

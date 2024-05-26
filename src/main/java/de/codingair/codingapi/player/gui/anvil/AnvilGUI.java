@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.anvil;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -109,6 +110,12 @@ public class AnvilGUI implements Removable {
 
     //Only for 1.14+
     private String title;
+
+    @NmsLoader
+    private AnvilGUI() {
+        this.plugin = null;
+        this.player = null;
+    }
 
     public AnvilGUI(JavaPlugin plugin, Player player, AnvilListener listener, String title) {
         this.plugin = plugin;
@@ -278,15 +285,10 @@ public class AnvilGUI implements Removable {
 
         try {
             if (Version.get().isBiggerThan(Version.v1_13)) {
-                Class<?> containersClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Containers");
+                String genericField = Version.choose("ANVIL", 17, "h", 20.4, "i", 20.5, "ANVIL");
 
-                String genericField;
-                if (Version.atLeast(20.4)) genericField = "i";
-                else if (Version.atLeast(17)) genericField = "h";
-                else genericField = "ANVIL";
-
-                IReflection.FieldAccessor<?> generic = IReflection.getField(containersClass, genericField);
-                IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, containersClass, PacketUtils.IChatBaseComponentClass);
+                IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, genericField);
+                IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, InventoryUtils.CONTAINERS_CLASS, PacketUtils.IChatBaseComponentClass);
 
                 assert packetPlayOutOpenWindowCon != null;
                 Object packet = packetPlayOutOpenWindowCon.newInstance(c, generic.get(null), PacketUtils.getChatMessage(title));

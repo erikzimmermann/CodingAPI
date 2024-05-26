@@ -2,15 +2,11 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.mojang.util.UUIDTypeAdapter;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.io.JSON.JSON;
 import de.codingair.codingapi.tools.io.JSON.JSONParser;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
@@ -20,7 +16,7 @@ import java.util.UUID;
 
 public class GameProfileUtils {
     public static GameProfile getGameProfile(Player p) {
-        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, GameProfile.class, new Class[] {});
+        IReflection.MethodAccessor getProfile = IReflection.getMethod(PacketUtils.EntityPlayerClass, GameProfile.class, new Class[0]);
         return (GameProfile) getProfile.invoke(PacketUtils.getEntityPlayer(p));
     }
 
@@ -72,56 +68,6 @@ public class GameProfileUtils {
         } catch(Exception e) {
             return null;
         }
-    }
-
-    public static void setName(Player p, String customName, Plugin plugin) {
-        setData(p, Skin.getSkin(getGameProfile(p)), customName, plugin);
-    }
-
-    /**
-     * Only other players see the new skin!
-     *
-     * @param p      PLayer
-     * @param skin   Skin
-     * @param plugin Plugin
-     */
-    public static void setData(Player p, Skin skin, String name, Plugin plugin) {
-        Object entityPlayer = PacketUtils.getEntityPlayer(p);
-        Object server = PacketUtils.getMinecraftServer();
-        Object world = PacketUtils.getWorldServer();
-
-        GameProfile profile = new GameProfile(p.getUniqueId(), name);
-        profile.getProperties().removeAll("textures");
-        profile.getProperties().put("textures", new Property("textures", skin.getValue(), skin.getSignature()));
-
-        Class<?> PlayerInteractManagerClass = IReflection.getClass(IReflection.ServerPacket.SERVER_LEVEL, "PlayerInteractManager");
-        IReflection.ConstructorAccessor entityPlayerCon = IReflection.getConstructor(PacketUtils.EntityPlayerClass, PacketUtils.MinecraftServerClass, PacketUtils.WorldServerClass, GameProfile.class, PlayerInteractManagerClass);
-        IReflection.ConstructorAccessor destroyPacket = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
-        IReflection.ConstructorAccessor packet = IReflection.getConstructor(PacketUtils.PacketPlayOutNamedEntitySpawnClass, PacketUtils.EntityHumanClass);
-        IReflection.FieldAccessor playerInteractManager = IReflection.getField(PacketUtils.EntityPlayerClass, "playerInteractManager");
-
-        Object newPlayer = entityPlayerCon.newInstance(server, world, profile, playerInteractManager.get(entityPlayer));
-        Object spawn = packet.newInstance(entityPlayer);
-        Object destroy = destroyPacket.newInstance(new int[] {PacketUtils.getEntityId(p)});
-        Object tabRemove = PacketUtils.getPlayerInfoPacket(4, entityPlayer);
-        Object tabAdd = PacketUtils.getPlayerInfoPacket(0, newPlayer);
-
-        PacketUtils.sendPacket(p, destroy);
-        PacketUtils.sendPacketToAll(tabRemove);
-
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            PacketUtils.sendPacket(p, tabAdd);
-
-            Bukkit.getOnlinePlayers().forEach(all -> {
-                if(!all.getName().equalsIgnoreCase(p.getName())) {
-                    PacketUtils.sendPacket(all, destroy);
-                    PacketUtils.sendPacket(all, tabAdd);
-                    PacketUtils.sendPacket(all, spawn);
-                }
-            });
-
-            p.teleport(p);
-        }, 5L);
     }
 
     public static GameProfile getGameProfile(UUID uuid, String name, long timestamp, String signature, String skinUrl, String capeUrl) {

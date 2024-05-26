@@ -105,9 +105,10 @@ public class MessageAPI {
         if (Version.atLeast(13)) {
             p.sendTitle(msg1 == null ? "" : msg1, msg2 == null ? "" : msg2, fadeIn, stay, fadeOut);
         } else {
+            Class<?> ChatMessageClass = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessage");
             Class<?> packet = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle");
             Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");
-            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, PacketUtils.ChatMessageClass, Integer.class, Integer.class, Integer.class);
+            IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
             int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
 

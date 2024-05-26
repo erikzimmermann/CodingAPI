@@ -1,6 +1,7 @@
 package de.codingair.codingapi.server.specification;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +29,8 @@ public enum Version {
     v1_20(20, 20.1),
     v1_20_2(20.2),
     v1_20_4(20.4),
+    v1_20_5(20.5),
+    v1_20_6(20.6),
     ;
 
     private static boolean supportWarning = true;
@@ -48,29 +51,38 @@ public enum Version {
 
     private static void load() {
         if (VERSION == null) {
-            //server type
-            try {
-                String s = Bukkit.getVersion();
-                int from = s.indexOf('-');
+            if (ServerBuildInfo.isAvailable()) {
+                TYPE = Type.PAPER;
+                NAME = "Paper";
+                SPECIFICATION = ServerBuildInfo.minecraftVersionName();
 
-                if (from >= 0) {
-                    from += 1;
-                    int to = s.indexOf("-", from);
+                double version =  Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
+                VERSION = byId(version);
+            } else {
+                //server type
+                try {
+                    String s = Bukkit.getVersion();
+                    int from = s.indexOf('-');
 
-                    if (to >= 0) {
-                        TYPE = Type.getByName(Bukkit.getVersion().substring(from, to));
+                    if (from >= 0) {
+                        from += 1;
+                        int to = s.indexOf("-", from);
+
+                        if (to >= 0) {
+                            TYPE = Type.getByName(Bukkit.getVersion().substring(from, to));
+                        } else TYPE = Type.UNKNOWN;
                     } else TYPE = Type.UNKNOWN;
-                } else TYPE = Type.UNKNOWN;
-            } catch (StringIndexOutOfBoundsException ex) {
-                TYPE = Type.UNKNOWN;
+                } catch (StringIndexOutOfBoundsException ex) {
+                    TYPE = Type.UNKNOWN;
+                }
+
+                //version
+                NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
+                double version = Double.parseDouble(NAME.substring(2));
+                SPECIFICATION = Bukkit.getBukkitVersion().replace(NAME + "-", "");
+
+                VERSION = byId(version);
             }
-
-            //version
-            NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
-            double version = Double.parseDouble(NAME.substring(2));
-            SPECIFICATION = Bukkit.getBukkitVersion().replace(NAME + "-", "");
-
-            VERSION = byId(version);
         }
     }
 
@@ -138,6 +150,44 @@ public enum Version {
         throw new IllegalArgumentException("Version not found: " + version);
     }
 
+    public static <T> T choose(T def, double version1, T value1) {
+        return choose(def, version1, value1, 0, null);
+    }
+
+    public static <T> T choose(T def, double version1, T value1, double version2, T value2) {
+        return choose(def, version1, value1, version2, value2, 0, null);
+    }
+
+    public static <T> T choose(T def, double version1, T value1, double version2, T value2, double version3, T value3) {
+        return choose(def, version1, value1, version2, value2, version3, value3, 0, null);
+    }
+
+    public static <T> T choose(T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4) {
+        return choose(def, version1, value1, version2, value2, version3, value3, version4, value4, 0, null);
+    }
+
+    public static <T> T choose(T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5) {
+        return choose(def, version1, value1, version2, value2, version3, value3, version4, value4, version5, value5, 0, null);
+    }
+
+    public static <T> T choose(T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5, double version6, T value6) {
+        //noinspection unchecked
+        T[] values = (T[]) new Object[]{def, value1, value2, value3, value4, value5, value6};
+        double[] versions = new double[]{-1, version1, version2, version3, version4, version5, version6};
+
+        for (int i = 0; i < versions.length; i++) {
+            double version = versions[i];
+
+            if (version == -1) continue;
+            if (version == 0) return values[i - 1];
+
+            int diff = Version.get().ordinal() - byId(version).ordinal();
+            if (diff < 0) return values[i - 1];
+        }
+
+        return values[values.length - 1];
+    }
+
     @SafeVarargs
     public static <T> T since(double version, T old, T... updated) {
         Version v = byId(version);
@@ -175,5 +225,54 @@ public enum Version {
 
     public boolean isBiggerThan(double version) {
         return id[id.length - 1] > version;
+    }
+
+    /**
+     * Wrapper for Paper's new info class.
+     * Introduced in version 1.20.5 on 16th May 2024
+     * (<a href="https://discord.com/channels/289587909051416579/1077385604012179486/1240455346582196348">Source</a>).
+     */
+    private static class ServerBuildInfo {
+        private static final Object info;
+        private static final IReflection.MethodAccessor minecraftVersionId;
+        private static final IReflection.MethodAccessor minecraftVersionName;
+
+        static {
+            Class<?> infoClass;
+
+            try {
+                infoClass = Class.forName("io.papermc.paper.ServerBuildInfo");
+            } catch (ClassNotFoundException e) {
+                infoClass = null;
+            }
+
+            if (infoClass == null) {
+                info = null;
+                minecraftVersionId = null;
+                minecraftVersionName = null;
+            } else {
+                IReflection.MethodAccessor buildInfo = IReflection.getMethod(infoClass, infoClass, new Class[0]);
+                info = buildInfo.invoke(null);
+
+                minecraftVersionId = IReflection.getMethod(infoClass, "minecraftVersionId", String.class, new Class[0]);
+                minecraftVersionName = IReflection.getMethod(infoClass, "minecraftVersionName", String.class, new Class[0]);
+            }
+        }
+
+        private static boolean isAvailable() {
+            return info != null;
+        }
+
+        @NotNull
+        private static String minecraftVersionId() {
+            if (minecraftVersionId == null) throw new IllegalStateException();
+            return (String) minecraftVersionId.invoke(info);
+        }
+
+        @NotNull
+        private static String minecraftVersionName() {
+            if (minecraftVersionName == null) throw new IllegalStateException();
+            return (String) minecraftVersionName.invoke(info);
+        }
     }
 }

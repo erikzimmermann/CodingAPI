@@ -49,20 +49,26 @@ public abstract class PlayerItem extends ItemStack implements Removable {
     }
 
     public void remove() {
-        int slot = 0;
-        for(ItemStack stack : player.getInventory().getContents()) {
-            if(!this.equals(stack)) slot++;
-            else break;
+        // fix (1.20.5):
+        // If the item could not be found,
+        // the slot number was moved out of the actual available content slots
+        // which caused players being kicked from the server due to a network issue.
+
+        Integer slot = null;
+        for (int i = 0; i < player.getInventory().getContents().length; i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (equals(stack)) {
+                slot = i;
+                break;
+            }
         }
 
-        player.getInventory().setItem(slot, null);
-        player.updateInventory();
-
+        if (slot != null) player.getInventory().setItem(slot, null);
         API.removeRemovable(this);
     }
 
     public void trigger(PlayerInteractEvent e) {
-        if(System.currentTimeMillis() - lastClick <= 50) return;
+        if (System.currentTimeMillis() - lastClick <= 50) return;
         lastClick = System.currentTimeMillis();
         onInteract(e);
     }

@@ -18,6 +18,7 @@ public class PrepareAnvilEventHelp implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAnvilPrepareLow(PrepareAnvilEvent e) {
+
         if(e.getInventory().equals(inv)) {
             result = e.getResult();
         }

@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.data;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.utils.Removable;
@@ -31,6 +32,13 @@ public abstract class PacketReader implements Removable {
     private final UUID id = UUID.randomUUID();
     private final JavaPlugin plugin;
     private boolean injected = false;
+
+    @NmsLoader
+    private PacketReader() {
+        player = null;
+        name = null;
+        plugin = null;
+    }
 
     public PacketReader(Player player, String name, JavaPlugin plugin) {
         this.player = player;

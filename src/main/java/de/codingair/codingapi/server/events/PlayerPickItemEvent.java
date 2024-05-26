@@ -5,35 +5,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public class PlayerPickItemEvent extends PlayerEvent {
     private static final HandlerList handlers = new HandlerList();
     private final int slot;
     private final ItemStack itemStack;
     private final Block from;
-    private final boolean nbtCopy;
 
-    public PlayerPickItemEvent(Player who, int slot, ItemStack itemStack, Block from, boolean nbtCopy) {
+    public PlayerPickItemEvent(@NotNull Player who, int slot, @NotNull ItemStack itemStack, @NotNull Block from) {
         super(who);
         this.slot = slot;
         this.itemStack = itemStack;
         this.from = from;
-        this.nbtCopy = nbtCopy;
-    }
-
-    public boolean isNBTCopy() {
-        return nbtCopy;
     }
 
     public int getSlot() {
         return slot;
     }
 
-    public ItemStack getItemStack() {
+    public @NotNull ItemStack getItemStack() {
         return itemStack;
     }
 
-    public Block getFrom() {
+    public @NotNull Block getFrom() {
         return from;
     }
 

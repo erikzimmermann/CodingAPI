@@ -3,6 +3,7 @@ package de.codingair.codingapi;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import de.codingair.codingapi.nms.NmsCheck;
 import de.codingair.codingapi.particles.animations.customanimations.AnimationType;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.chat.ChatListener;
@@ -44,24 +45,28 @@ public class API {
     private final List<JavaPlugin> plugins = new ArrayList<>();
     private BukkitTask tickerTimer = null;
 
+    static {
+        NmsCheck.testInternalApi();
+    }
+
     public void onEnable(JavaPlugin plugin) {
-        if(!this.plugins.contains(plugin)) this.plugins.add(plugin);
-        if(initialized) return;
-        if(this.plugins.size() == 1) initPlugin(plugin);
+        if (!this.plugins.contains(plugin)) this.plugins.add(plugin);
+        if (initialized) return;
+        if (this.plugins.size() == 1) initPlugin(plugin);
     }
 
     public void onDisable(JavaPlugin plugin) {
-        if(!initialized || !plugins.contains(plugin)) return;
+        if (!initialized || !plugins.contains(plugin)) return;
 
         List<CommandBuilder> toDisable = new ArrayList<>();
 
         List<CommandBuilder> l = getRemovables(null, CommandBuilder.class);
-        for(CommandBuilder commandBuilder : l) {
-            if(commandBuilder.getPlugin().equals(plugin)) toDisable.add(commandBuilder);
+        for (CommandBuilder commandBuilder : l) {
+            if (commandBuilder.getPlugin().equals(plugin)) toDisable.add(commandBuilder);
         }
         l.clear();
 
-        for(CommandBuilder b : toDisable) {
+        for (CommandBuilder b : toDisable) {
             b.unregister();
         }
         toDisable.clear();
@@ -70,22 +75,22 @@ public class API {
 
         removePlugin(plugin);
         this.plugins.remove(plugin);
-        if(!plugins.isEmpty()) initPlugin(this.plugins.get(0));
+        if (!plugins.isEmpty()) initPlugin(this.plugins.get(0));
     }
 
     public void reload(JavaPlugin plugin) throws InvalidDescriptionException, FileNotFoundException, InvalidPluginException {
         List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
 
-        for(JavaPlugin p : plugins) {
-            if(p == plugin) continue;
+        for (JavaPlugin p : plugins) {
+            if (p == plugin) continue;
             disablePlugin(p);
         }
 
         disablePlugin(plugin);
         enablePlugin(plugin.getName(), plugin);
 
-        for(JavaPlugin p : plugins) {
-            if(p == plugin) continue;
+        for (JavaPlugin p : plugins) {
+            if (p == plugin) continue;
             enablePlugin(p.getName(), p);
         }
 
@@ -102,34 +107,38 @@ public class API {
             Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
             List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
 
-            if(map.remove(plugin.getDescription().getName().toLowerCase()) == null)
+            if (map.remove(plugin.getDescription().getName().toLowerCase()) == null)
                 map.remove(plugin.getDescription().getName());
             pluginList.remove(plugin);
-        } catch(Exception ignored) {
+        } catch (Exception ignored) {
         }
     }
 
     public void enablePlugin(String name, JavaPlugin backup) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
         File pluginFile = new File("plugins", name + ".jar");
 
-        if(!pluginFile.exists()) {
+        if (!pluginFile.exists()) {
             File f = new File("plugins");
 
-            for(File file : f.listFiles()) {
-                if(!file.isDirectory() && file.getName().toLowerCase().contains(name.toLowerCase()) && file.getName().endsWith(".jar")) {
+            for (File file : f.listFiles()) {
+                if (!file.isDirectory() && file.getName().toLowerCase().contains(name.toLowerCase()) && file.getName().endsWith(".jar")) {
                     pluginFile = file;
                     break;
                 }
             }
         }
 
-        if(pluginFile.exists()) Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
+        if (pluginFile.exists())
+            Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
         else Bukkit.getPluginManager().enablePlugin(backup);
     }
 
     private void removePlugin(JavaPlugin plugin) {
         HandlerList.unregisterAll(plugin);
-        if(this.tickerTimer.getOwner() == plugin) this.tickerTimer.cancel();
+        if (tickerTimer != null && tickerTimer.getOwner() == plugin) {
+            tickerTimer.cancel();
+            tickerTimer = null;
+        }
 
         List<Removable> removables = getRemovables(plugin);
         removables.forEach(Removable::destroy);
@@ -159,13 +168,14 @@ public class API {
     }
 
     public void runTicker(JavaPlugin plugin) {
-        if(this.tickerTimer != null) return;
+        if (this.tickerTimer != null) return;
 
         this.tickerTimer = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Runnable() {
             int i = 0;
+
             @Override
             public void run() {
-                if(i == 20) {
+                if (i == 20) {
                     TICKERS.forEach(t -> {
                         t.onTick();
                         t.onSecond();
@@ -182,7 +192,7 @@ public class API {
     }
 
     public static API getInstance() {
-        if(instance == null) instance = new API();
+        if (instance == null) instance = new API();
         return instance;
     }
 
@@ -195,9 +205,9 @@ public class API {
     }
 
     private static Class<?> getRemovableClass(Class<?> c) {
-        if(!containsRemovableInterface(c.getInterfaces())) {
+        if (!containsRemovableInterface(c.getInterfaces())) {
             Class<?> deep = c.getSuperclass();
-            if(deep == null) return null;
+            if (deep == null) return null;
             else {
                 Class<?> deeper = getRemovableClass(deep);
                 return deeper == null ? c : deeper;
@@ -206,8 +216,8 @@ public class API {
     }
 
     private static boolean containsRemovableInterface(Class<?>[] classes) {
-        for(Class<?> aClass : classes) {
-            if(aClass.equals(Removable.class)) return true;
+        for (Class<?> aClass : classes) {
+            if (aClass.equals(Removable.class)) return true;
         }
         return false;
     }
@@ -220,17 +230,17 @@ public class API {
         Class<?> enclosingClass = getRemovableClass(removable);
 
         Set<Removable> entries;
-        if(data == null) {
+        if (data == null) {
             data = new HashMap<>();
             entries = new HashSet<>();
             data.put(enclosingClass, entries);
             CACHE.put(getKey(removable.getPlayer()), data);
         } else {
             entries = data.get(enclosingClass);
-            if(entries == null) {
+            if (entries == null) {
                 entries = new HashSet<>();
                 data.put(enclosingClass, entries);
-            } else if(entries.contains(removable)) return false;
+            } else if (entries.contains(removable)) return false;
         }
 
         updateSpecific(removable, 1);
@@ -242,12 +252,12 @@ public class API {
         Preconditions.checkNotNull(clazz);
         HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(player));
 
-        if(data != null) {
+        if (data != null) {
             Set<T> l = (Set<T>) data.get(getRemovableClass(clazz));
 
-            if(l != null) {
-                for(T t : l) {
-                    if(clazz.isInstance(t)) return t;
+            if (l != null) {
+                for (T t : l) {
+                    if (clazz.isInstance(t)) return t;
                 }
             }
 
@@ -262,12 +272,12 @@ public class API {
         Preconditions.checkNotNull(uniqueId);
 
         HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(null));
-        if(data == null) return null;
+        if (data == null) return null;
 
         Set<Removable> entries = data.get(getRemovableClass(clazz));
-        if(entries != null) {
-            for(Removable entry : entries) {
-                if(entry.getUniqueId().equals(uniqueId)) return (T) entry;
+        if (entries != null) {
+            for (Removable entry : entries) {
+                if (entry.getUniqueId().equals(uniqueId)) return (T) entry;
             }
         }
 
@@ -278,10 +288,10 @@ public class API {
         List<Removable> found = new ArrayList<>();
         Map<String, HashMap<Class<?>, Set<Removable>>> data = CACHE.asMap();
 
-        for(HashMap<Class<?>, Set<Removable>> value : data.values()) {
-            for(Set<Removable> removables : value.values()) {
-                for(Removable removable : removables) {
-                    if(removable.getPlugin().equals(plugin)) found.add(removable);
+        for (HashMap<Class<?>, Set<Removable>> value : data.values()) {
+            for (Set<Removable> removables : value.values()) {
+                for (Removable removable : removables) {
+                    if (removable.getPlugin().equals(plugin)) found.add(removable);
                 }
             }
         }
@@ -293,13 +303,13 @@ public class API {
         Preconditions.checkNotNull(clazz);
         HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(getKey(player));
 
-        if(data != null) {
+        if (data != null) {
             Set<?> entries = data.get(getRemovableClass(clazz));
 
-            if(entries != null) {
+            if (entries != null) {
                 List<T> l = new ArrayList<>();
-                for(Object removable : entries) {
-                    if(clazz.isInstance(removable)) l.add((T) removable);
+                for (Object removable : entries) {
+                    if (clazz.isInstance(removable)) l.add((T) removable);
                 }
                 return l;
             }
@@ -313,17 +323,17 @@ public class API {
     public static synchronized <T extends Removable> Set<T> getRemovables(Class<? extends T> clazz) {
         Preconditions.checkNotNull(clazz);
         Set<T> l = (Set<T>) SPECIFIC.getIfPresent(clazz);
-        if(l != null) return l;
+        if (l != null) return l;
         else l = new HashSet<>();
 
         Map<String, HashMap<Class<?>, Set<Removable>>> data = CACHE.asMap();
         Class<?> rClazz = getRemovableClass(clazz);
 
-        for(HashMap<Class<?>, Set<Removable>> value : data.values()) {
+        for (HashMap<Class<?>, Set<Removable>> value : data.values()) {
             Set<Removable> r = value.get(rClazz);
-            if(r != null) {
-                for(Removable removable : r) {
-                    if(clazz.isInstance(removable)) l.add((T) removable);
+            if (r != null) {
+                for (Removable removable : r) {
+                    if (clazz.isInstance(removable)) l.add((T) removable);
                 }
             }
         }
@@ -334,15 +344,15 @@ public class API {
 
     private static synchronized void updateSpecific(Removable r, int action) {
         Set<Removable> l = SPECIFIC.getIfPresent(r.getClass());
-        if(l == null) return;
+        if (l == null) return;
 
-        if(action == 1) {
+        if (action == 1) {
             //add
             l.add(r);
-        } else if(action == -1) {
+        } else if (action == -1) {
             //delete
             l.remove(r);
-            if(l.isEmpty()) SPECIFIC.invalidate(r.getClass());
+            if (l.isEmpty()) SPECIFIC.invalidate(r.getClass());
         }
     }
 
@@ -351,18 +361,18 @@ public class API {
         String key = getKey(removable.getPlayer());
         HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(key);
 
-        if(data != null) {
+        if (data != null) {
             Class<?> enclosingClass = getRemovableClass(removable);
             Set<Removable> entries = data.get(enclosingClass);
-            if(entries != null) {
+            if (entries != null) {
                 boolean success = entries.remove(removable);
-                if(success) {
+                if (success) {
                     updateSpecific(removable, -1);
                     removable.destroy();
 
-                    if(entries.isEmpty()) {
+                    if (entries.isEmpty()) {
                         data.remove(enclosingClass);
-                        if(data.isEmpty()) CACHE.invalidate(key);
+                        if (data.isEmpty()) CACHE.invalidate(key);
                     }
                 }
 
@@ -378,7 +388,7 @@ public class API {
         HashMap<Class<?>, Set<Removable>> data = CACHE.getIfPresent(key);
         CACHE.invalidate(key);
 
-        if(data != null) data.values().forEach(s -> s.forEach(Removable::destroy));
+        if (data != null) data.values().forEach(s -> s.forEach(Removable::destroy));
     }
 
     public static void addTicker(Ticker ticker) {

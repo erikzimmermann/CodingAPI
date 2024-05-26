@@ -1,6 +1,7 @@
 package de.codingair.codingapi.player.gui.sign;
 
 import de.codingair.codingapi.API;
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.AsyncCatcher;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -31,6 +32,7 @@ public abstract class SignGUI {
     private static final IReflection.MethodAccessor getX;
     private static final IReflection.MethodAccessor getY;
     private static final IReflection.MethodAccessor getZ;
+    private static final IReflection.FieldAccessor<?> packetLines;
 
     static {
         packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
@@ -40,11 +42,16 @@ public abstract class SignGUI {
         else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
         pos = IReflection.getField(updatePacket, PacketUtils.BlockPositionClass, 0);
-        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, "BaseBlockPosition");
+        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, Version.choose("BaseBlockPosition", 20.5, "Vec3i"));
 
-        getX = IReflection.getMethod(baseBlockPosition, Version.since(18, "getX", "u"), int.class, new Class[0]);
-        getY = IReflection.getMethod(baseBlockPosition, Version.since(18, "getY", "v"), int.class, new Class[0]);
-        getZ = IReflection.getMethod(baseBlockPosition, Version.since(18, "getZ", "w"), int.class, new Class[0]);
+        getX = IReflection.getMethod(baseBlockPosition, Version.choose("getX", 18, "u", 20.5, "getX"), int.class, new Class[0]);
+        getY = IReflection.getMethod(baseBlockPosition, Version.choose("getY", 18, "v", 20.5, "getY"), int.class, new Class[0]);
+        getZ = IReflection.getMethod(baseBlockPosition, Version.choose("getZ", 18, "w", 20.5, "getZ"), int.class, new Class[0]);
+
+
+        if (Version.atLeast(9))
+            packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, String[].class, 0);
+        else packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
     }
 
     private final Player player;
@@ -55,6 +62,14 @@ public abstract class SignGUI {
     //used for instant opening -> open directly after sending the sign update packet
     private Location signLocation = null;
     private Runnable waiting = null;
+
+    @NmsLoader
+    private SignGUI() {
+        player = null;
+        plugin = null;
+        sign = null;
+        lines = null;
+    }
 
     public SignGUI(@NotNull Player player, @NotNull JavaPlugin plugin, @Nullable Sign sign, @Nullable String[] lines) {
         if (lines != null) {
@@ -120,18 +135,14 @@ public abstract class SignGUI {
             @Override
             public boolean readPacket(Object packet) {
                 if (packet.getClass().equals(packetClass)) {
-                    IReflection.FieldAccessor<?> packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, Version.since(17, "b", "c"));
-                    assert PacketUtils.PacketPlayInUpdateSignClass != null;
-                    Object p = PacketUtils.PacketPlayInUpdateSignClass.cast(packet);
-
                     String[] lines;
 
-                    if (Version.get().isBiggerThan(Version.v1_8)) {
-                        lines = (String[]) packetLines.get(p);
+                    if (Version.atLeast(9)) {
+                        lines = (String[]) packetLines.get(packet);
                     } else {
                         lines = sign == null ? new String[4] : sign.getLines();
 
-                        Object[] data = (Object[]) packetLines.get(p);
+                        Object[] data = (Object[]) packetLines.get(packet);
 
                         assert PacketUtils.IChatBaseComponentClass != null;
                         IReflection.MethodAccessor getText = IReflection.getMethod(PacketUtils.IChatBaseComponentClass, "getText", String.class, new Class[]{});
@@ -333,5 +344,19 @@ public abstract class SignGUI {
 
     public String[] getLines() {
         return lines;
+    }
+
+    /**
+     * Wrapper to instantiate the SignGUI class for the NMS check.
+     */
+    public static class NmsWrapper extends SignGUI {
+        @NmsLoader
+        private NmsWrapper() {
+            super();
+        }
+
+        @Override
+        public void onSignChangeEvent(String[] lines) {
+        }
     }
 }

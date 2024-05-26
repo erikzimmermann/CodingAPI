@@ -36,13 +36,12 @@ public class IReflection {
         return Class.forName(packet + name);
     }
 
-    @Nullable
+    @NotNull
     public static Class<?> getClass(@NotNull String name) {
         try {
             return Class.forName(name);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException(e);
         }
     }
 
@@ -56,10 +55,8 @@ public class IReflection {
         try {
             return Class.forName(path + name);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     @Nullable
@@ -332,7 +329,7 @@ public class IReflection {
 
     public enum ServerPacket {
         @Deprecated
-        MINECRAFT_PACKAGE("net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23)),
+        MINECRAFT_PACKAGE("net.minecraft.server." + minecraftVersion()),
         MOJANG_AUTHLIB("com.mojang.authlib"),
         CRAFTBUKKIT_PACKAGE(Bukkit.getServer().getClass().getPackage().getName()),
         CRAFTBUKKIT_UTILS(CRAFTBUKKIT_PACKAGE.path + ".util"),
@@ -345,6 +342,7 @@ public class IReflection {
         NETWORK(17, "net.minecraft.network"),
         NBT(17, "net.minecraft.nbt"),
         CORE(17, "net.minecraft.core"),
+        COMPONENT(17, "net.minecraft.core.component"),
         PARTICLES(17, "net.minecraft.core.particles"),
         SERVER_LEVEL(17, "net.minecraft.server.level"),
         WORLD_LEVEL(17, "net.minecraft.world.level"),
@@ -362,8 +360,15 @@ public class IReflection {
         }
 
         ServerPacket(int version, String path) {
-            if (Version.before(version)) this.path = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName().substring(23);
+            if (Version.before(version)) this.path = "net.minecraft.server." + minecraftVersion();
             else this.path = path;
+        }
+
+        @NotNull
+        private static String minecraftVersion() {
+            String name = Bukkit.getServer().getClass().getPackage().getName();
+            if (name.length() > 23) return name.substring(23);
+            return "";
         }
 
         @Override

@@ -1,12 +1,12 @@
 package de.codingair.codingapi.server.listeners;
 
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.AsyncCatcher;
 import de.codingair.codingapi.server.events.PlayerPickItemEvent;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
-import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -21,22 +21,32 @@ import java.util.HashSet;
 
 public class PickItemListener implements Listener {
     private static final Class<?> PACKET_CLASS;
-    private static final IReflection.FieldAccessor<Integer> slot;
-    private static final IReflection.FieldAccessor<?> b;
+    private static final IReflection.FieldAccessor<?> slot;
+    private static final IReflection.FieldAccessor<?> item;
 
     static {
         PACKET_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInSetCreativeSlot");
 
-        if (Version.get().isBiggerThan(16)) {
-            slot = IReflection.getField(PACKET_CLASS, "a");
+        if (Version.atLeast(20.5)) {
+            slot = IReflection.getField(PACKET_CLASS, short.class, 0);
+            item = IReflection.getField(PACKET_CLASS, PacketUtils.ItemStackClass, 0);
         } else {
-            slot = IReflection.getField(PACKET_CLASS, "slot");
-        }
+            if (Version.get().isBiggerThan(16)) {
+                slot = IReflection.getField(PACKET_CLASS, "a");
+            } else {
+                slot = IReflection.getField(PACKET_CLASS, "slot");
+            }
 
-        b = IReflection.getField(PACKET_CLASS, "b");
+            item = IReflection.getField(PACKET_CLASS, "b");
+        }
     }
 
     private final JavaPlugin plugin;
+
+    @NmsLoader
+    private PickItemListener() {
+        this(null);
+    }
 
     public PickItemListener(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -60,7 +70,8 @@ public class PickItemListener implements Listener {
             }
         }
 
-        if (correct) Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getInventory().getItemInHand(), b, !new NBTTagCompound(item).getMap().isEmpty()));
+        if (correct)
+            Bukkit.getPluginManager().callEvent(new PlayerPickItemEvent(player, slot, player.getItemInHand(), b));
     }
 
     @EventHandler
@@ -70,7 +81,13 @@ public class PickItemListener implements Listener {
             @Override
             public boolean readPacket(Object packet) {
                 if (PACKET_CLASS == packet.getClass()) {
-                    AsyncCatcher.runSync(plugin, () -> call(p, slot.get(packet), PacketUtils.getItemStack(b.get(packet))));
+                    Object slotId = slot.get(packet);
+                    int slot;
+                    if (slotId instanceof Integer) slot = (Integer) slotId;
+                    else if (slotId instanceof Short) slot = (Short) slotId;
+                    else throw new IllegalStateException("Cannot cast '" + slotId + "' (" + slotId.getClass() + ")");
+
+                    AsyncCatcher.runSync(plugin, () -> call(p, slot, PacketUtils.getItemStack(item.get(packet))));
                 }
 
                 return false;
