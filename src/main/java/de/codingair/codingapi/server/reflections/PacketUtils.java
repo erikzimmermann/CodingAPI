@@ -51,7 +51,7 @@ public class PacketUtils {
     public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.network"), Version.choose("PlayerConnection", 20.5, "ServerGamePacketListenerImpl"));
     public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network"), Version.choose("NetworkManager", 20.5, "Connection"));
 
-    public static final Class<?> DataWatcherClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher", 20.5, "SynchedEntityData")));
+    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher", 20.5, "SynchedEntityData"));
     public static final Class<?> DataWatcherObjectClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcherObject", 20.5, "EntityDataAccessor")));
 
     public static final Class<?> PacketClass = getClass(IReflection.ServerPacket.PROTOCOL, "Packet");
