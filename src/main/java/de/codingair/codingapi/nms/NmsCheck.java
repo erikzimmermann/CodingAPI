@@ -20,6 +20,24 @@ public class NmsCheck {
     private static final Class<?>[] C;
     private static boolean internalApiTested = false;
 
+    private static class PacketReaderMock extends PacketReader {
+
+        @NmsLoader
+        public PacketReaderMock() {
+            super(null, null, null);
+        }
+
+        @Override
+        public boolean readPacket(Object packet) {
+            return false;
+        }
+
+        @Override
+        public boolean writePacket(Object packet) {
+            return false;
+        }
+    }
+
     static {
         // add all classes that should be initialized on startup to see version-dependant NMS issues
         C = new Class[]{
@@ -29,7 +47,7 @@ public class NmsCheck {
                 PickItemListener.class,
                 NBTTagCompound.class, BlockEntityNBTTagCompound.class,
                 Hologram.HologramPackets.class, Hologram.class,
-                PacketReader.class
+                PacketReaderMock.class
         };
     }
 

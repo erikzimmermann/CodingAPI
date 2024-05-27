@@ -33,13 +33,6 @@ public abstract class PacketReader implements Removable {
     private final JavaPlugin plugin;
     private boolean injected = false;
 
-    @NmsLoader
-    private PacketReader() {
-        player = null;
-        name = null;
-        plugin = null;
-    }
-
     public PacketReader(Player player, String name, JavaPlugin plugin) {
         this.player = player;
         this.name = name;
