@@ -5,6 +5,9 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public enum Version {
     UNKNOWN(0),
     v1_7(7),
@@ -29,15 +32,14 @@ public enum Version {
     v1_20(20, 20.1),
     v1_20_2(20.2),
     v1_20_4(20.4),
-    v1_20_5(20.5),
-    v1_20_6(20.6),
+    v1_20_6(20.5, 20.6),
     ;
 
     private static boolean supportWarning = true;
     private static Version VERSION = null;
     private static String NAME = null;
     private static String SPECIFICATION = null;
-    private static Type TYPE = null;
+    private static Type TYPE = Type.UNKNOWN;
 
     static {
         load();
@@ -56,32 +58,37 @@ public enum Version {
                 NAME = "Paper";
                 SPECIFICATION = ServerBuildInfo.minecraftVersionName();
 
-                double version =  Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
+                double version = Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
                 VERSION = byId(version);
             } else {
-                //server type
+                // version
+                String bukkitVersion = Bukkit.getVersion();
+
+                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?\\.\\d\\d?");
+                Matcher match = p.matcher(bukkitVersion);
+                if (match.find()) {
+                    double version = Double.parseDouble(match.group().substring(7));
+                    VERSION = byId(version);
+                }
+
+                // specification
+                SPECIFICATION = Bukkit.getVersion();
+
+                // server type
                 try {
-                    String s = Bukkit.getVersion();
-                    int from = s.indexOf('-');
+                    int from = bukkitVersion.indexOf('-');
 
                     if (from >= 0) {
                         from += 1;
-                        int to = s.indexOf("-", from);
+                        int to = bukkitVersion.indexOf("-", from);
 
                         if (to >= 0) {
-                            TYPE = Type.getByName(Bukkit.getVersion().substring(from, to));
-                        } else TYPE = Type.UNKNOWN;
-                    } else TYPE = Type.UNKNOWN;
-                } catch (StringIndexOutOfBoundsException ex) {
-                    TYPE = Type.UNKNOWN;
+                            NAME = bukkitVersion.substring(from, to);
+                            TYPE = Type.getByName(NAME);
+                        }
+                    }
+                } catch (StringIndexOutOfBoundsException ignored) {
                 }
-
-                //version
-                NAME = Bukkit.getBukkitVersion().split("-", -1)[0];
-                double version = Double.parseDouble(NAME.substring(2));
-                SPECIFICATION = Bukkit.getBukkitVersion().replace(NAME + "-", "");
-
-                VERSION = byId(version);
             }
         }
     }
