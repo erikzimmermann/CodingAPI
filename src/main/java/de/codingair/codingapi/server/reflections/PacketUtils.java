@@ -44,15 +44,15 @@ public class PacketUtils {
 
     public static final Class<?> ItemStackClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.item"), "ItemStack");
     public static final Class<?> CraftItemStackClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftItemStack");
-    public static final IReflection.MethodAccessor getCustomModelData = getMethod(ItemMeta.class, "getCustomModelData", int.class, new Class[0]);
-    public static final IReflection.MethodAccessor hasCustomModelData = getMethod(ItemMeta.class, "hasCustomModelData", boolean.class, new Class[0]);
-    public static final IReflection.MethodAccessor setCustomModelData = getMethod(ItemMeta.class, "setCustomModelData", new Class[]{int.class});
+    public static final IReflection.MethodAccessor getCustomModelData = getMethod(ItemMeta.class, "getCustomModelData", int.class, new Class[0], true);
+    public static final IReflection.MethodAccessor hasCustomModelData = getMethod(ItemMeta.class, "hasCustomModelData", boolean.class, new Class[0], true);
+    public static final IReflection.MethodAccessor setCustomModelData = getMethod(ItemMeta.class, "setCustomModelData", new Class[]{int.class}, true);
 
     public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.network"), Version.choose("PlayerConnection", 20.5, "ServerGamePacketListenerImpl"));
     public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network"), Version.choose("NetworkManager", 20.5, "Connection"));
 
-    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher", 20.5, "SynchedEntityData"));
-    public static final Class<?> DataWatcherObjectClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcherObject", 20.5, "EntityDataAccessor"));
+    public static final Class<?> DataWatcherClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher", 20.5, "SynchedEntityData")));
+    public static final Class<?> DataWatcherObjectClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcherObject", 20.5, "EntityDataAccessor")));
 
     public static final Class<?> PacketClass = getClass(IReflection.ServerPacket.PROTOCOL, "Packet");
     public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutAttachEntity");
@@ -67,7 +67,7 @@ public class PacketUtils {
     public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
 
     public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatBaseComponent$ChatSerializer", "Component$Serializer"));
-    public static final Class<?> IChatMutableComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatMutableComponent", "MutableComponent"));
+    public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatMutableComponent", "MutableComponent")));
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("IChatBaseComponent", 20.5, "Component"));
 
     public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[]{});
@@ -82,7 +82,7 @@ public class PacketUtils {
     public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, true);
 
     // 1.20.5+
-    public static final Class<?> HolderLookupProvider = getClass(IReflection.ServerPacket.CORE, "HolderLookup$Provider");
+    public static final Class<?> HolderLookupProvider = IReflection.wrap(Version.atLeast(20.5), () -> getClass(IReflection.ServerPacket.CORE, "HolderLookup$Provider"));
 
     static {
         if (Version.atLeast(20.2)) {
@@ -97,12 +97,50 @@ public class PacketUtils {
     private PacketUtils() {
     }
 
-    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>... parameterTypes) {
-        return getMethod(target, methodName, null, parameterTypes);
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>[] parameterTypes) {
+        return getMethod(target, methodName, null, parameterTypes, false);
     }
 
-    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>... parameterTypes) {
-        return IReflection.getMethod(target, methodName, returnType, parameterTypes);
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>[] parameterTypes) {
+        return getMethod(target, methodName, returnType, parameterTypes, false);
+    }
+
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?>[] parameterTypes, boolean acceptNull) {
+        return getMethod(target, methodName, null, parameterTypes, acceptNull);
+    }
+
+    public static IReflection.MethodAccessor getMethod(Class<?> target, String methodName, Class<?> returnType, Class<?>[] parameterTypes, boolean acceptNull) {
+        if (acceptNull) {
+            try {
+                return IReflection.getMethod(target, methodName, returnType, parameterTypes);
+            } catch (Exception ex) {
+                return null;
+            }
+        } else return IReflection.getMethod(target, methodName, returnType, parameterTypes);
+    }
+
+    public static Class<?> getClass(IReflection.ServerPacket packet, String className) {
+        return getClass(packet, className, false);
+    }
+
+    public static Class<?> getClass(IReflection.ServerPacket packet, String className, boolean acceptNull) {
+        return getClass(packet.toString(), className, acceptNull);
+    }
+
+    public static Class<?> getClass(String packet, String className) {
+        return getClass(packet, className, false);
+    }
+
+    public static Class<?> getClass(String packet, String className, boolean acceptNull) {
+        if (acceptNull) {
+            try {
+                return IReflection.getClass(packet, className);
+            } catch (Throwable t) {
+                return null;
+            }
+        } else {
+                return IReflection.getClass(packet, className);
+        }
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull XMaterial data) {
@@ -152,30 +190,6 @@ public class PacketUtils {
         }
 
         sendPacket(player, packet);
-    }
-
-    public static Class<?> getClass(IReflection.ServerPacket packet, String className) {
-        return getClass(packet, className, false);
-    }
-
-    public static Class<?> getClass(IReflection.ServerPacket packet, String className, boolean acceptNull) {
-        return getClass(packet.toString(), className, acceptNull);
-    }
-
-    public static Class<?> getClass(String packet, String className) {
-        return getClass(packet, className, false);
-    }
-
-    public static Class<?> getClass(String packet, String className, boolean acceptNull) {
-        if (acceptNull) {
-            try {
-                return IReflection.getClass(packet, className);
-            } catch (Throwable t) {
-                return null;
-            }
-        } else {
-                return IReflection.getClass(packet, className);
-        }
     }
 
     public static void sendPacketToAll(Object packet) {
@@ -242,7 +256,7 @@ public class PacketUtils {
         } else {
             IReflection.MethodAccessor a;
 
-            if (Version.get().isBiggerThan(15)) {
+            if (Version.atLeast(16)) {
                 a = IReflection.getMethod(ChatSerializerClass, "a", IChatMutableComponentClass, new Class[]{String.class});
             } else {
                 a = IReflection.getMethod(ChatSerializerClass, "a", IChatBaseComponentClass, new Class[]{String.class});
