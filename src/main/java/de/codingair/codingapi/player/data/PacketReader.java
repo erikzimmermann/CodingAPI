@@ -168,4 +168,24 @@ public abstract class PacketReader implements Removable {
      * @return intercept
      */
     public abstract boolean writePacket(Object packet);
+
+    /**
+     * Wrapper to instantiate the PacketReader class for the NMS check.
+     */
+    public static class NmsWrapper extends PacketReader {
+        @NmsLoader
+        private NmsWrapper() {
+            super();
+        }
+
+        @Override
+        public boolean readPacket(Object packet) {
+            return false;
+        }
+
+        @Override
+        public boolean writePacket(Object packet) {
+            return false;
+        }
+    }
 }

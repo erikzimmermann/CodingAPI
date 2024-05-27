@@ -29,7 +29,7 @@ public class NmsCheck {
                 PickItemListener.class,
                 NBTTagCompound.class, BlockEntityNBTTagCompound.class,
                 Hologram.HologramPackets.class, Hologram.class,
-                PacketReader.class
+                PacketReader.NmsWrapper.class
         };
     }
 
