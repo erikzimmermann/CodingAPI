@@ -47,8 +47,10 @@ public class InventoryUtils {
         }
 
         // testing NMS
-        for (int i = 0; i < 6; i++) {
-            getContainerType(i * 9 + 9);
+        if (Version.atLeast(14)) {
+            for (int i = 0; i < 6; i++) {
+                getContainerType(i * 9 + 9);
+            }
         }
     }
 
@@ -92,7 +94,7 @@ public class InventoryUtils {
         int id = getWindowId(activeContainer);
 
         Object packet;
-        if (Version.get().isBiggerThan(Version.v1_13)) {
+        if (Version.atLeast(14)) {
             InventoryUtils.TITLE.set(activeContainer, messageComponent);
             packet = PACKET_CONSTRUCTOR.newInstance(id, getContainerType(size), messageComponent);
         } else {
@@ -116,6 +118,7 @@ public class InventoryUtils {
     }
 
     private static Object getContainerType(int size) {
+        if (Version.before(14)) throw new IllegalStateException("Not required.");
         IReflection.FieldAccessor<?> generic = IReflection.getField(CONTAINERS_CLASS, getContainerTypeName(size));
         return generic.get(null);
     }
