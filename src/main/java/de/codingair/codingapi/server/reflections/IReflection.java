@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * -== IReflection ==-
@@ -20,6 +21,17 @@ import java.util.*;
  * @version 1.2.8
  */
 public class IReflection {
+
+    /**
+     * @param useSupplier The flag that determines whether the supplier should be called or not. Usually, this involves a version check.
+     * @param s           The supplier that should be called.
+     * @param <V>         The type of the object that could be supplied.
+     * @return The supplied object or null if the flag is false.
+     */
+    public static <V> V wrap(boolean useSupplier, Supplier<V> s) {
+        if (useSupplier) return s.get();
+        else return null;
+    }
 
     public static void setValue(@NotNull Object instance, @NotNull String fieldName, @NotNull Object value) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
         FieldAccessor<?> field = getField(instance.getClass(), fieldName);
@@ -126,12 +138,12 @@ public class IReflection {
     }
 
     @NotNull
-    public static MethodAccessor getMethod(Class<?> target, @NotNull Class<?> @NotNull... parameterTypes) {
+    public static MethodAccessor getMethod(Class<?> target, @NotNull Class<?> @NotNull ... parameterTypes) {
         return getMethod(target, null, null, parameterTypes);
     }
 
     @NotNull
-    public static MethodAccessor getMethod(Class<?> target, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull... parameterTypes) {
+    public static MethodAccessor getMethod(Class<?> target, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull ... parameterTypes) {
         return getMethod(target, null, returnType, parameterTypes);
     }
 
@@ -173,7 +185,7 @@ public class IReflection {
         throw new IllegalStateException(String.format("Unable to find method %s (%s).", methodName, Arrays.toString(parameterTypes)));
     }
 
-    public static MethodAccessor getSaveMethod(@NotNull Class<?> target, @Nullable String methodName, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull... parameterTypes) throws IllegalStateException {
+    public static MethodAccessor getSaveMethod(@NotNull Class<?> target, @Nullable String methodName, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull ... parameterTypes) throws IllegalStateException {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
@@ -233,7 +245,7 @@ public class IReflection {
                 return new FieldAccessor<T>() {
 
                     @Override
-                    @SuppressWarnings ("unchecked")
+                    @SuppressWarnings("unchecked")
                     public T get(Object target) {
                         try {
                             return (T) field.get(target);
