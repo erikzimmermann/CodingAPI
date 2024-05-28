@@ -71,13 +71,13 @@ public class InventoryUtils {
         Object openWindowPacket = preparePacket(activeContainer, title, inventory);
         PacketUtils.sendPacket(player, openWindowPacket);
 
-        if (UPDATE_INVENTORY == null) return;
-
-        if (Version.atLeast(17)) {
-            UPDATE_INVENTORY.invoke(activeContainer);
-        } else {
-            UPDATE_INVENTORY.invoke(entityPlayer, activeContainer);
-        }
+        // Update inventory must be used. Otherwise, the inventory might appear empty.
+        if (UPDATE_INVENTORY == null) {
+            // use deprecated method instead of NMS
+            // noinspection UnstableApiUsage
+            player.updateInventory();
+        } else if (Version.atLeast(17)) UPDATE_INVENTORY.invoke(activeContainer);
+        else UPDATE_INVENTORY.invoke(entityPlayer, activeContainer);
     }
 
     public static Object getActiveContainer(Object entityPlayer) {
