@@ -1,7 +1,5 @@
 package de.codingair.codingapi.server.reflections;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.items.XMaterial;
@@ -67,7 +65,7 @@ public class PacketUtils {
     public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
 
     public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatBaseComponent$ChatSerializer", "Component$Serializer"));
-    public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatMutableComponent", "MutableComponent")));
+    public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("IChatMutableComponent", 20.5, "MutableComponent")));
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("IChatBaseComponent", 20.5, "Component"));
 
     public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[]{});
@@ -91,6 +89,13 @@ public class PacketUtils {
         } else {
             sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
         }
+
+        // test functions
+        getChatMessage("Test");
+        getIChatBaseComponent("Test");
+        getMinecraftServer();
+        getCraftServer();
+        getWorldServer();
     }
 
     @NmsLoader
@@ -249,10 +254,9 @@ public class PacketUtils {
     }
 
     public static Object getRawIChatBaseComponent(String jsonFormat) {
-        if (Version.get().isBiggerThan(20.5)) {
-            IReflection.MethodAccessor fromJson = IReflection.getMethod(ChatSerializerClass, IChatMutableComponentClass, new Class[]{JsonElement.class, HolderLookupProvider});
-            JsonElement e = JsonParser.parseString(jsonFormat);
-            return fromJson.invoke(null, e, emptyHolderLookupProvider());
+        if (Version.atLeast(20.5)) {
+            IReflection.MethodAccessor fromJson = IReflection.getMethod(ChatSerializerClass, IChatMutableComponentClass, new Class[]{String.class, HolderLookupProvider});
+            return fromJson.invoke(null, jsonFormat, emptyHolderLookupProvider());
         } else {
             IReflection.MethodAccessor a;
 
