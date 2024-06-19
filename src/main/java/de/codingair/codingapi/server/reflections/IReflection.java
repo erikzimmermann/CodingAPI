@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server.reflections;
 
+import de.codingair.codingapi.server.specification.Type;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -378,6 +379,17 @@ public class IReflection {
 
         @NotNull
         private static String minecraftVersion() {
+            if (Version.type().equals(Type.PAPER) && Version.atLeast(20.5)) {
+                switch (Version.get().getShortVersionName()) {
+                    case "1.20.5":
+                    case "1.20.6":
+                        return "1_20_R4";
+                    case "1.21":
+                        return "1_21_R1";
+                    default:
+                        return "UNKNOWN";
+                }
+            }
             String name = Bukkit.getServer().getClass().getPackage().getName();
             if (name.length() > 23) return name.substring(23);
             return "";
