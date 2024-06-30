@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
@@ -97,7 +98,8 @@ public class Hologram implements Removable {
                 if (e.getTo() == null) return;
                 if (e.getFrom().getWorld() != e.getTo().getWorld()) return;
 
-                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTaskLater(
+                    () -> {
                     List<Hologram> l = API.getRemovables(null, Hologram.class);
                     for (Hologram hologram : l) {
                         if (hologram.isNotWatching(e.getPlayer())) continue;
@@ -318,7 +320,7 @@ public class Hologram implements Removable {
                     for (Object entity : armorStands) {
                         int id = PacketUtils.EntityPackets.getId(entity);
                         if (id == clicked) {
-                            Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () ->
+                            UniversalScheduler.getScheduler(Hologram.this.getPlugin()).runTask(() ->
                                     Bukkit.getPluginManager().callEvent(
                                             new PlayerInteractEvent(player, a, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, BlockFace.UP)
                                     )

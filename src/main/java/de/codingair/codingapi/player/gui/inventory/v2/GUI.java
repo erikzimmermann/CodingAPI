@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.v2;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import com.google.common.base.Preconditions;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
@@ -154,7 +155,8 @@ public class GUI extends InventoryBuilder {
         if (fallback != null && fallback.waiting) {
             // only open if fallback is still waiting
 
-            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
+            UniversalScheduler.getScheduler(getPlugin()).runTaskLater(
+            () -> {
                 try {
                     //safety check
                     if (fallback != null && fallback.waiting) fallback.continueGUI();

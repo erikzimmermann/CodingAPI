@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server.blocks;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.blocks.data.BlockData;
 import de.codingair.codingapi.server.specification.Version;
@@ -17,7 +18,8 @@ public class ModernBlock {
     }
 
     private void prepareBlock() {
-        Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
+        UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(
+            () -> {
             if(this.data != null) {
                 if(!Version.get().isBiggerThan(Version.v1_12)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
                 else {
