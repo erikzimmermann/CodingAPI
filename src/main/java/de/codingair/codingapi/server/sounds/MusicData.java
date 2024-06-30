@@ -1,8 +1,8 @@
 package de.codingair.codingapi.server.sounds;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class MusicData extends SoundData {
     private final int delay;
@@ -19,10 +19,11 @@ public class MusicData extends SoundData {
     }
 
     public void play(Player player, JavaPlugin plugin) {
-        BukkitRunnable runnable = new BukkitRunnable() {
+        UniversalRunnable runnable = new UniversalRunnable(
+
+        ) {
             int currentDelay = 0;
             MusicData musicPlayer = MusicData.this;
-
             @Override
             public void run() {
                 if(currentDelay == musicPlayer.getDelay()) {

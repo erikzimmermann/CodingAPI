@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
@@ -21,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -52,7 +52,7 @@ public class Hologram implements Removable {
     private Location source;
     private Location location;
     private boolean visible = false;
-    private BukkitRunnable runnable;
+    private UniversalRunnable runnable;
 
     @NmsLoader
     private Hologram() {
@@ -191,7 +191,7 @@ public class Hologram implements Removable {
 
     private void initializeRunnable() {
         if (updateInterval > 0) {
-            this.runnable = new BukkitRunnable() {
+            this.runnable = new UniversalRunnable() {
                 @Override
                 public void run() {
                     List<Player> watchList = new ArrayList<>(Hologram.this.watchList);
@@ -203,7 +203,6 @@ public class Hologram implements Removable {
                     update(null);
                 }
             };
-
             this.runnable.runTaskTimer(plugin, 0, updateInterval);
         }
     }
