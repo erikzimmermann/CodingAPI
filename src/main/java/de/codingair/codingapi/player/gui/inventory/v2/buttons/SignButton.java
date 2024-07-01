@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.v2.buttons;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.player.gui.inventory.v2.GUI;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
@@ -50,10 +51,11 @@ public abstract class SignButton extends Button implements GUISwitchButton {
             @Override
             public void onSignChangeEvent(String[] lines) {
                 //update sign
-                if(sign != null) Bukkit.getScheduler().runTask(gui.getPlugin(), () -> SignTools.updateSign(sign, lines, true));
+                if(sign != null)
+                    UniversalScheduler.getScheduler(gui.getPlugin()).runTask(() -> SignTools.updateSign(sign, lines, true));
 
                 if (SignButton.this.onSignChangeEvent(gui, lines)) close(call);
-                else Bukkit.getScheduler().runTask(gui.getPlugin(), this::open);
+                else UniversalScheduler.getScheduler(gui.getPlugin()).runTask(this::open);
             }
         }.open();
         return false;

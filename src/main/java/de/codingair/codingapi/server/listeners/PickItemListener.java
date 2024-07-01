@@ -1,5 +1,6 @@
 package de.codingair.codingapi.server.listeners;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.AsyncCatcher;
@@ -87,7 +88,12 @@ public class PickItemListener implements Listener {
                     else if (slotId instanceof Short) slot = (Short) slotId;
                     else throw new IllegalStateException("Cannot cast '" + slotId + "' (" + slotId.getClass() + ")");
 
-                    AsyncCatcher.runSync(plugin, () -> call(p, slot, PacketUtils.getItemStack(item.get(packet))));
+                    AsyncCatcher.runSync(plugin, new UniversalRunnable() {
+                        @Override
+                        public void run() {
+                            call(p, slot, PacketUtils.getItemStack(item.get(packet)));
+                        }
+                    });
                 }
 
                 return false;

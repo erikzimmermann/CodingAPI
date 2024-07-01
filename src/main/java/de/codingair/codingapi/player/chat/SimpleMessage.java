@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.chat;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.utils.Removable;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -8,7 +9,6 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class SimpleMessage implements Removable {
     private final JavaPlugin plugin;
     private boolean sent = false;
     private int timeOut = -1, cachedSize;
-    private BukkitRunnable runnable = null;
+    private UniversalRunnable runnable = null;
 
     public SimpleMessage(JavaPlugin plugin) {
         this((Player) null, plugin);
@@ -165,7 +165,7 @@ public class SimpleMessage implements Removable {
         sent = true;
 
         if(this.runnable == null && timeOut > 0) {
-            this.runnable = new BukkitRunnable() {
+            this.runnable = new UniversalRunnable() {
                 @Override
                 public void run() {
                     timeOut--;
