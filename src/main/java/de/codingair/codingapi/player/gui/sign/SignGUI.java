@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.sign;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
@@ -337,10 +338,14 @@ public abstract class SignGUI {
         l.clear();
 
         if (packetReader != null) packetReader.unInject();
-        AsyncCatcher.runSync(plugin, () -> {
-            player.closeInventory();
-            if (call != null) call.proceed();
-        });
+        UniversalRunnable runnable = new UniversalRunnable() {
+            @Override
+            public void run() {
+                player.closeInventory();
+                if (call != null) call.proceed();
+            }
+        };
+        AsyncCatcher.runSync(plugin, runnable);
     }
 
     public String[] getLines() {
