@@ -345,7 +345,7 @@ public abstract class SignGUI {
                 if (call != null) call.proceed();
             }
         };
-        AsyncCatcher.runSync(plugin, runnable);
+        AsyncCatcher.runSync(plugin, runnable, player.getLocation());
     }
 
     public String[] getLines() {

@@ -93,7 +93,7 @@ public class PickItemListener implements Listener {
                         public void run() {
                             call(p, slot, PacketUtils.getItemStack(item.get(packet)));
                         }
-                    });
+                    }, p.getLocation());
                 }
 
                 return false;
