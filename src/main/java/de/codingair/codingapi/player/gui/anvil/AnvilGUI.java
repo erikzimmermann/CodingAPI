@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.anvil;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.gui.anvil.depended.PrepareAnvilEventHelp;
@@ -160,7 +161,7 @@ public class AnvilGUI implements Removable {
             try {
                 this.player.closeInventory();
             } catch (Throwable ex) {
-                Bukkit.getScheduler().runTask(plugin, this.player::closeInventory);
+                UniversalScheduler.getScheduler(plugin).runTask(this.player::closeInventory);
             }
         }
     }
@@ -241,7 +242,7 @@ public class AnvilGUI implements Removable {
                         remove();
 
                         if (closeEvent.getPost() != null) {
-                            Bukkit.getScheduler().runTask(plugin, closeEvent.getPost());
+                            UniversalScheduler.getScheduler(plugin).runTask(closeEvent.getPost());
                         }
                     }
                 }

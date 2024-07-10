@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
@@ -7,13 +8,12 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 public class MessageAPI {
-    private static final HashMap<String, BukkitRunnable> runnables = new HashMap<>();
+    private static final HashMap<String, UniversalRunnable> runnables = new HashMap<>();
 
     public static void sendActionBar(Player p, String message) {
         if (message == null) message = "";
@@ -50,7 +50,7 @@ public class MessageAPI {
     }
 
     public static void stopSendingActionBar(Player p) {
-        BukkitRunnable runnable = runnables.get(p.getName());
+        UniversalRunnable runnable = runnables.get(p.getName());
         if (runnable != null) {
             runnable.cancel();
         }
@@ -59,7 +59,7 @@ public class MessageAPI {
     }
 
     public static void sendActionBar(Player p, String message, Plugin plugin, int seconds) {
-        BukkitRunnable runnable = runnables.remove(p.getName());
+        UniversalRunnable runnable = runnables.remove(p.getName());
         if (runnable != null) {
             runnable.cancel();
         }
@@ -68,10 +68,8 @@ public class MessageAPI {
             sendActionBar(p, "");
             return;
         }
-
-        runnable = new BukkitRunnable() {
+        runnable = new UniversalRunnable() {
             int ticks = seconds;
-
             @Override
             public void run() {
                 if (ticks == 0) {

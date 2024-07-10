@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui.simple;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
@@ -76,14 +77,15 @@ public abstract class SyncSignGUIButton extends SyncButton {
                     }
 
                     if(notEmpty) {
-                        if(updateSign) Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> SignTools.updateSign(sign, lines, false));
+                        if(updateSign)
+                            UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(() -> SignTools.updateSign(sign, lines, false));
                         SyncSignGUIButton.this.onSignChangeEvent(lines);
                     }
 
                     getInterface().reinitialize();
                     close();
 
-                    Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                    UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTaskLater(() -> {
                         getInterface().open();
                     }, 1L);
                 }
