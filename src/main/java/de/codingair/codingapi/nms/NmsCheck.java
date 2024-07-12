@@ -4,6 +4,7 @@ import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.gui.anvil.AnvilGUI;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
+import de.codingair.codingapi.player.gui.inventory.PlayerInventory;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.server.listeners.PickItemListener;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -29,7 +30,8 @@ public class NmsCheck {
                 PickItemListener.class,
                 NBTTagCompound.class, BlockEntityNBTTagCompound.class,
                 Hologram.HologramPackets.class, Hologram.class,
-                PacketReader.NmsWrapper.class
+                PacketReader.NmsWrapper.class,
+                PlayerInventory.class,
         };
     }
 
