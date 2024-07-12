@@ -38,6 +38,7 @@ public class NmsCheck {
 
     public static void testInternalApi() {
         internalApiTested = true;
+        testVersion();
         test(C);
     }
 
@@ -58,6 +59,16 @@ public class NmsCheck {
             runNmsLoader(c);
         } catch (Throwable t) {
             throw new NmsCheckError("Could not initialize class: " + c.getName() + ". Version=" + Version.get() + ", Type=" + Version.type() + ", Bukkit='" + Bukkit.getVersion() + "'", t);
+        }
+    }
+
+    private static void testVersion() {
+        try {
+            if (Version.get() == null) {
+                throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'");
+            }
+        } catch (Throwable t) {
+            throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'", t);
         }
     }
 
