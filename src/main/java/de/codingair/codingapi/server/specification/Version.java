@@ -65,7 +65,7 @@ public enum Version {
                 // version
                 String bukkitVersion = Bukkit.getVersion();
 
-                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?\\.\\d\\d?");
+                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d)?");
                 Matcher match = p.matcher(bukkitVersion);
                 if (match.find()) {
                     double version = Double.parseDouble(match.group().substring(7));
