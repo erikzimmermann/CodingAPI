@@ -550,11 +550,11 @@ public class Hologram implements Removable {
         private final static IReflection.MethodAccessor setVisible = IReflection.getSaveMethod(ArmorStand.class, "setVisible", null, boolean.class);
         private final static IReflection.FieldAccessor<Boolean> invulnerableField;
         private final static Class<?> dataWatcherItemClass;
-        private final static Class<?> dataWatcherBClass;
+        private final static Class<?> dataWatcherDataValueClass;
         private final static IReflection.MethodAccessor getDataWatcherItem;
         private final static IReflection.MethodAccessor serializeItem;
         private final static IReflection.MethodAccessor getDataWatcher;
-        private final static IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPosition", 18, "c", 19.3, "p", 20.5, "setPos"), new Class[]{double.class, double.class, double.class});
+        private final static IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.3, "p"), new Class[]{double.class, double.class, double.class});
         private final static IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
         private final static IReflection.ConstructorAccessor SPAWN_PACKET_CONSTRUCTOR;
         private final static IReflection.ConstructorAccessor DESTROY_PACKET_CONSTRUCTOR;
@@ -567,13 +567,13 @@ public class Hologram implements Removable {
             } else invulnerableField = null;
 
             if (Version.atLeast(19.3)) {
-                dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$Item", 20.5, "SynchedEntityData$DataItem"));
-                dataWatcherBClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$b", 20.5, "SynchedEntityData$DataValue"));
+                dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataItem", "DataWatcher$Item"));
+                dataWatcherDataValueClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataValue", "DataWatcher$b", 20.5, "DataWatcher$c"));
                 getDataWatcherItem = IReflection.getMethod(PacketUtils.DataWatcherClass, dataWatcherItemClass, new Class[]{PacketUtils.DataWatcherObjectClass});
-                serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherBClass, new Class[0]);
+                serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherDataValueClass, new Class[0]);
             } else {
                 dataWatcherItemClass = null;
-                dataWatcherBClass = null;
+                dataWatcherDataValueClass = null;
                 getDataWatcherItem = null;
                 serializeItem = null;
             }

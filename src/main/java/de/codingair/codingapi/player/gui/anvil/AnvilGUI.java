@@ -285,7 +285,7 @@ public class AnvilGUI implements Removable {
 
         try {
             if (Version.get().isBiggerThan(Version.v1_13)) {
-                String genericField = Version.choose("ANVIL", 17, "h", 20.4, "i", 20.5, "ANVIL");
+                String genericField = Version.choose("ANVIL", "ANVIL", 17, "h", 20.4, "i");
 
                 IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, genericField);
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, InventoryUtils.CONTAINERS_CLASS, PacketUtils.IChatBaseComponentClass);
@@ -299,8 +299,7 @@ public class AnvilGUI implements Removable {
                 PacketUtils.sendPacket(this.player, packetPlayOutOpenWindowCon.newInstance(c, "minecraft:anvil", CHAT_MESSAGE_CON.newInstance("AnvilGUI", new Object[] {}), 0));
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.get().name() + "!");
+            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.get().name() + "!", e);
         }
 
         InventoryUtils.setActiveContainer(entityPlayer, container);

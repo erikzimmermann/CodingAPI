@@ -23,7 +23,7 @@ public class InventoryUtils {
     static {
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
 
-        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("Container", 20.5, "AbstractContainerMenu"));
+        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("AbstractContainerMenu", "Container"));
 
         if (Version.atLeast(20.5)) UPDATE_INVENTORY = null;
         else if (Version.atLeast(17)) {
@@ -32,13 +32,13 @@ public class InventoryUtils {
             UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[]{CONTAINER_CLASS});
         }
 
-        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.choose("windowId", 17, "j", 20.5, "containerId"));
+        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.choose("containerId", "windowId", 17, "j"));
         ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, CONTAINER_CLASS, 1);
 
         if (Version.get().isBiggerThan(Version.v1_13)) {
             TITLE = IReflection.getField(CONTAINER_CLASS, "title");
 
-            CONTAINERS_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("Containers", 20.5, "MenuType"));
+            CONTAINERS_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("MenuType", "Containers"));
             PACKET_CONSTRUCTOR = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, CONTAINERS_CLASS, PacketUtils.IChatBaseComponentClass);
         } else {
             TITLE = null;
@@ -126,7 +126,7 @@ public class InventoryUtils {
     private static String getContainerTypeName(int size) {
         int id = size / 9;
 
-        if (Version.atLeast(20.5)) {
+        if (Version.mojangMapped()) {
             return "GENERIC_9x" + id;
         } else if (Version.atLeast(17)) {
             switch (id) {

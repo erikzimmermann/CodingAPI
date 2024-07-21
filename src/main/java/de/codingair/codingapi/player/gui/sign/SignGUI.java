@@ -29,9 +29,9 @@ public abstract class SignGUI {
     private static final Class<?> updatePacket;
     private static final Class<?> baseBlockPosition;
     private static final IReflection.FieldAccessor<?> pos;
-    private static final IReflection.MethodAccessor getX;
-    private static final IReflection.MethodAccessor getY;
-    private static final IReflection.MethodAccessor getZ;
+    private static final IReflection.FieldAccessor<Integer> getX;
+    private static final IReflection.FieldAccessor<Integer> getY;
+    private static final IReflection.FieldAccessor<Integer> getZ;
     private static final IReflection.FieldAccessor<?> packetLines;
 
     static {
@@ -42,12 +42,11 @@ public abstract class SignGUI {
         else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
         pos = IReflection.getField(updatePacket, PacketUtils.BlockPositionClass, 0);
-        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, Version.choose("BaseBlockPosition", 20.5, "Vec3i"));
+        baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, Version.choose("Vec3i", "BaseBlockPosition"));
 
-        getX = IReflection.getMethod(baseBlockPosition, Version.choose("getX", 18, "u", 20.5, "getX"), int.class, new Class[0]);
-        getY = IReflection.getMethod(baseBlockPosition, Version.choose("getY", 18, "v", 20.5, "getY"), int.class, new Class[0]);
-        getZ = IReflection.getMethod(baseBlockPosition, Version.choose("getZ", 18, "w", 20.5, "getZ"), int.class, new Class[0]);
-
+        getX = IReflection.getNonStaticField(baseBlockPosition, int.class, 0);
+        getY = IReflection.getNonStaticField(baseBlockPosition, int.class, 1);
+        getZ = IReflection.getNonStaticField(baseBlockPosition, int.class, 2);
 
         if (Version.atLeast(9))
             packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, String[].class, 0);
@@ -179,9 +178,9 @@ public abstract class SignGUI {
                 if (packet.getClass().equals(updatePacket)) {
                     Object position = pos.get(packet);
 
-                    int x = (int) getX.invoke(position);
-                    int y = (int) getY.invoke(position);
-                    int z = (int) getZ.invoke(position);
+                    int x = getX.get(position);
+                    int y = getY.get(position);
+                    int z = getZ.get(position);
 
                     if (waiting != null && signLocation != null &&
                             signLocation.getBlockX() == x &&

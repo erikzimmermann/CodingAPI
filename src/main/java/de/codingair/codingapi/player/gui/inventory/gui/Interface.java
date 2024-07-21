@@ -3,7 +3,6 @@ package de.codingair.codingapi.player.gui.inventory.gui;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -311,11 +310,6 @@ public class Interface {
         this.currentPlayers.forEach(p -> InventoryUtils.updateTitle(p, title, inventory));
 
         this.oldTitle = this.title;
-    }
-
-    private Object getContainerType(int size) {
-        IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, "GENERIC_9X" + (size / 9));
-        return generic.get(null);
     }
 
     public int getItemAmount() {

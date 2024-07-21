@@ -30,8 +30,7 @@ public class NBTTagCompound {
             Class<?> typeClass = IReflection.getClass(IReflection.ServerPacket.COMPONENT, "DataComponentType");
             Class<?> typesClass = IReflection.getClass(IReflection.ServerPacket.COMPONENT, "DataComponents");
 
-            Object customDataType = IReflection.getField(typesClass, "CUSTOM_DATA").get(null);
-            Object blockEntityDataType = IReflection.getField(typesClass, "BLOCK_ENTITY_DATA").get(null);
+            Object customDataType = IReflection.getField(typesClass, typeClass, 0).get(null);
 
             IReflection.MethodAccessor getMethod = IReflection.getMethod(PacketUtils.ItemStackClass, Object.class, new Class[]{typeClass});
             IReflection.MethodAccessor copyTag = IReflection.getMethod(customDataClass, PacketUtils.NBTTagCompoundClass, new Class[]{});
