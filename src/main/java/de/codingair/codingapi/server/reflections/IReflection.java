@@ -139,6 +139,25 @@ public class IReflection {
     }
 
     @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull [] parameterTypes, int index, @Nullable Function<Integer, Boolean> checkModifiers) {
+        if (target == null) throw new IllegalArgumentException("Target class cannot be null.");
+
+        Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
+        for (Method method : target.getDeclaredMethods()) {
+            if ((returnType != null && !method.getReturnType().equals(returnType)) || ((primitiveParameter.length != 0 || method.getParameterTypes().length != 0) && !DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter)))
+                continue;
+
+            if (checkModifiers != null && !checkModifiers.apply(method.getModifiers())) continue;
+            if (index-- > 0) continue;
+            return createMethodAccessor(method);
+        }
+        if (target.getSuperclass() != null)
+            return IReflection.getMethod(target.getSuperclass(), returnType, parameterTypes, index, checkModifiers);
+
+        throw new IllegalStateException(String.format("Unable to find method (class=%s, return=%s, paras=%s).", target.getName(), returnType, Arrays.toString(parameterTypes)));
+    }
+
+    @NotNull
     public static MethodAccessor getMethod(Class<?> target, @NotNull Class<?> @NotNull ... parameterTypes) {
         return getMethod(target, null, null, parameterTypes);
     }
@@ -160,25 +179,7 @@ public class IReflection {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && ((primitiveParameter.length == 0 && method.getParameterTypes().length == 0) || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
-                method.setAccessible(true);
-                return new MethodAccessor() {
-
-                    @Override
-                    public Object invoke(Object target, Object... args) {
-                        try {
-                            return method.invoke(target, args);
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (InvocationTargetException e) {
-                            throw new RuntimeException("An internal error occured.", e.getCause());
-                        }
-                    }
-
-                    @Override
-                    public Method getMethod() {
-                        return method;
-                    }
-                };
+                return createMethodAccessor(method);
             }
         if (target.getSuperclass() != null)
             return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
@@ -190,30 +191,34 @@ public class IReflection {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
-                method.setAccessible(true);
-                return new MethodAccessor() {
-
-                    @Override
-                    public Object invoke(Object target, Object... args) {
-                        try {
-                            return method.invoke(target, args);
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (InvocationTargetException e) {
-                            throw new RuntimeException("An internal error occured.", e.getCause());
-                        }
-                    }
-
-                    @Override
-                    public Method getMethod() {
-                        return method;
-                    }
-                };
+                return createMethodAccessor(method);
             }
         if (target.getSuperclass() != null)
             return IReflection.getSaveMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
 
         return null;
+    }
+
+    private static @NotNull MethodAccessor createMethodAccessor(@NotNull Method method) {
+        method.setAccessible(true);
+        return new MethodAccessor() {
+
+            @Override
+            public Object invoke(Object target, Object... args) {
+                try {
+                    return method.invoke(target, args);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException("Cannot use reflection.", e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException("An internal error occured.", e.getCause());
+                }
+            }
+
+            @Override
+            public Method getMethod() {
+                return method;
+            }
+        };
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
