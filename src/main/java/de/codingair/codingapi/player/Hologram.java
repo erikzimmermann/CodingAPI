@@ -24,6 +24,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class Hologram implements Removable {
@@ -215,7 +216,7 @@ public class Hologram implements Removable {
         this.location.add(0, this.text.size() * DISTANCE, 0);
 
         for (Object entity : this.entities) {
-            HologramPackets.setLocation(entity, location);
+            HologramPackets.setLocation(entity, this.location);
             HologramPackets.teleport(entity, this.location, this.initiatedPlayers.keySet().toArray(new Player[0]));
             this.location.subtract(0, DISTANCE, 0);
         }
@@ -554,7 +555,7 @@ public class Hologram implements Removable {
         private final static IReflection.MethodAccessor getDataWatcherItem;
         private final static IReflection.MethodAccessor serializeItem;
         private final static IReflection.MethodAccessor getDataWatcher;
-        private final static IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.3, "p"), new Class[]{double.class, double.class, double.class});
+        private final static IReflection.MethodAccessor setPosition;
         private final static IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
         private final static IReflection.ConstructorAccessor SPAWN_PACKET_CONSTRUCTOR;
         private final static IReflection.ConstructorAccessor DESTROY_PACKET_CONSTRUCTOR;
@@ -576,6 +577,12 @@ public class Hologram implements Removable {
                 dataWatcherDataValueClass = null;
                 getDataWatcherItem = null;
                 serializeItem = null;
+            }
+
+            if (Version.atLeast(21)) {
+                setPosition = IReflection.getMethod(PacketUtils.EntityClass, null, new Class[]{double.class, double.class, double.class}, 0, m -> Modifier.isPublic(m) && Modifier.isFinal(m));
+            } else {
+                setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.3, "p"), new Class[]{double.class, double.class, double.class});
             }
 
             getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.DataWatcherClass, new Class[]{});
