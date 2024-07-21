@@ -65,7 +65,7 @@ public enum Version {
                 // version
                 String bukkitVersion = Bukkit.getVersion();
 
-                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d)?");
+                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d?)?");
                 Matcher match = p.matcher(bukkitVersion);
                 if (match.find()) {
                     double version = Double.parseDouble(match.group().substring(7));
@@ -179,6 +179,54 @@ public enum Version {
     }
 
     public static <T> T choose(T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5, double version6, T value6) {
+        //noinspection unchecked
+        T[] values = (T[]) new Object[]{def, value1, value2, value3, value4, value5, value6};
+        double[] versions = new double[]{-1, version1, version2, version3, version4, version5, version6};
+
+        for (int i = 0; i < versions.length; i++) {
+            double version = versions[i];
+
+            if (version == -1) continue;
+            if (version == 0) return values[i - 1];
+
+            int diff = Version.get().ordinal() - byId(version).ordinal();
+            if (diff < 0) return values[i - 1];
+        }
+
+        return values[values.length - 1];
+    }
+
+    public static <T> T choose(T mojangMapped, T def) {
+        return choose(mojangMapped, def, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1) {
+        return choose(mojangMapped, def, version1, value1, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, version4, value4, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, version4, value4, version5, value5, 0, null);
+    }
+
+    public static boolean mojangMapped() {
+        return atLeast(20.5) && type() == Type.PAPER;
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5, double version6, T value6) {
+        if (mojangMapped()) return mojangMapped;
+
         //noinspection unchecked
         T[] values = (T[]) new Object[]{def, value1, value2, value3, value4, value5, value6};
         double[] versions = new double[]{-1, version1, version2, version3, version4, version5, version6};
