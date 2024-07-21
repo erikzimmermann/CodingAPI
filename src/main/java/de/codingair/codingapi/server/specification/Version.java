@@ -268,6 +268,7 @@ public enum Version {
     }
 
     public String fullVersion() {
+        if (NAME.equals(TYPE.toString())) return TYPE + " (" + SPECIFICATION + ")";
         return NAME + " (" + SPECIFICATION + ", " + TYPE + ")";
     }
 
