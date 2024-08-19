@@ -60,17 +60,15 @@ public class NmsCheck {
         try {
             runNmsLoader(c);
         } catch (Throwable t) {
-            throw new NmsCheckError("Could not initialize class: " + c.getName() + ". Version=" + Version.get() + ", Type=" + Version.type() + ", Bukkit='" + Bukkit.getVersion() + "'", t);
+            throw new NmsCheckError("Could not initialize class: " + c.getName() + ". Version=" + Version.versionTag() + ", Type=" + Version.type() + ", Bukkit='" + Bukkit.getVersion() + "'", t);
         }
     }
 
     private static void testVersion() {
         try {
-            if (Version.get() == null) {
-                throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'");
-            }
+            Version.get();
         } catch (Throwable t) {
-            throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'", t);
+            throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'");
         }
     }
 

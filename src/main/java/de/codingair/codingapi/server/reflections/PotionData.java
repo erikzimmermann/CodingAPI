@@ -23,7 +23,7 @@ public class PotionData {
     }
 
     public PotionData(ItemStack item) {
-        if(Version.get().isBiggerThan(Version.v1_8)) {
+        if(Version.after(8)) {
             if(item.getItemMeta() instanceof PotionMeta) {
                 PotionMeta meta = (PotionMeta) item.getItemMeta();
                 org.bukkit.potion.PotionData data = meta.getBasePotionData();

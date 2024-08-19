@@ -31,7 +31,7 @@ public class PickItemListener implements Listener {
             slot = IReflection.getField(PACKET_CLASS, short.class, 0);
             item = IReflection.getField(PACKET_CLASS, PacketUtils.ItemStackClass, 0);
         } else {
-            if (Version.get().isBiggerThan(16)) {
+            if (Version.after(16)) {
                 slot = IReflection.getField(PACKET_CLASS, "a");
             } else {
                 slot = IReflection.getField(PACKET_CLASS, "slot");

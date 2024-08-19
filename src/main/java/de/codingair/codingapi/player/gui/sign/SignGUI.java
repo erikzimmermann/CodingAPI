@@ -37,7 +37,7 @@ public abstract class SignGUI {
     static {
         packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
 
-        if (Version.get().isBiggerThan(8))
+        if (Version.after(8))
             updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
         else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
@@ -104,7 +104,7 @@ public abstract class SignGUI {
     }
 
     public void open() {
-        if (Version.get().equals(Version.v1_7)) {
+        if (Version.before(8)) {
             throw new IllegalStateException("The SignEditor does not work on 1.7!");
         }
 
@@ -292,7 +292,7 @@ public abstract class SignGUI {
         if (sign != null) {
             Object tileEntity;
 
-            if (Version.get().isBiggerThan(Version.v1_11)) {
+            if (Version.after(11)) {
                 IReflection.MethodAccessor getTileEntity = IReflection.getMethod(sign.getClass(), "getTileEntity");
                 tileEntity = getTileEntity.invoke(sign);
             } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);
@@ -304,7 +304,7 @@ public abstract class SignGUI {
                 IReflection.FieldAccessor<UUID> id = IReflection.getNonStaticField(PacketUtils.TileEntitySignClass, UUID.class, 0);
                 id.set(tileEntity, player.getUniqueId());
             } else {
-                IReflection.FieldAccessor<?> owner = IReflection.getField(PacketUtils.TileEntitySignClass, Version.since(13, "h", "g", "j", "c"));
+                IReflection.FieldAccessor<?> owner = IReflection.getField(PacketUtils.TileEntitySignClass, Version.choose("h", 13, "g", 14, "j", 15, "c"));
                 owner.set(tileEntity, PacketUtils.getEntityPlayer(this.player));
             }
         }
@@ -314,7 +314,7 @@ public abstract class SignGUI {
         Packet packet = new Packet(PacketUtils.PacketPlayOutOpenSignEditorClass, player);
 
         Object location = PacketUtils.getBlockPosition(signLocation);
-        packet.initialize(location, Version.since(20, Packet.IGNORE, true));
+        packet.initialize(location, Version.choose(Packet.IGNORE, 20, true));
         packet.send();
     }
 

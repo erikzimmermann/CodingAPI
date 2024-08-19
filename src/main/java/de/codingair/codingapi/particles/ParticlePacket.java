@@ -20,7 +20,7 @@ public class ParticlePacket {
     private static final IReflection.MethodAccessor toNMS;
 
     static {
-        if (Version.get().isBiggerThan(Version.v1_12)) {
+        if (Version.atLeast(13)) {
             packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
             particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
             craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
@@ -60,7 +60,7 @@ public class ParticlePacket {
         Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
         Constructor<?> packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
-        if (Version.get().isBiggerThan(Version.v1_12)) {
+        if (Version.after(12)) {
             Object data = null;
             float offsetX = 0, offsetY = 0, offsetZ = 0, extra = 0;
             int count = 1;
@@ -175,7 +175,7 @@ public class ParticlePacket {
     }
 
     public boolean available() {
-        if (Version.get().isBiggerThan(Version.v1_12)) return this.particle != null && this.particle.getName_v1_13() != null;
+        if (Version.after(12)) return this.particle != null && this.particle.getName_v1_13() != null;
         Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
         return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();
     }

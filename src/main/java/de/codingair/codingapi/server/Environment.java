@@ -30,7 +30,7 @@ public class Environment {
     }
 
     public static boolean isWaterFluid(Block b) {
-        if(Version.get().isBiggerThan(12)) {
+        if(Version.after(12)) {
             if (b.getBlockData() instanceof Waterlogged) {
                 Waterlogged w = (Waterlogged) b.getBlockData();
                 return w.isWaterlogged() && !b.getType().isSolid();
@@ -81,7 +81,7 @@ public class Environment {
 
     public static Sound getBreakSoundOf(Block b) {
         Optional<Sound> cachedSound = CACHE.getIfPresent(b.getType());
-        if (cachedSound != null) return cachedSound.orElse(null);
+        if (cachedSound != null && cachedSound.isPresent()) return cachedSound.orElse(null);
 
         Object w = PacketUtils.getWorldServer(b.getWorld());
 
@@ -92,7 +92,7 @@ public class Environment {
         Object block = getBlock.invoke(blockType);
 
         String key;
-        if(Version.get().isBiggerThan(Version.v1_8)) {
+        if(Version.after(8)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
             Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "SoundEffectType");
@@ -101,43 +101,13 @@ public class Environment {
 
             Object soundEffectType = getSoundEffectType.get(block);
 
-            String f;
-            switch(Version.get()) {
-                case v1_15:
-                    f = "z";
-                    break;
-                case v1_14:
-                    f = "y";
-                    break;
-                case v1_13:
-                    f = "q";
-                    break;
-                default:
-                    f = "o";
-                    break;
-            }
-
-            IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, f);
+            IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, Version.choose("o", 13, "q", 14, "y", 15, "z"));
             Object soundEffect = getSoundEffect.get(soundEffectType);
 
-            switch(Version.get()) {
-                case v1_15:
-                case v1_14:
-                case v1_13:
-                    f = "a";
-                    break;
-                default:
-                    f = "b";
-                    break;
-            }
-
-            IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, f);
+            IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, Version.choose("b", 13, "a", 16, "b"));
             Object mcKey = getMCKey.get(soundEffect);
 
-            if(Version.get().isBiggerThan(Version.v1_14)) f = "key";
-            else f = "a";
-
-            IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, f);
+            IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, Version.choose("a", 15, "key"));
             key = getKey.get(mcKey);
         } else {
             IReflection.FieldAccessor<?> getStepSound = IReflection.getField(PacketUtils.BlockClass, "stepSound");

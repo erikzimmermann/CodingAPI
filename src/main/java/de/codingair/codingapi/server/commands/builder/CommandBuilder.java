@@ -68,7 +68,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                 this.aliases.add(alias.toLowerCase(Locale.ENGLISH).trim());
             }
 
-        if (Version.get().isBiggerThan(12) && wrapper == null) {
+        if (Version.after(12) && wrapper == null) {
             String path = CommandBuilder.class.getName();
             path = path.substring(0, path.lastIndexOf("."));
 
@@ -164,14 +164,14 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         simpleCommandMap().register(plugin.getDescription().getName(), main);
 
         //Add to CommandDispatcher
-        if (Version.get().isBiggerThan(12)) wrapperInstance = register.invoke(null, this);
+        if (Version.after(12)) wrapperInstance = register.invoke(null, this);
     }
 
     public void unregister() {
         if (main == null) return;
 
         //Remove from CommandDispatcher
-        if (Version.get().isBiggerThan(12)) unregister.invoke(wrapperInstance);
+        if (Version.after(12)) unregister.invoke(wrapperInstance);
 
         unregister(name);
         for (String alias : aliases) {

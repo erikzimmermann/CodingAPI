@@ -78,7 +78,7 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, null, TileEntityClass, new Class[]{BlockPositionClass});
     public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
-    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, m -> !Modifier.isStatic(m));
+    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.choose("playerConnection", 17, "b"), 20, PlayerConnectionClass, 0, m -> !Modifier.isStatic(m));
 
     // 1.20.5+
     public static final Class<?> HolderLookupProvider = IReflection.wrap(Version.atLeast(20.5), () -> getClass(IReflection.ServerPacket.CORE, Version.choose("HolderLookup$Provider", "HolderLookup$a")));
@@ -88,7 +88,7 @@ public class PacketUtils {
             Class<?> packetSendListenerClass = IReflection.getClass(IReflection.ServerPacket.NETWORK, "PacketSendListener");
             sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass, packetSendListenerClass});
         } else {
-            sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
+            sendPacket = getMethod(PlayerConnectionClass, Version.choose("sendPacket", 18, "a"), new Class[]{PacketClass});
         }
 
         // test functions
@@ -333,7 +333,7 @@ public class PacketUtils {
             if (material.name().contains("_SIGN")) {
                 Class<?> blocks = IReflection.getClass(IReflection.ServerPacket.PACKETS, "Blocks");
 
-                String name = Version.since(13, "STANDING_SIGN", "SIGN");
+                String name = Version.choose("STANDING_SIGN", 13, "SIGN");
                 Object standingSign = IReflection.getField(blocks, name).get(null);
                 return getBlockData.invoke(standingSign);
             } else {
@@ -391,7 +391,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.after(8)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -426,7 +426,7 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.after(8)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, passenger);
             } else {
                 packet.initialize(new Class[]{int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
@@ -438,7 +438,7 @@ public class PacketUtils {
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.after(8)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {

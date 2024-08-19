@@ -19,7 +19,7 @@ public class ModernBlock {
     private void prepareBlock() {
         Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
             if(this.data != null) {
-                if(!Version.get().isBiggerThan(Version.v1_12)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
+                if(!Version.after(12)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
                 else {
                     block.setType(material);
                     this.data.setDataTo(block, this.data.getData(block));

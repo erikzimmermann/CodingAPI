@@ -29,13 +29,13 @@ public class MessageAPI {
 
         Object bar;
 
-        if (Version.get().isBiggerThan(15)) {
+        if (Version.after(15)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
-        } else if (Version.get().isBiggerThan(11)) {
+        } else if (Version.after(11)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
             IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
@@ -110,7 +110,7 @@ public class MessageAPI {
             Class<?> enumTitle = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTitle$EnumTitleAction");
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, enumTitle, ChatMessageClass, Integer.class, Integer.class, Integer.class);
 
-            int i = Version.get().isBiggerThan(Version.v1_10) ? 1 : 0;
+            int i = Version.after(10) ? 1 : 0;
 
             Object resetP = !reset ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 4], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);
             Object clearP = !clear ? null : constructor.newInstance(enumTitle.getEnumConstants()[i + 3], PacketUtils.getChatMessage("DUMMY"), fadeIn, stay, fadeOut);

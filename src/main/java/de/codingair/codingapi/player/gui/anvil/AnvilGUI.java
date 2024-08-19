@@ -60,7 +60,7 @@ public class AnvilGUI implements Removable {
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
 
-        if (Version.get().isBiggerThan(Version.v1_13)) {
+        if (Version.after(13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
             ANVIL_CONTAINER_CON = IReflection.getConstructor(containerAnvilClass, int.class, PLAYER_INVENTORY_CLASS, containerAccessClass);
         } else {
@@ -124,7 +124,7 @@ public class AnvilGUI implements Removable {
         this.title = title == null ? "Repair & Name" : title;
 
         registerBukkitListener();
-        if (Version.get().isBiggerThan(8))
+        if (Version.after(8))
             Bukkit.getPluginManager().registerEvents(prepareListener = new PrepareAnvilEventHelp(), this.plugin);
     }
 
@@ -265,7 +265,7 @@ public class AnvilGUI implements Removable {
         int c = (int) NEXT_CONTAINER_COUNTER.invoke(entityPlayer);
 
         Object container;
-        if (Version.get().isBiggerThan(Version.v1_13)) {
+        if (Version.after(13)) {
             Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
             IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, containerAccessClass, new Class[]{WORLD_CLASS, BLOCK_POSITION_CLASS});
 
@@ -286,7 +286,7 @@ public class AnvilGUI implements Removable {
         }
 
         try {
-            if (Version.get().isBiggerThan(Version.v1_13)) {
+            if (Version.after(13)) {
                 String genericField = Version.choose("ANVIL", "ANVIL", 17, "h", 20.4, "i");
 
                 IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, genericField);
@@ -301,7 +301,7 @@ public class AnvilGUI implements Removable {
                 PacketUtils.sendPacket(this.player, packetPlayOutOpenWindowCon.newInstance(c, "minecraft:anvil", CHAT_MESSAGE_CON.newInstance("AnvilGUI", new Object[]{}), 0));
             }
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.get().name() + "!", e);
+            plugin.getLogger().log(Level.SEVERE, "Error: Cannot open the AnvilGUI in " + Version.versionTag() + "!", e);
         }
 
         InventoryUtils.setActiveContainer(entityPlayer, container);

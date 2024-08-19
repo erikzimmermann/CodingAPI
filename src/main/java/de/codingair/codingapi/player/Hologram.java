@@ -595,7 +595,7 @@ public class Hologram implements Removable {
                 SPAWN_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
             if (SPAWN_PACKET_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
 
-            if (Version.get() == Version.v1_17)
+            if (Version.equals(17))
                 DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int.class);
             else
                 DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
@@ -683,10 +683,10 @@ public class Hologram implements Removable {
 
         public static void destroy(Player player, Object armorStand) {
             Object packet;
-            if (Version.get() == Version.v1_17) {
+            if (Version.equals(17)) {
                 packet = DESTROY_PACKET_CONSTRUCTOR.newInstance(PacketUtils.EntityPackets.getId(armorStand));
             } else {
-                packet = DESTROY_PACKET_CONSTRUCTOR.newInstance((Object) new int[]{PacketUtils.EntityPackets.getId(armorStand)});
+                packet = DESTROY_PACKET_CONSTRUCTOR.newInstance(new int[]{PacketUtils.EntityPackets.getId(armorStand)});
             }
 
             PacketUtils.sendPacket(packet, player);
@@ -705,7 +705,7 @@ public class Hologram implements Removable {
             } else packet = SPAWN_PACKET_CONSTRUCTOR.newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
 
-            if (Version.get().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
+            if (Version.after(14)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {
