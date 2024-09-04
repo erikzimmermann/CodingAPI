@@ -96,12 +96,12 @@ public class ItemBuilder implements Serializable {
             this.preMeta = item.getItemMeta();
             this.name = meta.getDisplayName();
 
-            if (Version.after(12)) {
+            if (Version.atLeast(13)) {
                 this.damage = DamageableValue.getDamage(this.preMeta);
             }
 
-            if (Version.after(11)) this.unbreakable = preMeta.isUnbreakable();
-            if (Version.after(13)) {
+            if (Version.atLeast(12)) this.unbreakable = preMeta.isUnbreakable();
+            if (Version.atLeast(14)) {
                 assert PacketUtils.hasCustomModelData != null;
                 if ((boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
                     assert PacketUtils.getCustomModelData != null;
@@ -246,9 +246,9 @@ public class ItemBuilder implements Serializable {
             PotionMeta meta = (PotionMeta) item.getItemMeta();
 
             if (potionData != null) {
-                if (Version.after(8) && this.potionData.isCorrect()) {
+                if (Version.atLeast(9) && this.potionData.isCorrect()) {
                     meta = this.potionData.getMeta();
-                } else if (!Version.after(8) && this.potionData.isCorrect()) {
+                } else if (!Version.atLeast(9) && this.potionData.isCorrect()) {
                     @SuppressWarnings("deprecation")
                     Potion potion = this.potionData.getPotion();
 
@@ -309,13 +309,13 @@ public class ItemBuilder implements Serializable {
                 applyGameProfile(meta, gameProfile);
             }
 
-            if (Version.after(11)) meta.setUnbreakable(this.unbreakable);
-            if (Version.after(13)) {
+            if (Version.atLeast(12)) meta.setUnbreakable(this.unbreakable);
+            if (Version.atLeast(14)) {
                 assert PacketUtils.setCustomModelData != null;
                 PacketUtils.setCustomModelData.invoke(meta, this.customModel);
             }
 
-            if (Version.after(12)) {
+            if (Version.atLeast(13)) {
                 DamageableValue.setDamage(meta, this.damage);
             }
 
@@ -402,7 +402,7 @@ public class ItemBuilder implements Serializable {
                         try {
                             material = Material.valueOf(name);
                         } catch (IllegalArgumentException ex) {
-                            if (Version.after(12)) {
+                            if (Version.atLeast(13)) {
                                 obj = d.get("Data");
                                 byte data = 0;
                                 if (obj != null) data = Byte.parseByte(d.get("Data") + "");

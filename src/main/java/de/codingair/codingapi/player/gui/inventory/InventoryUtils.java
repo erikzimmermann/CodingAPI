@@ -35,7 +35,7 @@ public class InventoryUtils {
         WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.choose("containerId", "windowId", 17, "j"));
         ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, CONTAINER_CLASS, 1);
 
-        if (Version.after(13)) {
+        if (Version.atLeast(14)) {
             TITLE = IReflection.getField(CONTAINER_CLASS, "title");
 
             CONTAINERS_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("MenuType", "Containers"));

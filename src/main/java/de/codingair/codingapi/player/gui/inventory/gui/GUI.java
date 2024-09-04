@@ -542,7 +542,7 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public static boolean updateInventory(Player player) {
-        if(Version.after(13)) return false;
+        if(Version.atLeast(14)) return false;
         player.updateInventory();
         return true;
     }

@@ -705,7 +705,7 @@ public class Hologram implements Removable {
             } else packet = SPAWN_PACKET_CONSTRUCTOR.newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
 
-            if (Version.after(14)) sendDataWatcher(player, armorStand);
+            if (Version.atLeast(15)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {

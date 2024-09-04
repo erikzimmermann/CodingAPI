@@ -37,7 +37,7 @@ public abstract class SignGUI {
     static {
         packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
 
-        if (Version.after(8))
+        if (Version.atLeast(9))
             updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
         else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
@@ -292,7 +292,7 @@ public abstract class SignGUI {
         if (sign != null) {
             Object tileEntity;
 
-            if (Version.after(11)) {
+            if (Version.atLeast(12)) {
                 IReflection.MethodAccessor getTileEntity = IReflection.getMethod(sign.getClass(), "getTileEntity");
                 tileEntity = getTileEntity.invoke(sign);
             } else tileEntity = IReflection.getField(sign.getClass(), "sign").get(sign);

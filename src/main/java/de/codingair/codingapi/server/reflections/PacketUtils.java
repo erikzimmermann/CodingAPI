@@ -391,7 +391,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if (Version.after(8)) {
+            if (Version.atLeast(9)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -426,7 +426,7 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.after(8)) {
+            if (Version.atLeast(9)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, passenger);
             } else {
                 packet.initialize(new Class[]{int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
@@ -438,7 +438,7 @@ public class PacketUtils {
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.after(8)) {
+            if (Version.atLeast(9)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {

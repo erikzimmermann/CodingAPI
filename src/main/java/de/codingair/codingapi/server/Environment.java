@@ -30,7 +30,7 @@ public class Environment {
     }
 
     public static boolean isWaterFluid(Block b) {
-        if(Version.after(12)) {
+        if(Version.atLeast(13)) {
             if (b.getBlockData() instanceof Waterlogged) {
                 Waterlogged w = (Waterlogged) b.getBlockData();
                 return w.isWaterlogged() && !b.getType().isSolid();
@@ -92,7 +92,7 @@ public class Environment {
         Object block = getBlock.invoke(blockType);
 
         String key;
-        if(Version.after(8)) {
+        if(Version.atLeast(9)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
             Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "SoundEffectType");

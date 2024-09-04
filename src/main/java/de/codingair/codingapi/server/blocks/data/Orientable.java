@@ -22,7 +22,7 @@ public class Orientable extends BlockData {
 
     @Override
     public Object getData(Block block) {
-        if(Version.after(12)) {
+        if(Version.atLeast(13)) {
             Class<?> orientable = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "block.data.Orientable");
             Class<?> axis = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Axis");
             IReflection.MethodAccessor setAxis = IReflection.getMethod(orientable, "setAxis", new Class[]{axis});
