@@ -31,7 +31,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
 
 import java.util.*;
 
@@ -242,23 +241,8 @@ public class ItemBuilder implements Serializable {
 
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
-        if (this.type.name().contains("POTION")) {
-            PotionMeta meta = (PotionMeta) item.getItemMeta();
-
-            if (potionData != null) {
-                if (Version.atLeast(9) && this.potionData.isCorrect()) {
-                    meta = this.potionData.getMeta();
-                } else if (!Version.atLeast(9) && this.potionData.isCorrect()) {
-                    @SuppressWarnings("deprecation")
-                    Potion potion = this.potionData.getPotion();
-
-                    if (meta != null && potion.getType().getEffectType() != null) {
-                        //noinspection deprecation
-                        meta.setMainEffect(potion.getType().getEffectType());
-                    }
-                }
-            }
-
+        if (this.type.name().contains("POTION") && potionData != null && item.hasItemMeta() && item.getItemMeta() != null) {
+            PotionMeta meta = potionData.applyTo((PotionMeta) item.getItemMeta());
             item.setItemMeta(meta);
         }
 
