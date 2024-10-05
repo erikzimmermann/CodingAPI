@@ -1,15 +1,14 @@
 package de.codingair.codingapi.server.reflections;
 
 import de.codingair.codingapi.server.specification.Version;
-import de.codingair.codingapi.tools.io.lib.JSONObject;
-import de.codingair.codingapi.tools.io.lib.JSONParser;
-import de.codingair.codingapi.tools.io.lib.ParseException;
+import de.codingair.codingapi.tools.io.utils.DataMask;
+import de.codingair.codingapi.tools.io.utils.Serializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
-public class PotionData {
+public class PotionData implements Serializable {
     private static IReflection.MethodAccessor potionClass$fromItemStack = null;
     private static IReflection.MethodAccessor potionClass$getType = null;
 
@@ -70,6 +69,9 @@ public class PotionData {
         }
     }
 
+    public PotionData() {
+    }
+
     @NotNull
     public PotionMeta applyTo(@NotNull PotionMeta meta) {
         if (!isValid()) return meta;
@@ -108,26 +110,18 @@ public class PotionData {
         return this.type != null;
     }
 
-    public String toJSONString() {
-        JSONObject object = new JSONObject();
-        object.put("Type", this.type.name());
-        object.put("Level", this.level);
-        object.put("Extended", this.extended);
-        return object.toJSONString();
+    @Override
+    public boolean read(DataMask d) throws Exception {
+        this.type = PotionType.valueOf(d.getString("Type"));
+        this.level = d.getInteger("Level");
+        this.extended = d.getBoolean("Extended");
+        return true;
     }
 
-    public static PotionData fromJSONString(String code) {
-        try {
-            JSONObject json = (JSONObject) new JSONParser().parse(code);
-
-            PotionType type = PotionType.valueOf((String) json.get("Type"));
-            int level = Integer.parseInt(json.get("Level") + "");
-            boolean extended = (boolean) json.get("Extended");
-
-            return new PotionData(type, level, extended);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
+    @Override
+    public void write(DataMask d) {
+        d.put("Type", this.type.name());
+        d.put("Level", this.level);
+        d.put("Extended", this.extended);
     }
 }

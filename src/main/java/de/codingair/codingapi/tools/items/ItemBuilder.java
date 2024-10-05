@@ -241,7 +241,7 @@ public class ItemBuilder implements Serializable {
 
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
-        if (this.type.name().contains("POTION") && potionData != null && item.hasItemMeta() && item.getItemMeta() != null) {
+        if (this.type.name().toLowerCase().contains("potion") && potionData != null && item.getItemMeta() != null) {
             PotionMeta meta = potionData.applyTo((PotionMeta) item.getItemMeta());
             item.setItemMeta(meta);
         }
@@ -368,11 +368,8 @@ public class ItemBuilder implements Serializable {
                     }
 
                     case "PotionData": {
-                        Object obj = d.getRaw("PotionData");
-                        if (obj == null) break;
-
-                        PotionData data = PotionData.fromJSONString((String) obj);
-                        setPotionData(data);
+                        PotionData data = d.getSerializable("PotionData", new PotionData());
+                        if (data != null) setPotionData(data);
                         break;
                     }
 
@@ -565,7 +562,7 @@ public class ItemBuilder implements Serializable {
         d.put("HideEnchantments", this.hideEnchantments);
         d.put("Unbreakable", this.unbreakable);
         d.put("HideName", this.hideName);
-        d.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
+        d.put("PotionData", this.potionData);
 
         d.put("SkullOwner", this.skullId);
         d.put("CustomModel", this.customModel);
