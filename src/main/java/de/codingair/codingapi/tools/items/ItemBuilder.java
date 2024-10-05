@@ -3,7 +3,6 @@ package de.codingair.codingapi.tools.items;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.server.specification.Version;
@@ -129,12 +128,7 @@ public class ItemBuilder implements Serializable {
                 this.name = null;
             }
 
-            try {
-                IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
-                this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
-            } catch (Exception ignored) {
-            }
-
+            this.skullId = GameProfileUtils.extractSkinId(meta);
             this.banner = BannerValue.serialize(item.getItemMeta());
         }
 
@@ -154,7 +148,7 @@ public class ItemBuilder implements Serializable {
     }
 
     /**
-     * This constructor create a head
+     * This constructor creates a head
      *
      * @param profile GameProfile
      */
@@ -163,7 +157,7 @@ public class ItemBuilder implements Serializable {
     }
 
     /**
-     * This constructor create a head
+     * This constructor creates a head
      *
      * @param player Player
      */
@@ -210,30 +204,17 @@ public class ItemBuilder implements Serializable {
 
         ItemStack item = new ItemStack(head == null ? Material.STONE : head.getType(), 1, (short) 3);
         if (gameProfile == null) return item;
+        String skinId = GameProfileUtils.extractSkinId(gameProfile);
+        if (skinId == null) return item;
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         if (meta != null) {
-            applyGameProfile(meta, gameProfile);
+            GameProfileUtils.applySkinIdToItem(meta, skinId);
             item.setItemMeta(meta);
         }
 
         return item;
-    }
-
-    private static void applyGameProfile(ItemMeta meta, GameProfile gameProfile) {
-        try {
-            // use setProfile for preventing warnings about `serializedProfile`
-            IReflection.MethodAccessor setProfile = IReflection.getMethod(meta.getClass(), new Class[]{GameProfile.class});
-            setProfile.invoke(meta, gameProfile);
-        } catch (Throwable t) {
-            // set profile for older versions
-            try {
-                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-                profile.set(meta, gameProfile);
-            } catch (Throwable ignored) {
-            }
-        }
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
@@ -288,9 +269,8 @@ public class ItemBuilder implements Serializable {
                 }
             }
 
-            if (this.skullId != null) {
-                GameProfile gameProfile = GameProfileUtils.createBySkinId(skullId);
-                applyGameProfile(meta, gameProfile);
+            if (this.skullId != null && meta instanceof SkullMeta) {
+                GameProfileUtils.applySkinIdToItem((SkullMeta) meta, skullId);
             }
 
             if (Version.atLeast(12)) meta.setUnbreakable(this.unbreakable);
@@ -486,7 +466,7 @@ public class ItemBuilder implements Serializable {
                         if (data.contains("Property_Signature")) {
                             //old
                             setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
-                        } else setSkullId((String) d.get("SkullOwner"));
+                        } else setSkullId(d.getString("SkullOwner"));
                         break;
                     }
 
