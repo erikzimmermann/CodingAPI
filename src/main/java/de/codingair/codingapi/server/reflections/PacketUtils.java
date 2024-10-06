@@ -145,13 +145,19 @@ public class PacketUtils {
                 return null;
             }
         } else {
-                return IReflection.getClass(packet, className);
+            return IReflection.getClass(packet, className);
         }
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull XMaterial data) {
-        Object iBlockData = PacketUtils.getIBlockData(data);
-        sendBlockChange(player, location, iBlockData);
+        if (Version.atLeast(20.6)) {
+            Material material = data.parseMaterial();
+            if (material == null) throw new NullPointerException("Material cannot be null! (XMaterial=" + data + ")");
+            player.sendBlockChange(location, material.createBlockData());
+        } else {
+            Object iBlockData = PacketUtils.getIBlockData(data);
+            sendBlockChange(player, location, iBlockData);
+        }
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Block data) {

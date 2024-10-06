@@ -12,7 +12,6 @@ import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.items.XMaterial;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -25,23 +24,29 @@ import java.util.List;
 import java.util.UUID;
 
 public abstract class SignGUI {
-    private static final Class<?> packetClass;
-    private static final Class<?> updatePacket;
+    private static final Class<?> playInUpdateSignClass;
+    private static final Class<?> playOutTileEntityData;
     private static final Class<?> baseBlockPosition;
-    private static final IReflection.FieldAccessor<?> pos;
+    private static final Class<?> playOutBlockChangeClass;
+    private static final IReflection.FieldAccessor<?> playOutBlockChangeClass$BlockPosition;
+    private static final IReflection.FieldAccessor<?> playOutTileEntityData$BlockPosition;
     private static final IReflection.FieldAccessor<Integer> getX;
     private static final IReflection.FieldAccessor<Integer> getY;
     private static final IReflection.FieldAccessor<Integer> getZ;
     private static final IReflection.FieldAccessor<?> packetLines;
 
+    private static final IReflection.MethodAccessor setWorld;
+
     static {
-        packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
+        playInUpdateSignClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
+        playOutBlockChangeClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockChange");
 
         if (Version.atLeast(9))
-            updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
-        else updatePacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
+            playOutTileEntityData = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
+        else playOutTileEntityData = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
-        pos = IReflection.getField(updatePacket, PacketUtils.BlockPositionClass, 0);
+        playOutBlockChangeClass$BlockPosition = IReflection.getField(playOutBlockChangeClass, PacketUtils.BlockPositionClass, 0);
+        playOutTileEntityData$BlockPosition = IReflection.getField(playOutTileEntityData, PacketUtils.BlockPositionClass, 0);
         baseBlockPosition = IReflection.getClass(IReflection.ServerPacket.CORE, Version.choose("Vec3i", "BaseBlockPosition"));
 
         getX = IReflection.getNonStaticField(baseBlockPosition, int.class, 0);
@@ -51,6 +56,10 @@ public abstract class SignGUI {
         if (Version.atLeast(9))
             packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, String[].class, 0);
         else packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
+
+        if (Version.atLeast(20.6)) {
+            setWorld = IReflection.getMethod(PacketUtils.TileEntityClass, new Class[]{PacketUtils.WorldClass});
+        } else setWorld = null;
     }
 
     private final Player player;
@@ -61,6 +70,8 @@ public abstract class SignGUI {
     //used for instant opening -> open directly after sending the sign update packet
     private Location signLocation = null;
     private Runnable waiting = null;
+    private boolean ignoreFutureBlockChanges = true;
+    private boolean ignoreBlockChanges = false;
 
     @NmsLoader
     private SignGUI() {
@@ -133,7 +144,7 @@ public abstract class SignGUI {
         new PacketReader(this.player, "SignEditor", this.plugin) {
             @Override
             public boolean readPacket(Object packet) {
-                if (packet.getClass().equals(packetClass)) {
+                if (packet.getClass().equals(playInUpdateSignClass)) {
                     String[] lines;
 
                     if (Version.atLeast(9)) {
@@ -165,7 +176,7 @@ public abstract class SignGUI {
 
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         onSignChangeEvent(lines);
-                        revertTempSignBlock();
+                        close();
                     });
                     return true;
                 }
@@ -175,20 +186,36 @@ public abstract class SignGUI {
 
             @Override
             public boolean writePacket(Object packet) {
-                if (packet.getClass().equals(updatePacket)) {
-                    Object position = pos.get(packet);
+                if (signLocation == null) return false;
 
-                    int x = getX.get(position);
-                    int y = getY.get(position);
-                    int z = getZ.get(position);
+                Object position;
+                if (packet.getClass().equals(playOutBlockChangeClass))
+                    position = playOutBlockChangeClass$BlockPosition.get(packet);
+                else if (packet.getClass().equals(playOutTileEntityData))
+                    position = playOutTileEntityData$BlockPosition.get(packet);
+                else return false;
 
-                    if (waiting != null && signLocation != null &&
-                            signLocation.getBlockX() == x &&
-                            signLocation.getBlockY() == y &&
-                            signLocation.getBlockZ() == z) {
-                        Bukkit.getScheduler().runTask(plugin, waiting);
-                        waiting = null;
+                int x = getX.get(position);
+                int y = getY.get(position);
+                int z = getZ.get(position);
+
+                if (signLocation.getBlockX() != x || signLocation.getBlockY() != y || signLocation.getBlockZ() != z)
+                    return false;
+
+                if (packet.getClass().equals(playOutBlockChangeClass)) {
+                    // ignore changes during editing
+                    if (ignoreBlockChanges) return true;
+
+                    if (ignoreFutureBlockChanges) {
+                        // The first block change needs to be passed through to allow us to set the sign
+                        ignoreFutureBlockChanges = false;
+                        ignoreBlockChanges = true;
                     }
+                }
+
+                if (waiting != null && packet.getClass().equals(playOutTileEntityData)) {
+                    Bukkit.getScheduler().runTask(plugin, waiting);
+                    waiting = null;
                 }
 
                 return false;
@@ -198,23 +225,29 @@ public abstract class SignGUI {
 
     private @NotNull Location getTemporarySignLocation() {
         // max distance is 7
-        return player.getLocation().clone().subtract(0, 7, 0);
+        return player.getLocation().getBlock().getLocation().subtract(0, 7, 0);
     }
 
     private void prepareTemporarySign(@NotNull XMaterial material, @NotNull Location tempSign) {
+        Object updatePacket = null;
+
+        ignoreFutureBlockChanges = true;
         PacketUtils.sendBlockChange(player, tempSign, material);
-        if (this.lines != null) sendLinesChange(tempSign, material);
+
+        if (this.lines != null) updatePacket = createUpdatePacket(tempSign, material);
+        if (updatePacket != null) PacketUtils.sendPacket(player, updatePacket);
     }
 
     private void revertTempSignBlock() {
         // do we have a temporary sign?
         if (sign != null) return;
 
-        Block b = signLocation.getBlock();
-        PacketUtils.sendBlockChange(player, signLocation, b);
+        ignoreBlockChanges = false;
+        PacketUtils.sendBlockChange(player, signLocation, signLocation.getBlock());
     }
 
-    private void sendLinesChange(@NotNull Location tempSign, @NotNull XMaterial material) {
+    @NotNull
+    private Object createUpdatePacket(@NotNull Location tempSign, @NotNull XMaterial material) {
         IReflection.ConstructorAccessor con;
         Class<?> iChatBaseComponentArrayClass = Array.newInstance(PacketUtils.IChatBaseComponentClass, 0).getClass();
 
@@ -241,6 +274,11 @@ public abstract class SignGUI {
             setBlockPos.set(tileEntity, blockPos);
         }
 
+        if (Version.atLeast(20.6)) {
+            // Fix: Since 20.6, the PacketPlayOutTileEntityData requires the world to be set.
+            setWorld.invoke(tileEntity, PacketUtils.getWorldServer(tempSign.getWorld()));
+        }
+
         // write line contents
         if (Version.atLeast(20)) {
             Class<?> signTextClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, "SignText");
@@ -250,7 +288,7 @@ public abstract class SignGUI {
                 throw new NullPointerException("Cannot prepare temporary sign: Could not find SignText constructor.");
 
             Object blackColor = enumColorClass.getEnumConstants()[enumColorClass.getEnumConstants().length - 1];
-            Object signText = con.newInstance(lines, lines, blackColor, false);
+            Object signText = con.newInstance(lines, lines, blackColor, false /*glow*/);
 
             IReflection.MethodAccessor applyText = IReflection.getMethod(tileEntitySignClass, boolean.class, new Class[]{signTextClass, boolean.class});
 
@@ -285,7 +323,7 @@ public abstract class SignGUI {
             packet = createUpdatePacket.invoke(tileEntity);
         }
 
-        PacketUtils.sendPacket(this.player, packet);
+        return packet;
     }
 
     private void prepareSignEditing(@Nullable Sign sign) {
@@ -336,6 +374,7 @@ public abstract class SignGUI {
 
         if (packetReader != null) packetReader.unInject();
         AsyncCatcher.runSync(plugin, () -> {
+            revertTempSignBlock();
             player.closeInventory();
             if (call != null) call.proceed();
         });
