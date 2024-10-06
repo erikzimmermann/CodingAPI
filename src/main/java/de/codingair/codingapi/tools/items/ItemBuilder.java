@@ -91,7 +91,7 @@ public class ItemBuilder implements Serializable {
             ItemMeta meta = item.getItemMeta();
             assert meta != null;
 
-            this.preMeta = item.getItemMeta();
+            this.preMeta = item.getItemMeta().clone();
             this.name = meta.getDisplayName();
 
             if (Version.atLeast(13)) {
@@ -231,9 +231,15 @@ public class ItemBuilder implements Serializable {
             item = new ItemStack(this.type, 1, (short) 3);
         }
 
-        item.setAmount(this.amount);
+        // apply preMeta first to adjust to item
+        if (preMeta != null) item.setItemMeta(preMeta.clone());
 
-        ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
+        // Bug: HIDE_ENCHANTS flag not being set despite being added.
+        // Fix: Apply item attributes before modifying the item meta.
+        item.setAmount(this.amount);
+        if (this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
+
+        ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(this.name);
             meta.setLore(this.lore);
@@ -260,35 +266,26 @@ public class ItemBuilder implements Serializable {
             }
 
             if (hideName || this.name == null) meta.setDisplayName("§0");
-            if (hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             if (hideStandardLore) {
                 for (ItemFlag itemFlag : ItemFlag.values()) {
-                    if (itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
-
+                    if (itemFlag == ItemFlag.HIDE_ENCHANTS) continue;
                     meta.addItemFlags(itemFlag);
                 }
             }
+            if (hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
             if (this.skullId != null && meta instanceof SkullMeta) {
                 GameProfileUtils.applySkinIdToItem((SkullMeta) meta, skullId);
             }
 
             if (Version.atLeast(12)) meta.setUnbreakable(this.unbreakable);
-            if (Version.atLeast(14)) {
-                assert PacketUtils.setCustomModelData != null;
-                PacketUtils.setCustomModelData.invoke(meta, this.customModel);
-            }
-
-            if (Version.atLeast(13)) {
-                DamageableValue.setDamage(meta, this.damage);
-            }
+            if (Version.atLeast(13)) DamageableValue.setDamage(meta, this.damage);
+            if (Version.atLeast(14)) meta.setCustomModelData(customModel);
 
             if (this.banner != null) BannerValue.apply(meta, this.banner);
 
             item.setItemMeta(meta);
         }
-
-        if (this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
 
         if (nbt != null) return new NBTTagCompound(item).setNBT(nbt).getItem();
         else return item;
