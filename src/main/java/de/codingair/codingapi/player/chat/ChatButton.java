@@ -68,7 +68,7 @@ public abstract class ChatButton {
         if (this.hover != null && this.hover.length > 0) {
             component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover));
         }
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, Version.since(19, "", "/") + PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
+        component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, Version.choose("", 19, "/") + PREFIX + this.uniqueId + (type == null ? "" : "#" + type)));
 
         return component;
     }

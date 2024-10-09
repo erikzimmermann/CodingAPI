@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 public class PacketUtils {
@@ -25,20 +26,20 @@ public class PacketUtils {
     public static final Class<?> MinecraftServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server"), "MinecraftServer");
     public static final Class<?> DedicatedServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.dedicated"), "DedicatedServer");
     public static final Class<?> CraftWorldClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftWorld");
-    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.WORLD_LEVEL, Version.choose("World", 20.5, "Level"));
-    public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("WorldServer", 20.5, "ServerLevel"));
-    public static final Class<?> BlockPositionClass = getClass(IReflection.ServerPacket.CORE, Version.since(20.5, "BlockPosition", "BlockPos"));
+    public static final Class<?> WorldClass = getClass(IReflection.ServerPacket.WORLD_LEVEL, Version.choose("Level", "World"));
+    public static final Class<?> WorldServerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("ServerLevel", "WorldServer"));
+    public static final Class<?> BlockPositionClass = getClass(IReflection.ServerPacket.CORE, Version.choose("BlockPos", "BlockPosition"));
     public static final Class<?> BlockClass = getClass(IReflection.ServerPacket.BLOCK, "Block");
     public static final Class<?> BlocksClass = getClass(IReflection.ServerPacket.BLOCK, "Blocks");
-    public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.state"), Version.choose("IBlockData", 20.5, "BlockState"));
-    public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("TileEntity", 20.5, "BlockEntity"));
-    public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("TileEntitySign", 20.5, "SignBlockEntity"));
-    public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagCompound", 20.5, "CompoundTag"));
+    public static final Class<?> IBlockDataClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.state"), Version.choose("BlockState", "IBlockData"));
+    public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("BlockEntity", "TileEntity"));
+    public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("SignBlockEntity", "TileEntitySign"));
+    public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.NBT, Version.choose("CompoundTag", "NBTTagCompound"));
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "Entity");
-    public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("EntityPlayer", 20.5, "ServerPlayer"));
-    public static final Class<?> EntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), Version.choose("EntityLiving", 20.5, "LivingEntity"));
-    public static final Class<?> EntityHumanClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), Version.choose("EntityHuman", 20.5, "Player"));
+    public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("ServerPlayer", "EntityPlayer"));
+    public static final Class<?> EntityLivingClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), Version.choose("LivingEntity", "EntityLiving"));
+    public static final Class<?> EntityHumanClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), Version.choose("Player", "EntityHuman"));
 
     public static final Class<?> ItemStackClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.item"), "ItemStack");
     public static final Class<?> CraftItemStackClass = getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "inventory.CraftItemStack");
@@ -46,11 +47,11 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor hasCustomModelData = getMethod(ItemMeta.class, "hasCustomModelData", boolean.class, new Class[0], true);
     public static final IReflection.MethodAccessor setCustomModelData = getMethod(ItemMeta.class, "setCustomModelData", new Class[]{int.class}, true);
 
-    public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.network"), Version.choose("PlayerConnection", 20.5, "ServerGamePacketListenerImpl"));
-    public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network"), Version.choose("NetworkManager", 20.5, "Connection"));
+    public static final Class<?> PlayerConnectionClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.network"), Version.choose("ServerGamePacketListenerImpl", "PlayerConnection"));
+    public static final Class<?> NetworkManagerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network"), Version.choose("Connection", "NetworkManager"));
 
-    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher", 20.5, "SynchedEntityData"));
-    public static final Class<?> DataWatcherObjectClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcherObject", 20.5, "EntityDataAccessor")));
+    public static final Class<?> DataWatcherClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData", "DataWatcher"));
+    public static final Class<?> DataWatcherObjectClass = IReflection.wrap(Version.atLeast(19.3), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("EntityDataAccessor", "DataWatcherObject")));
 
     public static final Class<?> PacketClass = getClass(IReflection.ServerPacket.PROTOCOL, "Packet");
     public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutAttachEntity");
@@ -64,9 +65,9 @@ public class PacketUtils {
     public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
     public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
 
-    public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, Version.since(20.5, "IChatBaseComponent$ChatSerializer", "Component$Serializer"));
-    public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("IChatMutableComponent", 20.5, "MutableComponent")));
-    public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("IChatBaseComponent", 20.5, "Component"));
+    public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("Component$Serializer", "IChatBaseComponent$ChatSerializer"));
+    public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("MutableComponent", "IChatMutableComponent")));
+    public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("Component", "IChatBaseComponent"));
 
     public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[]{});
     public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[]{});
@@ -77,17 +78,17 @@ public class PacketUtils {
     public static final IReflection.MethodAccessor getTileEntity = getMethod(WorldClass, null, TileEntityClass, new Class[]{BlockPositionClass});
     public static final IReflection.FieldAccessor<Integer> getId = IReflection.getNonStaticField(EntityClass, int.class, 0);
 
-    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.since(17, "playerConnection", "b"), 20, PlayerConnectionClass, 0, true);
+    public static final IReflection.FieldAccessor<?> playerConnection = IReflection.getField(EntityPlayerClass, Version.choose("playerConnection", 17, "b"), 20, PlayerConnectionClass, 0, m -> !Modifier.isStatic(m));
 
     // 1.20.5+
-    public static final Class<?> HolderLookupProvider = IReflection.wrap(Version.atLeast(20.5), () -> getClass(IReflection.ServerPacket.CORE, "HolderLookup$Provider"));
+    public static final Class<?> HolderLookupProvider = IReflection.wrap(Version.atLeast(20.5), () -> getClass(IReflection.ServerPacket.CORE, Version.choose("HolderLookup$Provider", "HolderLookup$a")));
 
     static {
         if (Version.atLeast(20.2)) {
             Class<?> packetSendListenerClass = IReflection.getClass(IReflection.ServerPacket.NETWORK, "PacketSendListener");
             sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass, packetSendListenerClass});
         } else {
-            sendPacket = getMethod(PlayerConnectionClass, Version.since(18, "sendPacket", "a"), new Class[]{PacketClass});
+            sendPacket = getMethod(PlayerConnectionClass, Version.choose("sendPacket", 18, "a"), new Class[]{PacketClass});
         }
 
         // test functions
@@ -144,13 +145,19 @@ public class PacketUtils {
                 return null;
             }
         } else {
-                return IReflection.getClass(packet, className);
+            return IReflection.getClass(packet, className);
         }
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull XMaterial data) {
-        Object iBlockData = PacketUtils.getIBlockData(data);
-        sendBlockChange(player, location, iBlockData);
+        if (Version.atLeast(20.6)) {
+            Material material = data.parseMaterial();
+            if (material == null) throw new NullPointerException("Material cannot be null! (XMaterial=" + data + ")");
+            player.sendBlockChange(location, material.createBlockData());
+        } else {
+            Object iBlockData = PacketUtils.getIBlockData(data);
+            sendBlockChange(player, location, iBlockData);
+        }
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Block data) {
@@ -332,7 +339,7 @@ public class PacketUtils {
             if (material.name().contains("_SIGN")) {
                 Class<?> blocks = IReflection.getClass(IReflection.ServerPacket.PACKETS, "Blocks");
 
-                String name = Version.since(13, "STANDING_SIGN", "SIGN");
+                String name = Version.choose("STANDING_SIGN", 13, "SIGN");
                 Object standingSign = IReflection.getField(blocks, name).get(null);
                 return getBlockData.invoke(standingSign);
             } else {
@@ -390,7 +397,7 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.atLeast(9)) {
                 //new
                 b.set(packet, location.getX());
                 c.set(packet, location.getY());
@@ -425,7 +432,7 @@ public class PacketUtils {
         public static Packet getPassengerPacket(Object vehicle, Object passenger) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.atLeast(9)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, passenger);
             } else {
                 packet.initialize(new Class[]{int.class, EntityClass, EntityClass}, 0, passenger, vehicle);
@@ -437,7 +444,7 @@ public class PacketUtils {
         public static Packet getEjectPacket(Object vehicle) {
             Packet packet = new Packet(PacketPlayOutAttachEntityClass);
 
-            if (Version.get().isBiggerThan(Version.v1_8)) {
+            if (Version.atLeast(9)) {
                 packet.initialize(new Class[]{EntityClass, EntityClass}, vehicle, null);
                 return packet;
             } else {

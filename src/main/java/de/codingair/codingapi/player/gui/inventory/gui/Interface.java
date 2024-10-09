@@ -4,7 +4,6 @@ import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -63,7 +62,7 @@ public class Interface {
     @Deprecated
     public Interface(InventoryHolder owner, String title, int size, Plugin plugin) {
         this.title = title;
-        if(this.title.length() > 32 && !Version.get().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.atLeast(9)) this.title = this.title.substring(0, 32);
 
         this.inventory = Bukkit.createInventory(owner, size, this.oldTitle = getTitle());
         if(plugin != null && !GUIListener.isRegistered()) GUIListener.register(plugin);
@@ -279,7 +278,7 @@ public class Interface {
     void rebuildInventory() {
         Inventory inventory = Bukkit.createInventory(getHolder(), getSize(), getTitle());
         inventory.setContents(this.inventory.getContents());
-        if(Version.get().isBiggerThan(Version.v1_9)) inventory.setStorageContents(this.inventory.getStorageContents());
+        if(Version.atLeast(10)) inventory.setStorageContents(this.inventory.getStorageContents());
         inventory.setMaxStackSize(this.inventory.getMaxStackSize());
         this.inventory = inventory;
     }
@@ -292,7 +291,7 @@ public class Interface {
         if(title == null || title.equals(this.title)) return;
 
         this.title = title;
-        if(this.title.length() > 32 && !Version.get().isBiggerThan(Version.v1_8)) this.title = this.title.substring(0, 32);
+        if(this.title.length() > 32 && !Version.atLeast(9)) this.title = this.title.substring(0, 32);
 
         if(update) updateTitle();
     }
@@ -312,11 +311,6 @@ public class Interface {
         this.currentPlayers.forEach(p -> InventoryUtils.updateTitle(p, title, inventory));
 
         this.oldTitle = this.title;
-    }
-
-    private Object getContainerType(int size) {
-        IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, "GENERIC_9X" + (size / 9));
-        return generic.get(null);
     }
 
     public int getItemAmount() {

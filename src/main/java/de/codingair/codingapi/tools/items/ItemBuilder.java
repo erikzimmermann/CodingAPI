@@ -3,7 +3,6 @@ package de.codingair.codingapi.tools.items;
 import com.mojang.authlib.GameProfile;
 import de.codingair.codingapi.player.data.GameProfileUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.Skull;
-import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.reflections.PotionData;
 import de.codingair.codingapi.server.specification.Version;
@@ -31,7 +30,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
-import org.bukkit.potion.Potion;
 
 import java.util.*;
 
@@ -93,15 +91,15 @@ public class ItemBuilder implements Serializable {
             ItemMeta meta = item.getItemMeta();
             assert meta != null;
 
-            this.preMeta = item.getItemMeta();
+            this.preMeta = item.getItemMeta().clone();
             this.name = meta.getDisplayName();
 
-            if (Version.get().isBiggerThan(12)) {
+            if (Version.atLeast(13)) {
                 this.damage = DamageableValue.getDamage(this.preMeta);
             }
 
-            if (Version.get().isBiggerThan(Version.v1_11)) this.unbreakable = preMeta.isUnbreakable();
-            if (Version.get().isBiggerThan(Version.v1_13)) {
+            if (Version.atLeast(12)) this.unbreakable = preMeta.isUnbreakable();
+            if (Version.atLeast(14)) {
                 assert PacketUtils.hasCustomModelData != null;
                 if ((boolean) PacketUtils.hasCustomModelData.invoke(preMeta)) {
                     assert PacketUtils.getCustomModelData != null;
@@ -130,12 +128,7 @@ public class ItemBuilder implements Serializable {
                 this.name = null;
             }
 
-            try {
-                IReflection.FieldAccessor<?> profile = IReflection.getField(meta.getClass(), "profile");
-                this.skullId = GameProfileUtils.extractSkinId((GameProfile) profile.get(meta));
-            } catch (Exception ignored) {
-            }
-
+            this.skullId = GameProfileUtils.extractSkinId(meta);
             this.banner = BannerValue.serialize(item.getItemMeta());
         }
 
@@ -155,7 +148,7 @@ public class ItemBuilder implements Serializable {
     }
 
     /**
-     * This constructor create a head
+     * This constructor creates a head
      *
      * @param profile GameProfile
      */
@@ -164,7 +157,7 @@ public class ItemBuilder implements Serializable {
     }
 
     /**
-     * This constructor create a head
+     * This constructor creates a head
      *
      * @param player Player
      */
@@ -211,30 +204,17 @@ public class ItemBuilder implements Serializable {
 
         ItemStack item = new ItemStack(head == null ? Material.STONE : head.getType(), 1, (short) 3);
         if (gameProfile == null) return item;
+        String skinId = GameProfileUtils.extractSkinId(gameProfile);
+        if (skinId == null) return item;
 
         SkullMeta meta = (SkullMeta) item.getItemMeta();
 
         if (meta != null) {
-            applyGameProfile(meta, gameProfile);
+            GameProfileUtils.applySkinIdToItem(meta, skinId);
             item.setItemMeta(meta);
         }
 
         return item;
-    }
-
-    private static void applyGameProfile(ItemMeta meta, GameProfile gameProfile) {
-        try {
-            // use setProfile for preventing warnings about `serializedProfile`
-            IReflection.MethodAccessor setProfile = IReflection.getMethod(meta.getClass(), new Class[]{GameProfile.class});
-            setProfile.invoke(meta, gameProfile);
-        } catch (Throwable t) {
-            // set profile for older versions
-            try {
-                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-                profile.set(meta, gameProfile);
-            } catch (Throwable ignored) {
-            }
-        }
     }
 
     public org.bukkit.inventory.ItemStack getItem() {
@@ -242,23 +222,8 @@ public class ItemBuilder implements Serializable {
 
         org.bukkit.inventory.ItemStack item = new org.bukkit.inventory.ItemStack(this.type);
 
-        if (this.type.name().contains("POTION")) {
-            PotionMeta meta = (PotionMeta) item.getItemMeta();
-
-            if (potionData != null) {
-                if (Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
-                    meta = this.potionData.getMeta();
-                } else if (!Version.get().isBiggerThan(Version.v1_8) && this.potionData.isCorrect()) {
-                    @SuppressWarnings("deprecation")
-                    Potion potion = this.potionData.getPotion();
-
-                    if (meta != null && potion.getType().getEffectType() != null) {
-                        //noinspection deprecation
-                        meta.setMainEffect(potion.getType().getEffectType());
-                    }
-                }
-            }
-
+        if (this.type.name().toLowerCase().contains("potion") && potionData != null && item.getItemMeta() != null) {
+            PotionMeta meta = potionData.applyTo((PotionMeta) item.getItemMeta());
             item.setItemMeta(meta);
         }
 
@@ -266,9 +231,15 @@ public class ItemBuilder implements Serializable {
             item = new ItemStack(this.type, 1, (short) 3);
         }
 
-        item.setAmount(this.amount);
+        // apply preMeta first to adjust to item
+        if (preMeta != null) item.setItemMeta(preMeta.clone());
 
-        ItemMeta meta = preMeta == null ? item.getItemMeta() : this.preMeta;
+        // Bug: HIDE_ENCHANTS flag not being set despite being added.
+        // Fix: Apply item attributes before modifying the item meta.
+        item.setAmount(this.amount);
+        if (this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
+
+        ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(this.name);
             meta.setLore(this.lore);
@@ -295,36 +266,26 @@ public class ItemBuilder implements Serializable {
             }
 
             if (hideName || this.name == null) meta.setDisplayName("§0");
-            if (hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             if (hideStandardLore) {
                 for (ItemFlag itemFlag : ItemFlag.values()) {
-                    if (itemFlag.equals(ItemFlag.HIDE_ENCHANTS)) continue;
-
+                    if (itemFlag == ItemFlag.HIDE_ENCHANTS) continue;
                     meta.addItemFlags(itemFlag);
                 }
             }
+            if (hideEnchantments) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
-            if (this.skullId != null) {
-                GameProfile gameProfile = GameProfileUtils.createBySkinId(skullId);
-                applyGameProfile(meta, gameProfile);
+            if (this.skullId != null && meta instanceof SkullMeta) {
+                GameProfileUtils.applySkinIdToItem((SkullMeta) meta, skullId);
             }
 
-            if (Version.get().isBiggerThan(Version.v1_11)) meta.setUnbreakable(this.unbreakable);
-            if (Version.get().isBiggerThan(Version.v1_13)) {
-                assert PacketUtils.setCustomModelData != null;
-                PacketUtils.setCustomModelData.invoke(meta, this.customModel);
-            }
-
-            if (Version.get().isBiggerThan(12)) {
-                DamageableValue.setDamage(meta, this.damage);
-            }
+            if (Version.atLeast(12)) meta.setUnbreakable(this.unbreakable);
+            if (Version.atLeast(13)) DamageableValue.setDamage(meta, this.damage);
+            if (Version.atLeast(14)) meta.setCustomModelData(customModel);
 
             if (this.banner != null) BannerValue.apply(meta, this.banner);
 
             item.setItemMeta(meta);
         }
-
-        if (this.enchantments != null) item.addUnsafeEnchantments(this.enchantments);
 
         if (nbt != null) return new NBTTagCompound(item).setNBT(nbt).getItem();
         else return item;
@@ -384,11 +345,8 @@ public class ItemBuilder implements Serializable {
                     }
 
                     case "PotionData": {
-                        Object obj = d.getRaw("PotionData");
-                        if (obj == null) break;
-
-                        PotionData data = PotionData.fromJSONString((String) obj);
-                        setPotionData(data);
+                        PotionData data = d.getSerializable("PotionData", new PotionData());
+                        if (data != null) setPotionData(data);
                         break;
                     }
 
@@ -402,7 +360,7 @@ public class ItemBuilder implements Serializable {
                         try {
                             material = Material.valueOf(name);
                         } catch (IllegalArgumentException ex) {
-                            if (Version.get().isBiggerThan(Version.v1_12)) {
+                            if (Version.atLeast(13)) {
                                 obj = d.get("Data");
                                 byte data = 0;
                                 if (obj != null) data = Byte.parseByte(d.get("Data") + "");
@@ -505,7 +463,7 @@ public class ItemBuilder implements Serializable {
                         if (data.contains("Property_Signature")) {
                             //old
                             setSkullId(GameProfileUtils.extractSkinId(GameProfileUtils.gameProfileFromJSON(data)));
-                        } else setSkullId((String) d.get("SkullOwner"));
+                        } else setSkullId(d.getString("SkullOwner"));
                         break;
                     }
 
@@ -581,7 +539,7 @@ public class ItemBuilder implements Serializable {
         d.put("HideEnchantments", this.hideEnchantments);
         d.put("Unbreakable", this.unbreakable);
         d.put("HideName", this.hideName);
-        d.put("PotionData", this.potionData == null ? null : this.potionData.toJSONString());
+        d.put("PotionData", this.potionData);
 
         d.put("SkullOwner", this.skullId);
         d.put("CustomModel", this.customModel);

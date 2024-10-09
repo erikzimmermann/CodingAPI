@@ -4,9 +4,10 @@ import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import de.codingair.codingapi.server.specification.Type;
+
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -138,6 +139,25 @@ public class IReflection {
     }
 
     @NotNull
+    public static MethodAccessor getMethod(Class<?> target, @Nullable Class<?> returnType, @NotNull Class<?> @NotNull [] parameterTypes, int index, @Nullable Function<Integer, Boolean> checkModifiers) {
+        if (target == null) throw new IllegalArgumentException("Target class cannot be null.");
+
+        Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
+        for (Method method : target.getDeclaredMethods()) {
+            if ((returnType != null && !method.getReturnType().equals(returnType)) || ((primitiveParameter.length != 0 || method.getParameterTypes().length != 0) && !DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter)))
+                continue;
+
+            if (checkModifiers != null && !checkModifiers.apply(method.getModifiers())) continue;
+            if (index-- > 0) continue;
+            return createMethodAccessor(method);
+        }
+        if (target.getSuperclass() != null)
+            return IReflection.getMethod(target.getSuperclass(), returnType, parameterTypes, index, checkModifiers);
+
+        throw new IllegalStateException(String.format("Unable to find method (class=%s, return=%s, paras=%s).", target.getName(), returnType, Arrays.toString(parameterTypes)));
+    }
+
+    @NotNull
     public static MethodAccessor getMethod(Class<?> target, @NotNull Class<?> @NotNull ... parameterTypes) {
         return getMethod(target, null, null, parameterTypes);
     }
@@ -159,25 +179,7 @@ public class IReflection {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && ((primitiveParameter.length == 0 && method.getParameterTypes().length == 0) || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
-                method.setAccessible(true);
-                return new MethodAccessor() {
-
-                    @Override
-                    public Object invoke(Object target, Object... args) {
-                        try {
-                            return method.invoke(target, args);
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (InvocationTargetException e) {
-                            throw new RuntimeException("An internal error occured.", e.getCause());
-                        }
-                    }
-
-                    @Override
-                    public Method getMethod() {
-                        return method;
-                    }
-                };
+                return createMethodAccessor(method);
             }
         if (target.getSuperclass() != null)
             return IReflection.getMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
@@ -189,25 +191,7 @@ public class IReflection {
         Class<?>[] primitiveParameter = DataType.convertToPrimitive(parameterTypes);
         for (Method method : target.getDeclaredMethods())
             if ((methodName == null || method.getName().equals(methodName)) && (returnType == null || method.getReturnType().equals(returnType)) && (primitiveParameter.length == 0 || DataType.equalsArray(DataType.convertToPrimitive(method.getParameterTypes()), primitiveParameter))) {
-                method.setAccessible(true);
-                return new MethodAccessor() {
-
-                    @Override
-                    public Object invoke(Object target, Object... args) {
-                        try {
-                            return method.invoke(target, args);
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException("Cannot use reflection.", e);
-                        } catch (InvocationTargetException e) {
-                            throw new RuntimeException("An internal error occured.", e.getCause());
-                        }
-                    }
-
-                    @Override
-                    public Method getMethod() {
-                        return method;
-                    }
-                };
+                return createMethodAccessor(method);
             }
         if (target.getSuperclass() != null)
             return IReflection.getSaveMethod(target.getSuperclass(), methodName, returnType, parameterTypes);
@@ -215,30 +199,52 @@ public class IReflection {
         return null;
     }
 
-    public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
-        return IReflection.getField(target, fieldName, null, 0, false);
+    private static @NotNull MethodAccessor createMethodAccessor(@NotNull Method method) {
+        method.setAccessible(true);
+        return new MethodAccessor() {
+
+            @Override
+            public Object invoke(Object target, Object... args) {
+                try {
+                    return method.invoke(target, args);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalStateException("Cannot use reflection.", e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException("An internal error occured.", e.getCause());
+                }
+            }
+
+            @Override
+            public Method getMethod() {
+                return method;
+            }
+        };
     }
 
-    public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, double since, Class<T> fieldType, int index, boolean ignoreStatic) {
-        if (Version.atLeast(since)) return IReflection.getField(target, null, fieldType, index, ignoreStatic);
-        return IReflection.getField(target, fieldName, null, 0, ignoreStatic);
+    public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName) {
+        return IReflection.getField(target, fieldName, null, 0, null);
+    }
+
+    public static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, double since, Class<T> fieldType, int index, @Nullable Function<Integer, Boolean> checkModifier) {
+        if (Version.atLeast(since)) return IReflection.getField(target, null, fieldType, index, checkModifier);
+        return IReflection.getField(target, fieldName, null, 0, checkModifier);
     }
 
     public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index) {
-        return IReflection.getField(target, null, fieldType, index, false);
+        return getField(target, fieldType, index, null);
     }
 
-    public static <T> FieldAccessor<T> getNonStaticField(Class<?> target, String fieldName) {
-        return IReflection.getField(target, fieldName, null, 0, true);
+    public static <T> FieldAccessor<T> getField(Class<?> target, Class<T> fieldType, int index, @Nullable Function<Integer, Boolean> checkModifier) {
+        return IReflection.getField(target, null, fieldType, index, checkModifier);
     }
 
     public static <T> FieldAccessor<T> getNonStaticField(Class<?> target, Class<T> fieldType, int index) {
-        return IReflection.getField(target, null, fieldType, index, true);
+        return IReflection.getField(target, null, fieldType, index, m -> !Modifier.isStatic(m));
     }
 
-    private static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, Class<T> fieldType, int index, boolean ignoreStatic) {
+    private static <T> FieldAccessor<T> getField(Class<?> target, String fieldName, Class<T> fieldType, int index, @Nullable Function<Integer, Boolean> checkModifier) {
         for (Field field : target.getDeclaredFields()) {
-            if (ignoreStatic && Modifier.isStatic(field.getModifiers())) continue;
+            if (checkModifier != null && !checkModifier.apply(field.getModifiers())) continue;
 
             if ((fieldName == null || fieldName.equals(field.getName())) && (fieldType == null || (fieldType.isAssignableFrom(field.getType()) && index-- <= 0))) {
                 field.setAccessible(true);
@@ -272,7 +278,7 @@ public class IReflection {
         }
 
         if (target.getSuperclass() != null)
-            return IReflection.getField(target.getSuperclass(), fieldName, fieldType, index, ignoreStatic);
+            return IReflection.getField(target.getSuperclass(), fieldName, fieldType, index, checkModifier);
 
         throw new IllegalStateException(String.format("Unable to find field %s (%s).", fieldName, fieldType));
     }
@@ -378,17 +384,6 @@ public class IReflection {
 
         @NotNull
         private static String minecraftVersion() {
-            if (Version.type().equals(Type.PAPER) && Version.atLeast(20.5)) {
-                switch (Version.get().getShortVersionName()) {
-                    case "1.20.5":
-                    case "1.20.6":
-                        return "1_20_R4";
-                    case "1.21":
-                        return "1_21_R1";
-                    default:
-                        return "UNKNOWN";
-                }
-            }
             String name = Bukkit.getServer().getClass().getPackage().getName();
             if (name.length() > 23) return name.substring(23);
             return "";

@@ -21,7 +21,7 @@ public class ModernBlock {
         UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(
             () -> {
             if(this.data != null) {
-                if(!Version.get().isBiggerThan(Version.v1_12)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
+                if(!Version.atLeast(13)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
                 else {
                     block.setType(material);
                     this.data.setDataTo(block, this.data.getData(block));

@@ -1,136 +1,127 @@
 package de.codingair.codingapi.server.reflections;
 
 import de.codingair.codingapi.server.specification.Version;
-import de.codingair.codingapi.tools.io.lib.JSONObject;
-import de.codingair.codingapi.tools.io.lib.JSONParser;
-import de.codingair.codingapi.tools.io.lib.ParseException;
+import de.codingair.codingapi.tools.io.utils.DataMask;
+import de.codingair.codingapi.tools.io.utils.Serializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionType;
+import org.jetbrains.annotations.NotNull;
 
-public class PotionData {
+public class PotionData implements Serializable {
+    private static IReflection.MethodAccessor potionClass$fromItemStack = null;
+    private static IReflection.MethodAccessor potionClass$getType = null;
+
+    private static IReflection.ConstructorAccessor potionDataConstructor = null;
+    private static IReflection.MethodAccessor potionDataClass$getType = null;
+    private static IReflection.MethodAccessor potionDataClass$isUpgraded = null;
+    private static IReflection.MethodAccessor potionDataClass$isExtended = null;
+
+    private static IReflection.MethodAccessor potionMetaClass$getBasePotionData = null;
+    private static IReflection.MethodAccessor potionMetaClass$setBasePotionData = null;
+
+    static {
+        if (Version.before(9)) {
+            Class<?> potionClass = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "potion.Potion");
+
+            potionClass$fromItemStack = IReflection.getMethod(potionClass, "fromItemStack", potionClass, new Class[]{ItemStack.class});
+
+            potionClass$getType = IReflection.getMethod(potionClass, "getType", PotionType.class, new Class[0]);
+        } else if (Version.before(21)) {
+            Class<?> potionDataClass = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "potion.PotionData");
+            potionDataConstructor = IReflection.getConstructor(potionDataClass, PotionType.class, boolean.class, boolean.class);
+
+            potionDataClass$getType = IReflection.getMethod(potionDataClass, "getType", PotionType.class, new Class[0]);
+            potionDataClass$isUpgraded = IReflection.getMethod(potionDataClass, "isUpgraded", boolean.class, new Class[0]);
+            potionDataClass$isExtended = IReflection.getMethod(potionDataClass, "isExtended", boolean.class, new Class[0]);
+
+            potionMetaClass$getBasePotionData = IReflection.getMethod(PotionMeta.class, "getBasePotionData", PotionType.class, new Class[0]);
+            potionMetaClass$setBasePotionData = IReflection.getMethod(PotionMeta.class, "setBasePotionData", null, new Class[]{PotionType.class});
+        }
+    }
+
     private PotionType type;
     private int level;
-    private boolean splash;
     private boolean extended;
 
-    public PotionData(PotionType type, int level, boolean splash, boolean extended) {
+    public PotionData(PotionType type, int level, boolean extended) {
         this.type = type;
         this.level = level;
-        this.splash = splash;
         this.extended = extended;
     }
 
     public PotionData(ItemStack item) {
-        if(Version.get().isBiggerThan(Version.v1_8)) {
-            if(item.getItemMeta() instanceof PotionMeta) {
-                PotionMeta meta = (PotionMeta) item.getItemMeta();
-                org.bukkit.potion.PotionData data = meta.getBasePotionData();
+        if (!(item.getItemMeta() instanceof PotionMeta)) return;
+        PotionMeta meta = (PotionMeta) item.getItemMeta();
 
-                this.type = data.getType();
-                this.level = data.isUpgraded() ? 2 : 1;
-                this.splash = false;
-                this.extended = data.isExtended();
-            }
+        if (Version.atLeast(21)) {
+            this.type = meta.getBasePotionType();
+        } else if (Version.atLeast(9)) {
+            Object data = potionMetaClass$getBasePotionData.invoke(meta);
+
+            this.type = (PotionType) potionDataClass$getType.invoke(data);
+            this.level = ((boolean) potionDataClass$isUpgraded.invoke(data)) ? 2 : 1;
+            this.extended = (boolean) potionDataClass$isExtended.invoke(data);
         } else {
-            Potion potion = Potion.fromItemStack(item);
-
-            this.type = potion.getType();
-            this.level = potion.getLevel();
-            this.splash = potion.isSplash();
-            this.extended = potion.hasExtendedDuration();
+            // never supported more... ignoring .-.
+            Object potion = potionClass$fromItemStack.invoke(item);
+            this.type = (PotionType) potionClass$getType.invoke(potion);
         }
     }
 
-//    public short toDamageValue() {
-//        if (this.type == PotionType.WATER) {
-//            return 0;
-//        } else {
-//            short damage;
-//            if (this.type == null) {
-//                damage = (short)(this.name == 0 ? 8192 : this.name);
-//            } else {
-//                damage = (short)(this.level - 1);
-//                damage = (short)(damage << 5);
-//                damage |= (short)this.type.getDamageValue();
-//            }
-//
-//            if (this.splash) {
-//                damage = (short)(damage | 16384);
-//            }
-//
-//            if (this.extended) {
-//                damage = (short)(damage | 64);
-//            }
-//
-//            return damage;
-//        }
-//    }
+    public PotionData() {
+    }
 
-    public PotionData(Potion potion) {
-        this.type = potion.getType();
-        this.level = potion.getLevel();
-        this.splash = potion.isSplash();
-        this.extended = potion.hasExtendedDuration();
+    @NotNull
+    public PotionMeta applyTo(@NotNull PotionMeta meta) {
+        if (!isValid()) return meta;
+
+        if (Version.atLeast(21)) {
+            meta.setBasePotionType(this.type);
+        } else if (Version.atLeast(9)) {
+            Object potionData = potionDataConstructor.newInstance(this.type, this.extended, this.level == 2);
+            potionMetaClass$setBasePotionData.invoke(meta, potionData);
+        } else {
+            //noinspection deprecation
+            if (type.getEffectType() != null) {
+                //noinspection deprecation
+                meta.setMainEffect(type.getEffectType());
+            }
+        }
+
+        return meta;
     }
 
     public PotionType getType() {
         return type;
     }
 
+    @Deprecated
     public int getLevel() {
         return level;
     }
 
-    public boolean isSplash() {
-        return splash;
-    }
-
+    @Deprecated
     public boolean isExtended() {
         return extended;
     }
 
-    public PotionMeta getMeta() {
-        if(getPotion() == null) return null;
-        return (PotionMeta) getPotion().toItemStack(1).getItemMeta();
-    }
-
-    public Potion getPotion() {
-        if(this.type == null) return null;
-        return new Potion(this.type, this.level, this.splash, this.extended);
-    }
-
-    public org.bukkit.potion.PotionData getBukkitData() {
-        return new org.bukkit.potion.PotionData(this.type, this.extended, this.level == 2);
-    }
-
-    public boolean isCorrect() {
+    public boolean isValid() {
         return this.type != null;
     }
 
-    public String toJSONString() {
-        JSONObject object = new JSONObject();
-        object.put("Type", this.type.name());
-        object.put("Level", this.level);
-        object.put("Splash", this.splash);
-        object.put("Extended", this.extended);
-        return object.toJSONString();
+    @Override
+    public boolean read(DataMask d) throws Exception {
+        this.type = PotionType.valueOf(d.getString("Type"));
+        this.level = d.getInteger("Level");
+        this.extended = d.getBoolean("Extended");
+        return true;
     }
 
-    public static PotionData fromJSONString(String code) {
-        try {
-            JSONObject json = (JSONObject) new JSONParser().parse(code);
-
-            PotionType type = PotionType.valueOf((String) json.get("Type"));
-            int level = Integer.parseInt(json.get("Level") + "");
-            boolean splash = (boolean) json.get("Splash");
-            boolean extended = (boolean) json.get("Extended");
-
-            return new PotionData(type, level, splash, extended);
-        } catch(ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
+    @Override
+    public void write(DataMask d) {
+        d.put("Type", this.type.name());
+        d.put("Level", this.level);
+        d.put("Extended", this.extended);
     }
 }

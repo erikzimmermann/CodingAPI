@@ -25,6 +25,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class Hologram implements Removable {
@@ -216,7 +217,7 @@ public class Hologram implements Removable {
         this.location.add(0, this.text.size() * DISTANCE, 0);
 
         for (Object entity : this.entities) {
-            HologramPackets.setLocation(entity, location);
+            HologramPackets.setLocation(entity, this.location);
             HologramPackets.teleport(entity, this.location, this.initiatedPlayers.keySet().toArray(new Player[0]));
             this.location.subtract(0, DISTANCE, 0);
         }
@@ -551,12 +552,16 @@ public class Hologram implements Removable {
         private final static IReflection.MethodAccessor setVisible = IReflection.getSaveMethod(ArmorStand.class, "setVisible", null, boolean.class);
         private final static IReflection.FieldAccessor<Boolean> invulnerableField;
         private final static Class<?> dataWatcherItemClass;
-        private final static Class<?> dataWatcherBClass;
+        private final static Class<?> dataWatcherDataValueClass;
         private final static IReflection.MethodAccessor getDataWatcherItem;
         private final static IReflection.MethodAccessor serializeItem;
         private final static IReflection.MethodAccessor getDataWatcher;
-        private final static IReflection.MethodAccessor setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPosition", 18, "c", 19.3, "p", 20.5, "setPos"), new Class[]{double.class, double.class, double.class});
+        private final static IReflection.MethodAccessor setPosition;
         private final static IReflection.FieldAccessor<?> world = IReflection.getField(PacketUtils.EntityClass, PacketUtils.WorldClass, 0);
+        private final static IReflection.ConstructorAccessor SPAWN_PACKET_CONSTRUCTOR;
+        private final static IReflection.ConstructorAccessor DESTROY_PACKET_CONSTRUCTOR;
+        private final static IReflection.ConstructorAccessor TELEPORT_PACKET_CONSTRUCTOR;
+        private final static IReflection.ConstructorAccessor ARMOR_STAND_CONSTRUCTOR;
 
         static {
             if (Version.atMost(8)) {
@@ -564,18 +569,48 @@ public class Hologram implements Removable {
             } else invulnerableField = null;
 
             if (Version.atLeast(19.3)) {
-                dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$Item", 20.5, "SynchedEntityData$DataItem"));
-                dataWatcherBClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("DataWatcher$b", 20.5, "SynchedEntityData$DataValue"));
+                dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataItem", "DataWatcher$Item"));
+                dataWatcherDataValueClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataValue", "DataWatcher$b", 20.5, "DataWatcher$c"));
                 getDataWatcherItem = IReflection.getMethod(PacketUtils.DataWatcherClass, dataWatcherItemClass, new Class[]{PacketUtils.DataWatcherObjectClass});
-                serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherBClass, new Class[0]);
+                serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherDataValueClass, new Class[0]);
             } else {
                 dataWatcherItemClass = null;
-                dataWatcherBClass = null;
+                dataWatcherDataValueClass = null;
                 getDataWatcherItem = null;
                 serializeItem = null;
             }
 
+            if (Version.atLeast(21)) {
+                setPosition = IReflection.getMethod(PacketUtils.EntityClass, null, new Class[]{double.class, double.class, double.class}, 0, m -> Modifier.isPublic(m) && Modifier.isFinal(m));
+            } else {
+                setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.3, "p"), new Class[]{double.class, double.class, double.class});
+            }
+
             getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.DataWatcherClass, new Class[]{});
+
+            if (Version.atLeast(21)) {
+                SPAWN_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass, int.class, PacketUtils.BlockPositionClass);
+            } else if (Version.atLeast(19)) {
+                SPAWN_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass);
+            } else
+                SPAWN_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
+            if (SPAWN_PACKET_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
+
+            if (Version.equals(17))
+                DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int.class);
+            else
+                DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
+            if (DESTROY_PACKET_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
+
+            if (Version.atLeast(17)) {
+                TELEPORT_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityTeleportClass, PacketUtils.EntityClass);
+                if (TELEPORT_PACKET_CONSTRUCTOR == null)
+                    throw new NullPointerException("Constructor could not be found.");
+            } else TELEPORT_PACKET_CONSTRUCTOR = null;
+
+            Class<?> entity = getArmorStandClass();
+            ARMOR_STAND_CONSTRUCTOR = IReflection.getConstructor(entity, PacketUtils.WorldServerClass, double.class, double.class, double.class);
+            if (ARMOR_STAND_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
         }
 
         @NmsLoader
@@ -649,31 +684,29 @@ public class Hologram implements Removable {
 
         public static void destroy(Player player, Object armorStand) {
             Object packet;
-            if (Version.get() == Version.v1_17) {
-                IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int.class);
-                assert con != null;
-                packet = con.newInstance(PacketUtils.EntityPackets.getId(armorStand));
+            if (Version.equals(17)) {
+                packet = DESTROY_PACKET_CONSTRUCTOR.newInstance(PacketUtils.EntityPackets.getId(armorStand));
             } else {
-                IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
-                assert con != null;
-                packet = con.newInstance((Object) new int[]{PacketUtils.EntityPackets.getId(armorStand)});
+                packet = DESTROY_PACKET_CONSTRUCTOR.newInstance(new int[]{PacketUtils.EntityPackets.getId(armorStand)});
             }
 
             PacketUtils.sendPacket(packet, player);
         }
 
         public static void spawn(Player player, Object armorStand) {
-            IReflection.ConstructorAccessor con;
-            if (Version.atLeast(19))
-                con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityClass, PacketUtils.EntityLivingClass);
-            else
-                con = IReflection.getConstructor(PacketUtils.PacketPlayOutSpawnEntityLivingClass, PacketUtils.EntityLivingClass);
-            assert con != null;
+            Object packet;
+            if (Version.atLeast(21)) {
+                Location l = bukkit(armorStand).getLocation();
+                packet = SPAWN_PACKET_CONSTRUCTOR.newInstance(armorStand, 0, PacketUtils.getBlockPosition(l));
 
-            Object packet = con.newInstance(armorStand);
+                // overwrite x, y, z coordinates (we use a simpler constructor to avoid using a lot of nms methods)
+                IReflection.getNonStaticField(packet.getClass(), double.class, 0).set(packet, l.getX());
+                IReflection.getNonStaticField(packet.getClass(), double.class, 1).set(packet, l.getY());
+                IReflection.getNonStaticField(packet.getClass(), double.class, 2).set(packet, l.getZ());
+            } else packet = SPAWN_PACKET_CONSTRUCTOR.newInstance(armorStand);
             PacketUtils.sendPacket(packet, player);
 
-            if (Version.get().isBiggerThan(Version.v1_14)) sendDataWatcher(player, armorStand);
+            if (Version.atLeast(15)) sendDataWatcher(player, armorStand);
         }
 
         public static void setLocation(Object armorStand, Location location) {
@@ -684,9 +717,7 @@ public class Hologram implements Removable {
         public static void teleport(Object armorStand, Location location, Player... players) {
             if (Version.atLeast(17)) {
                 //set location before sending this packet
-                IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityTeleportClass, PacketUtils.EntityClass);
-                assert con != null;
-                Object packet = con.newInstance(armorStand);
+                Object packet = TELEPORT_PACKET_CONSTRUCTOR.newInstance(armorStand);
 
                 PacketUtils.sendPacket(packet, players);
             } else {
@@ -696,11 +727,7 @@ public class Hologram implements Removable {
         }
 
         public static Object createArmorStand(Location location) {
-            Class<?> entity = getArmorStandClass();
-
-            IReflection.ConstructorAccessor con = IReflection.getConstructor(entity, PacketUtils.WorldServerClass, double.class, double.class, double.class);
-            assert con != null;
-            return con.newInstance(PacketUtils.getWorldServer(location.getWorld()), location.getX(), location.getY(), location.getZ());
+            return ARMOR_STAND_CONSTRUCTOR.newInstance(PacketUtils.getWorldServer(location.getWorld()), location.getX(), location.getY(), location.getZ());
         }
 
         @NotNull

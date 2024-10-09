@@ -4,10 +4,7 @@ import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.hotbar.components.ItemComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
@@ -19,13 +16,10 @@ import org.bukkit.plugin.Plugin;
 
 public class EventListener implements Listener {
     private static EventListener instance;
-    private static boolean registered = false;
 
     public static void register(Plugin plugin) {
-        if (registered) return;
-
+        if (instance != null) HandlerList.unregisterAll(instance);
         Bukkit.getPluginManager().registerEvents(instance = new EventListener(), plugin);
-        registered = true;
     }
 
     public static EventListener getInstance() {
@@ -40,8 +34,10 @@ public class EventListener implements Listener {
         ItemComponent oldSlot = gui.getItem(e.getPreviousSlot());
         ItemComponent newSlot = gui.getItem(e.getNewSlot());
 
-        if (oldSlot != null && oldSlot.getAction() != null) oldSlot.getAction().onUnhover(gui, oldSlot, newSlot, e.getPlayer());
-        if (newSlot != null && newSlot.getAction() != null) newSlot.getAction().onHover(gui, oldSlot, newSlot, e.getPlayer());
+        if (oldSlot != null && oldSlot.getAction() != null)
+            oldSlot.getAction().onUnhover(gui, oldSlot, newSlot, e.getPlayer());
+        if (newSlot != null && newSlot.getAction() != null)
+            newSlot.getAction().onHover(gui, oldSlot, newSlot, e.getPlayer());
     }
 
     @EventHandler
@@ -75,7 +71,8 @@ public class EventListener implements Listener {
             if (ic.getClickSound() != null && !ic.isSilent()) ic.getClickSound().play(e.getPlayer());
             else if (gui.getClickSound() != null && !ic.isSilent()) gui.getClickSound().play(e.getPlayer());
             //DO ACTION
-            if (ic.getAction() != null) ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
+            if (ic.getAction() != null)
+                ic.getAction().onClick(gui, ic, e.getPlayer(), ClickType.getByAction(e.getAction(), e.getPlayer()));
 
             //CLOSE
             if (ic.isCloseOnClick() && ic.getLink() == null) {
@@ -92,7 +89,8 @@ public class EventListener implements Listener {
                 ic.getLink().setBackup(gui.getBackup());
                 ic.getLink().open(false);
                 ic.getLink().setLastClick(System.currentTimeMillis());
-                if (ic.getLink().getLastTriggeredSlot() != -1 && ic.getLink().getStartSlot() == -1) e.getPlayer().getInventory().setHeldItemSlot(ic.getLink().getLastTriggeredSlot());
+                if (ic.getLink().getLastTriggeredSlot() != -1 && ic.getLink().getStartSlot() == -1)
+                    e.getPlayer().getInventory().setHeldItemSlot(ic.getLink().getLastTriggeredSlot());
             }
         }
     }
@@ -121,7 +119,7 @@ public class EventListener implements Listener {
 
     }
 
-    @EventHandler (priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onInvClick(InventoryClickEvent e) {
         for (HotbarGUI h : API.getRemovables((Player) e.getWhoClicked(), HotbarGUI.class)) {
             if ((h = API.getRemovable((Player) e.getWhoClicked(), HotbarGUI.class)) != null) {
