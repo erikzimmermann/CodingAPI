@@ -1,5 +1,7 @@
 package de.codingair.codingapi.player;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
@@ -20,7 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -52,7 +53,7 @@ public class Hologram implements Removable {
     private Location source;
     private Location location;
     private boolean visible = false;
-    private BukkitRunnable runnable;
+    private UniversalRunnable runnable;
 
     @NmsLoader
     private Hologram() {
@@ -98,7 +99,8 @@ public class Hologram implements Removable {
                 if (e.getTo() == null) return;
                 if (e.getFrom().getWorld() != e.getTo().getWorld()) return;
 
-                Bukkit.getScheduler().runTaskLater(API.getInstance().getMainPlugin(), () -> {
+                UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTaskLater(
+                    () -> {
                     List<Hologram> l = API.getRemovables(null, Hologram.class);
                     for (Hologram hologram : l) {
                         if (hologram.isNotWatching(e.getPlayer())) continue;
@@ -190,7 +192,7 @@ public class Hologram implements Removable {
 
     private void initializeRunnable() {
         if (updateInterval > 0) {
-            this.runnable = new BukkitRunnable() {
+            this.runnable = new UniversalRunnable() {
                 @Override
                 public void run() {
                     List<Player> watchList = new ArrayList<>(Hologram.this.watchList);
@@ -202,7 +204,6 @@ public class Hologram implements Removable {
                     update(null);
                 }
             };
-
             this.runnable.runTaskTimer(plugin, 0, updateInterval);
         }
     }
@@ -319,7 +320,7 @@ public class Hologram implements Removable {
                     for (Object entity : armorStands) {
                         int id = PacketUtils.EntityPackets.getId(entity);
                         if (id == clicked) {
-                            Bukkit.getScheduler().runTask(Hologram.this.getPlugin(), () ->
+                            UniversalScheduler.getScheduler(Hologram.this.getPlugin()).runTask(() ->
                                     Bukkit.getPluginManager().callEvent(
                                             new PlayerInteractEvent(player, a, player.getInventory().getItem(player.getInventory().getHeldItemSlot()), null, BlockFace.UP)
                                     )
