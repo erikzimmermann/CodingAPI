@@ -1438,7 +1438,7 @@ public enum Sound {
      */
     public void stopSound(@Nonnull Player player) {
         Objects.requireNonNull(player, "Cannot stop playing sound from null player");
-        if (!Version.get().isBiggerThan(8)) return;
+        if (!Version.atLeast(9)) return;
 
         org.bukkit.Sound sound = this.parseSound();
         if (sound != null) player.stopSound(sound);

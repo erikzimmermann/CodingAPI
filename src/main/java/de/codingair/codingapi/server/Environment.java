@@ -6,21 +6,20 @@ import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.sounds.Sound;
 import de.codingair.codingapi.server.specification.Version;
-import org.bukkit.*;
+import org.bukkit.Chunk;
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class Environment {
@@ -30,7 +29,7 @@ public class Environment {
     }
 
     public static boolean isWaterFluid(Block b) {
-        if(Version.get().isBiggerThan(12)) {
+        if (Version.atLeast(13)) {
             if (b.getBlockData() instanceof Waterlogged) {
                 Waterlogged w = (Waterlogged) b.getBlockData();
                 return w.isWaterlogged() && !b.getType().isSolid();
@@ -44,36 +43,6 @@ public class Environment {
         return canBeEntered(b.getType()) || isWaterFluid(b);
     }
 
-    public static void playRandomFireworkEffect(Location loc) {
-        Random r = new Random();
-        int rt = r.nextInt(2) + 1;
-        FireworkEffect.Type type = FireworkEffect.Type.BALL;
-        if(rt == 1) type = FireworkEffect.Type.BALL;
-        if(rt == 2) type = FireworkEffect.Type.BALL_LARGE;
-
-        int r1i = r.nextInt(17) + 1;
-        int r2i = r.nextInt(17) + 1;
-        org.bukkit.Color c1 = getColor(r1i);
-        org.bukkit.Color c2 = getColor(r2i);
-
-        FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type).trail(r.nextBoolean()).build();
-
-        Firework fw;
-
-        try {
-            fw = (Firework) loc.getWorld().spawnEntity(loc, EntityType.FIREWORK);
-        } catch(Exception ex) {
-            return;
-        }
-
-        FireworkMeta fwm = fw.getFireworkMeta();
-        fwm.setPower(1);
-
-        fwm.addEffect(effect);
-
-        fw.setFireworkMeta(fwm);
-    }
-
     private static final Cache<Material, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .softValues()
@@ -81,18 +50,18 @@ public class Environment {
 
     public static Sound getBreakSoundOf(Block b) {
         Optional<Sound> cachedSound = CACHE.getIfPresent(b.getType());
-        if (cachedSound != null) return cachedSound.orElse(null);
+        if (cachedSound != null && cachedSound.isPresent()) return cachedSound.orElse(null);
 
         Object w = PacketUtils.getWorldServer(b.getWorld());
 
-        IReflection.MethodAccessor getType = IReflection.getMethod(PacketUtils.WorldServerClass, "getType", PacketUtils.IBlockDataClass, new Class[] {PacketUtils.BlockPositionClass});
+        IReflection.MethodAccessor getType = IReflection.getMethod(PacketUtils.WorldServerClass, "getType", PacketUtils.IBlockDataClass, new Class[]{PacketUtils.BlockPositionClass});
         Object blockType = getType.invoke(w, PacketUtils.getBlockPosition(b.getLocation()));
 
-        IReflection.MethodAccessor getBlock = IReflection.getMethod(PacketUtils.IBlockDataClass, "getBlock", PacketUtils.BlockClass, new Class[] {});
+        IReflection.MethodAccessor getBlock = IReflection.getMethod(PacketUtils.IBlockDataClass, "getBlock", PacketUtils.BlockClass, new Class[]{});
         Object block = getBlock.invoke(blockType);
 
         String key;
-        if(Version.get().isBiggerThan(Version.v1_8)) {
+        if (Version.atLeast(9)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
             Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "SoundEffectType");
@@ -101,43 +70,13 @@ public class Environment {
 
             Object soundEffectType = getSoundEffectType.get(block);
 
-            String f;
-            switch(Version.get()) {
-                case v1_15:
-                    f = "z";
-                    break;
-                case v1_14:
-                    f = "y";
-                    break;
-                case v1_13:
-                    f = "q";
-                    break;
-                default:
-                    f = "o";
-                    break;
-            }
-
-            IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, f);
+            IReflection.FieldAccessor<?> getSoundEffect = IReflection.getField(soundEffectTypeClass, Version.choose("o", 13, "q", 14, "y", 15, "z"));
             Object soundEffect = getSoundEffect.get(soundEffectType);
 
-            switch(Version.get()) {
-                case v1_15:
-                case v1_14:
-                case v1_13:
-                    f = "a";
-                    break;
-                default:
-                    f = "b";
-                    break;
-            }
-
-            IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, f);
+            IReflection.FieldAccessor<?> getMCKey = IReflection.getField(soundEffectClass, Version.choose("b", 13, "a", 16, "b"));
             Object mcKey = getMCKey.get(soundEffect);
 
-            if(Version.get().isBiggerThan(Version.v1_14)) f = "key";
-            else f = "a";
-
-            IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, f);
+            IReflection.FieldAccessor<String> getKey = IReflection.getField(minecraftKeyClass, Version.choose("a", 15, "key"));
             key = getKey.get(mcKey);
         } else {
             IReflection.FieldAccessor<?> getStepSound = IReflection.getField(PacketUtils.BlockClass, "stepSound");
@@ -147,7 +86,7 @@ public class Environment {
             Object stepSound = getStepSound.get(block);
             key = (String) breakSound.invoke(stepSound);
 
-            if(b.getType().name().contains("GLASS")) {
+            if (b.getType().name().contains("GLASS")) {
                 key = key.substring(4);
             }
         }
@@ -161,29 +100,29 @@ public class Environment {
     public static org.bukkit.Color getColor(int i) {
         org.bukkit.Color c = null;
 
-        if(i == 1) c = org.bukkit.Color.AQUA;
-        if(i == 2) c = org.bukkit.Color.BLACK;
-        if(i == 3) c = org.bukkit.Color.BLUE;
-        if(i == 4) c = org.bukkit.Color.FUCHSIA;
-        if(i == 5) c = org.bukkit.Color.GRAY;
-        if(i == 6) c = org.bukkit.Color.GREEN;
-        if(i == 7) c = org.bukkit.Color.LIME;
-        if(i == 8) c = org.bukkit.Color.MAROON;
-        if(i == 9) c = org.bukkit.Color.NAVY;
-        if(i == 10) c = org.bukkit.Color.OLIVE;
-        if(i == 11) c = org.bukkit.Color.ORANGE;
-        if(i == 12) c = org.bukkit.Color.PURPLE;
-        if(i == 13) c = org.bukkit.Color.RED;
-        if(i == 14) c = org.bukkit.Color.SILVER;
-        if(i == 15) c = org.bukkit.Color.TEAL;
-        if(i == 16) c = org.bukkit.Color.WHITE;
-        if(i == 17) c = Color.YELLOW;
+        if (i == 1) c = org.bukkit.Color.AQUA;
+        if (i == 2) c = org.bukkit.Color.BLACK;
+        if (i == 3) c = org.bukkit.Color.BLUE;
+        if (i == 4) c = org.bukkit.Color.FUCHSIA;
+        if (i == 5) c = org.bukkit.Color.GRAY;
+        if (i == 6) c = org.bukkit.Color.GREEN;
+        if (i == 7) c = org.bukkit.Color.LIME;
+        if (i == 8) c = org.bukkit.Color.MAROON;
+        if (i == 9) c = org.bukkit.Color.NAVY;
+        if (i == 10) c = org.bukkit.Color.OLIVE;
+        if (i == 11) c = org.bukkit.Color.ORANGE;
+        if (i == 12) c = org.bukkit.Color.PURPLE;
+        if (i == 13) c = org.bukkit.Color.RED;
+        if (i == 14) c = org.bukkit.Color.SILVER;
+        if (i == 15) c = org.bukkit.Color.TEAL;
+        if (i == 16) c = org.bukkit.Color.WHITE;
+        if (i == 17) c = Color.YELLOW;
 
         return c;
     }
 
     public static void dropItem(ItemStack item, Player p) {
-        if(item == null || item.getType().equals(Material.AIR)) return;
+        if (item == null || item.getType().equals(Material.AIR)) return;
 
         Location loc = p.getLocation();
         loc.setY(loc.getY() + 1.32);
@@ -204,17 +143,17 @@ public class Environment {
 
     public static List<Chunk> getChunks(Location mid, int chunkRadius) {
         List<Chunk> chunks = new ArrayList<>();
-        if(chunkRadius <= 0) return chunks;
+        if (chunkRadius <= 0) return chunks;
 
         int startX = floor(mid.getBlockX() / 16D);
         int startZ = floor(mid.getBlockZ() / 16D);
         chunkRadius--;
 
-        for(int z = startZ - chunkRadius; z <= startZ + chunkRadius; z++) {
-            for(int x = startX - chunkRadius; x <= startX + chunkRadius; x++) {
+        for (int z = startZ - chunkRadius; z <= startZ + chunkRadius; z++) {
+            for (int x = startX - chunkRadius; x <= startX + chunkRadius; x++) {
                 try {
                     chunks.add(mid.getWorld().getChunkAt(x, z));
-                } catch(Throwable ignored) {
+                } catch (Throwable ignored) {
                 }
             }
         }
@@ -228,13 +167,13 @@ public class Environment {
     }
 
     public static boolean isSlab(Block block) {
-        if(block == null) return false;
+        if (block == null) return false;
 
         return block.getType().name().contains("SLAB") || block.getType().name().contains("STEP");
     }
 
     public static double getBlockHeight(Block block) {
-        if(block == null) return 0;
+        if (block == null) return 0;
 
         return block.getType().name().contains("SLAB") || block.getType().name().contains("STEP") ? 0.5 : 1;
     }
@@ -242,10 +181,10 @@ public class Environment {
     public static List<Block> getNearbyBlocks(Location location, int radius, boolean yAxis) {
         List<Block> blocks = new ArrayList<>();
 
-        for(int x = location.getBlockX() - radius; x <= location.getBlockX() + radius; x++) {
-            for(int z = location.getBlockZ() - radius; z <= location.getBlockZ() + radius; z++) {
-                if(yAxis) {
-                    for(int y = location.getBlockY() - radius; y <= location.getBlockY() + radius; y++) {
+        for (int x = location.getBlockX() - radius; x <= location.getBlockX() + radius; x++) {
+            for (int z = location.getBlockZ() - radius; z <= location.getBlockZ() + radius; z++) {
+                if (yAxis) {
+                    for (int y = location.getBlockY() - radius; y <= location.getBlockY() + radius; y++) {
                         blocks.add(location.getWorld().getBlockAt(x, y, z));
                     }
                 } else {
@@ -262,12 +201,12 @@ public class Environment {
 
         int bX = center.getBlockX(), bY = center.getBlockY(), bZ = center.getBlockZ();
 
-        for(int x = bX - radius; x <= bX + radius; x++) {
-            for(int y = bY - height; y <= bY + height; y++) {
-                for(int z = bZ - radius; z <= bZ + radius; z++) {
+        for (int x = bX - radius; x <= bX + radius; x++) {
+            for (int y = bY - height; y <= bY + height; y++) {
+                for (int z = bZ - radius; z <= bZ + radius; z++) {
                     double distance = Math.sqrt(Math.pow(bX - x, 2) + Math.pow(bY - y, 2) + Math.pow(bZ - z, 2));
 
-                    if(distance < radius && !(hollow && distance < (radius - 1))) {
+                    if (distance < radius && !(hollow && distance < (radius - 1))) {
                         circle.add(new Location(center.getWorld(), x, y, z).getBlock());
                     }
                 }
@@ -278,18 +217,18 @@ public class Environment {
     }
 
     public static Block getNextBottomBlock(Location location) {
-        while(location.getBlock() == null || !isBlock(location.getBlock())) {
+        while (location.getBlock() == null || !isBlock(location.getBlock())) {
             location.setY(location.getY() - 1);
-            if(location.getY() <= 0) return null;
+            if (location.getY() <= 0) return null;
         }
 
         return location.getBlock();
     }
 
     public static Block getNextTopBlock(Location location, int max) {
-        while(location.getBlock() == null || !isBlock(location.getBlock())) {
+        while (location.getBlock() == null || !isBlock(location.getBlock())) {
             location.setY(location.getY() + 1);
-            if(location.getY() >= max) return null;
+            if (location.getY() >= max) return null;
         }
 
         return location.getBlock();
@@ -298,8 +237,8 @@ public class Environment {
     public static Block getNextNonSolidBlock(Location location, int max, Vector vector) {
         vector.normalize();
 
-        for(int i = 0; i < max; i++) {
-            if(location.getBlock().getType().isSolid()) location.add(vector);
+        for (int i = 0; i < max; i++) {
+            if (location.getBlock().getType().isSolid()) location.add(vector);
             else break;
         }
 
@@ -309,7 +248,7 @@ public class Environment {
     public static Block getHeighestBlock(Location location, int max, boolean onlySolid) {
         location.setY(max);
 
-        while((onlySolid || location.getBlock().getType() == Material.AIR) && (!onlySolid || !location.getBlock().getType().isSolid())) {
+        while ((onlySolid || location.getBlock().getType() == Material.AIR) && (!onlySolid || !location.getBlock().getType().isSolid())) {
             location.setY(location.getY() - 1);
         }
 
@@ -317,10 +256,10 @@ public class Environment {
     }
 
     public static Block getNextBottomBlock(Location location, boolean ignoreTransparency) {
-        if(!ignoreTransparency) return getNextBottomBlock(location);
+        if (!ignoreTransparency) return getNextBottomBlock(location);
 
         Block b;
-        while((b = getNextBottomBlock(location)) != null && !b.getType().isOccluding()) {
+        while ((b = getNextBottomBlock(location)) != null && !b.getType().isOccluding()) {
             location.setY(location.getY() - 1);
         }
 
@@ -328,10 +267,10 @@ public class Environment {
     }
 
     public static Block getNextTopBlock(Location location, int max, boolean ignoreTransparency) {
-        if(!ignoreTransparency) return getNextTopBlock(location, max);
+        if (!ignoreTransparency) return getNextTopBlock(location, max);
 
         Block b;
-        while((b = getNextTopBlock(location, max)) != null && !b.getType().isOccluding()) {
+        while ((b = getNextTopBlock(location, max)) != null && !b.getType().isOccluding()) {
             location.setY(location.getY() + 1);
         }
 
@@ -347,9 +286,9 @@ public class Environment {
         double originalLength = v.length();
         double length = v.normalize().length();
 
-        for(double i = 0; i <= originalLength; i += length) {
-            if(!blocks.contains(c.getBlock()) && isBlock(c.getBlock())) {
-                if(ignoreTransparency && (!c.getBlock().getType().isSolid() || c.getBlock().getType().isTransparent()))
+        for (double i = 0; i <= originalLength; i += length) {
+            if (!blocks.contains(c.getBlock()) && isBlock(c.getBlock())) {
+                if (ignoreTransparency && (!c.getBlock().getType().isSolid() || c.getBlock().getType().isTransparent()))
                     continue;
                 blocks.add(c.getBlock());
             }
@@ -370,24 +309,24 @@ public class Environment {
     }
 
     public static void openChest(Location loc, Player... players) {
-        if(loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
+        if (loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
 
         Object pos = PacketUtils.getBlockPosition(loc);
         IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutBlockActionClass, PacketUtils.BlockPositionClass, PacketUtils.BlockClass, int.class, int.class);
         Object packet = con.newInstance(pos, PacketUtils.Blocks.findByName("CHEST"), 1, 1);
 
-        if(players.length == 0) PacketUtils.sendPacketToAll(packet);
+        if (players.length == 0) PacketUtils.sendPacketToAll(packet);
         else PacketUtils.sendPacket(packet, players);
     }
 
     public static void closeChest(Location loc, Player... players) {
-        if(loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
+        if (loc.getBlock() == null || !loc.getBlock().getType().equals(Material.CHEST)) return;
 
         Object pos = PacketUtils.getBlockPosition(loc);
         IReflection.ConstructorAccessor con = IReflection.getConstructor(PacketUtils.PacketPlayOutBlockActionClass, PacketUtils.BlockPositionClass, PacketUtils.BlockClass, int.class, int.class);
         Object packet = con.newInstance(pos, PacketUtils.Blocks.findByName("CHEST"), 1, 0);
 
-        if(players.length == 0) PacketUtils.sendPacketToAll(packet);
+        if (players.length == 0) PacketUtils.sendPacketToAll(packet);
         else PacketUtils.sendPacket(packet, players);
     }
 }

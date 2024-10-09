@@ -1,6 +1,5 @@
 package de.codingair.codingapi.server.specification;
 
-import de.codingair.codingapi.API;
 import de.codingair.codingapi.server.reflections.IReflection;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -8,72 +7,39 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public enum Version {
-    UNKNOWN(0),
-    v1_7(7),
-    v1_8(8),
-    v1_9(9),
-    v1_10(10),
-    v1_11(11),
-    v1_12(12),
-    v1_13(13),
-    v1_14(14),
-    v1_15(15),
-    v1_16(16),
-    v1_17(17),
-    v1_17_1(17.1),
-    v1_18(18, 18.1),
-    v1_18_2(18.2),
-    v1_19(19),
-    v1_19_1(19.1),
-    v1_19_2(19.2),
-    v1_19_3(19.3),
-    v1_19_4(19.4),
-    v1_20(20, 20.1),
-    v1_20_2(20.2),
-    v1_20_4(20.4),
-    v1_20_6(20.5, 20.6),
-    v1_21_1(21)
-    ;
-
-    private static boolean supportWarning = true;
-    private static Version VERSION = null;
-    private static String NAME = null;
-    private static String SPECIFICATION = null;
-    private static Type TYPE = Type.UNKNOWN;
+public class Version {
+    private static Double version = null;
+    private static String name = null;
+    private static String specification = null;
+    private static Type type = Type.UNKNOWN;
 
     static {
         load();
     }
 
-    private final double[] id;
-
-    Version(double... id) {
-        this.id = id;
+    private Version() {
     }
 
     private static void load() {
-        if (VERSION == null) {
+        if (version == null) {
             if (ServerBuildInfo.isAvailable()) {
-                TYPE = Type.PAPER;
-                NAME = "Paper";
-                SPECIFICATION = ServerBuildInfo.minecraftVersionName();
+                type = Type.PAPER;
+                name = "Paper";
+                specification = ServerBuildInfo.minecraftVersionName();
 
-                double version = Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
-                VERSION = byId(version);
+                version = Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
             } else {
                 // version
                 String bukkitVersion = Bukkit.getVersion();
 
-                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?\\.\\d\\d?");
+                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d?)?");
                 Matcher match = p.matcher(bukkitVersion);
                 if (match.find()) {
-                    double version = Double.parseDouble(match.group().substring(7));
-                    VERSION = byId(version);
+                    version = Double.parseDouble(match.group().substring(7));
                 }
 
                 // specification
-                SPECIFICATION = Bukkit.getVersion();
+                specification = Bukkit.getVersion();
 
                 // server type
                 try {
@@ -84,78 +50,56 @@ public enum Version {
                         int to = bukkitVersion.indexOf("-", from);
 
                         if (to >= 0) {
-                            NAME = bukkitVersion.substring(from, to);
-                            TYPE = Type.getByName(NAME);
+                            name = bukkitVersion.substring(from, to);
+                            type = Type.getByName(name);
                         }
                     }
-                } catch (StringIndexOutOfBoundsException ignored) {
+                } catch (Exception ignored) {
                 }
             }
         }
     }
 
-    public static Version get() {
-        return VERSION;
+    public static double get() {
+        if (version == null) throw new IllegalStateException("Version could not be loaded.");
+        return version;
+    }
+
+    public static String versionTag() {
+        return "1." + version;
+    }
+
+    public static String fullVersion() {
+        if (name == null || name.equals(type.toString())) return type + " (" + specification + ")";
+        return name + " (" + specification + ", " + type + ")";
     }
 
     public static Type type() {
-        return TYPE;
+        return type;
     }
 
     public static boolean atLeast(double version) {
-        return get().id[get().id.length - 1] >= version;
+        return version <= get();
+    }
+
+    public static boolean after(double version) {
+        return version < get();
     }
 
     public static boolean atMost(double version) {
-        return get().id[0] <= version;
-    }
-
-    public static boolean later(double version) {
-        return get().id[0] < version;
+        return get() <= version;
     }
 
     public static boolean before(double version) {
-        return get().id[0] < version;
+        return get() < version;
     }
 
-    @Deprecated
-    public static boolean less(double version) {
-        return before(version);
+    public static boolean equals(double version) {
+        return get() == version;
     }
 
     public static boolean between(double min, double max) {
         return atLeast(min) && atMost(max);
-    }
-
-    private static @NotNull Version byId(double version) {
-        Version highest = null;
-        for (Version value : Version.values()) {
-            for (double id : value.id) {
-                if (id == version) return value;
-            }
-
-            highest = value;
-        }
-
-        //1.16.5 -> 1.16
-        int casted = (int) version;
-        if (highest != null && ((int) highest.id[highest.id.length - 1]) == casted) return highest;
-
-        for (Version value : Version.values()) {
-            for (double id : value.id) {
-                if (id == casted) return value;
-            }
-        }
-
-        if (highest != null && version > highest.getId()) {
-            if (supportWarning) {
-                API.getInstance().getMainPlugin().getLogger().warning("Detected version " + version + " which is not yet fully supported (highest: " + highest.getId() + ")! Use with caution!");
-                supportWarning = false;
-            }
-            return highest;
-        }
-
-        throw new IllegalArgumentException("Version not found: " + version);
     }
 
     public static <T> T choose(T def, double version1, T value1) {
@@ -188,51 +132,56 @@ public enum Version {
 
             if (version == -1) continue;
             if (version == 0) return values[i - 1];
-
-            int diff = Version.get().ordinal() - byId(version).ordinal();
-            if (diff < 0) return values[i - 1];
+            if (before(version)) return values[i - 1];
         }
 
         return values[values.length - 1];
     }
 
-    @SafeVarargs
-    public static <T> T since(double version, T old, T... updated) {
-        Version v = byId(version);
+    public static <T> T choose(T mojangMapped, T def) {
+        return choose(mojangMapped, def, 0, null);
+    }
 
-        int diff = Version.get().ordinal() - v.ordinal();
-        if (diff >= 0) {
-            if (diff >= updated.length || updated[diff] == null) {
-                diff = Math.min(diff, updated.length - 1);
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1) {
+        return choose(mojangMapped, def, version1, value1, 0, null);
+    }
 
-                //go back to fewer value
-                for (int i = diff; i >= 0; i--) {
-                    if (updated[i] != null) return updated[i];
-                }
-            } else return updated[diff];
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, version4, value4, 0, null);
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5) {
+        return choose(mojangMapped, def, version1, value1, version2, value2, version3, value3, version4, value4, version5, value5, 0, null);
+    }
+
+    public static boolean mojangMapped() {
+        return atLeast(20.5) && type() == Type.PAPER;
+    }
+
+    public static <T> T choose(T mojangMapped, T def, double version1, T value1, double version2, T value2, double version3, T value3, double version4, T value4, double version5, T value5, double version6, T value6) {
+        if (mojangMapped()) return mojangMapped;
+
+        //noinspection unchecked
+        T[] values = (T[]) new Object[]{def, value1, value2, value3, value4, value5, value6};
+        double[] versions = new double[]{-1, version1, version2, version3, version4, version5, version6};
+
+        for (int i = 0; i < versions.length; i++) {
+            double version = versions[i];
+
+            if (version == -1) continue;
+            if (version == 0) return values[i - 1];
+            if (before(version)) return values[i - 1];
         }
 
-        return old;
-    }
-
-    public double getId() {
-        return id[id.length - 1];
-    }
-
-    public String fullVersion() {
-        return NAME + " (" + SPECIFICATION + ", " + TYPE + ")";
-    }
-
-    public String getShortVersionName() {
-        return Bukkit.getBukkitVersion().split("-")[0];
-    }
-
-    public boolean isBiggerThan(Version version) {
-        return ordinal() > version.ordinal();
-    }
-
-    public boolean isBiggerThan(double version) {
-        return id[id.length - 1] > version;
+        return values[values.length - 1];
     }
 
     /**

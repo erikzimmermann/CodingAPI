@@ -13,13 +13,13 @@ public class PropertyUtils {
 
     @Nullable
     public static String getValue(@NotNull Property property) {
-        IReflection.MethodAccessor getValue = IReflection.getMethod(Property.class, Version.since(20.2, "getValue", "value"), String.class, new Class<?>[0]);
+        IReflection.MethodAccessor getValue = IReflection.getMethod(Property.class, Version.choose("getValue", 20.2, "value"), String.class, new Class<?>[0]);
         return (String) getValue.invoke(property);
     }
 
     @Nullable
     public static String getSignature(@NotNull Property property) {
-        IReflection.MethodAccessor getValue = IReflection.getMethod(Property.class, Version.since(20.2, "getSignature", "signature"), String.class, new Class<?>[0]);
+        IReflection.MethodAccessor getValue = IReflection.getMethod(Property.class, Version.choose("getSignature", 20.2, "signature"), String.class, new Class<?>[0]);
         return (String) getValue.invoke(property);
     }
 

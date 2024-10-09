@@ -4,6 +4,7 @@ import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.gui.anvil.AnvilGUI;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
+import de.codingair.codingapi.player.gui.inventory.PlayerInventory;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.server.listeners.PickItemListener;
 import de.codingair.codingapi.server.reflections.PacketUtils;
@@ -29,7 +30,8 @@ public class NmsCheck {
                 PickItemListener.class,
                 NBTTagCompound.class, BlockEntityNBTTagCompound.class,
                 Hologram.HologramPackets.class, Hologram.class,
-                PacketReader.NmsWrapper.class
+                PacketReader.NmsWrapper.class,
+                PlayerInventory.class,
         };
     }
 
@@ -38,6 +40,7 @@ public class NmsCheck {
 
     public static void testInternalApi() {
         internalApiTested = true;
+        testVersion();
         test(C);
     }
 
@@ -57,7 +60,15 @@ public class NmsCheck {
         try {
             runNmsLoader(c);
         } catch (Throwable t) {
-            throw new NmsCheckError("Could not initialize class: " + c.getName() + ". Version=" + Version.get() + ", Type=" + Version.type() + ", Bukkit='" + Bukkit.getVersion() + "'", t);
+            throw new NmsCheckError("Could not initialize class: " + c.getName() + ". Version=" + Version.versionTag() + ", Type=" + Version.type() + ", Bukkit='" + Bukkit.getVersion() + "'", t);
+        }
+    }
+
+    private static void testVersion() {
+        try {
+            Version.get();
+        } catch (Throwable t) {
+            throw new NmsCheckError("Could not initialize version reader. Bukkit='" + Bukkit.getVersion() + "'");
         }
     }
 

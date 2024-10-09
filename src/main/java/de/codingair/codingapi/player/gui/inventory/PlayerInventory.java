@@ -1,6 +1,8 @@
 package de.codingair.codingapi.player.gui.inventory;
 
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -12,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class PlayerInventory {
-    private static final IReflection.FieldAccessor<ItemMeta> META = IReflection.getField(ItemStack.class, ItemMeta.class, 0);
+    private static IReflection.FieldAccessor<ItemMeta> META = null;
     private final Player player;
     private final ItemStack[] content;
     private final ItemStack[] armor;
@@ -20,6 +22,15 @@ public class PlayerInventory {
     private final boolean exact;
     private final Map<Integer, Integer> type = new HashMap<>();
     private Integer emptySlot = 0;
+
+    static {
+        if (Version.before(21)) META = IReflection.getField(ItemStack.class, ItemMeta.class, 0);
+    }
+
+    @NmsLoader
+    private PlayerInventory() {
+        this((ItemStack[]) null);
+    }
 
     public PlayerInventory(Player player) {
         this(player, true);
@@ -219,7 +230,10 @@ public class PlayerInventory {
 
         ItemMeta meta = null;
         if (item.hasItemMeta()) {
-            meta = META.get(item);
+            if (META != null) {
+                // workaround: try reflections to potentially avoid computations
+                meta = META.get(item);
+            }
             if (meta == null) meta = item.getItemMeta();
         }
 
