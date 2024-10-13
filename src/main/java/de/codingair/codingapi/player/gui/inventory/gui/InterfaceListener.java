@@ -6,19 +6,21 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 
 public interface InterfaceListener {
-	void onInvClickEvent(InventoryClickEvent e);
-	
-	void onInvOpenEvent(InventoryOpenEvent e);
-	
-	void onInvCloseEvent(InventoryCloseEvent e);
-	
-	void onInvDragEvent(InventoryDragEvent e);
-	
-	default void addTo(Interface i) {
-		i.addListener(this);
-	}
+    void onInvClickEvent(InventoryClickEvent e);
 
-	default void onClickBottomInventory(InventoryClickEvent e){}
+    void onInvOpenEvent(InventoryOpenEvent e);
 
-	default void onDropItem(InventoryClickEvent e){}
+    void onInvCloseEvent(InventoryCloseEvent e);
+
+    void onInvDragEvent(InventoryDragEvent e);
+
+    default void addTo(Interface i) {
+        i.addListener(this);
+    }
+
+    default void onClickBottomInventory(InventoryClickEvent e) {
+    }
+
+    default void onDropItem(InventoryClickEvent e) {
+    }
 }

@@ -8,8 +8,8 @@ public abstract class Layout {
     private final ItemStack[] content;
 
     public Layout(int size) {
-        if(size > 54) throw new IllegalArgumentException("Layout size cannot be bigger than 54!");
-        else if(size % 9 != 0) throw new IllegalArgumentException("Layout size have to be divisible by 9!");
+        if (size > 54) throw new IllegalArgumentException("Layout size cannot be bigger than 54!");
+        else if (size % 9 != 0) throw new IllegalArgumentException("Layout size have to be divisible by 9!");
 
         this.content = new ItemStack[size];
 
@@ -17,19 +17,19 @@ public abstract class Layout {
     }
 
     public abstract void initialize();
-    
+
     public boolean initialize(SimpleGUI gui) {
         boolean haveToBeReopened = false;
 
-        if(gui.getSize() != getSize()) {
+        if (gui.getSize() != getSize()) {
             gui.setSize(getSize());
             haveToBeReopened = true;
         }
 
-        for(int i = 0; i < getSize(); i++) {
+        for (int i = 0; i < getSize(); i++) {
             ItemStack item = getItem(i);
 
-            if(item == null) continue;
+            if (item == null) continue;
 
             gui.setItem(i, item);
         }
@@ -46,7 +46,7 @@ public abstract class Layout {
     }
 
     public Layout setItem(int slot, ItemStack item) {
-        if(item == null) throw new IllegalArgumentException("Item cannot be null!");
+        if (item == null) throw new IllegalArgumentException("Item cannot be null!");
 
         this.content[slot] = item.clone();
         return this;
@@ -65,18 +65,20 @@ public abstract class Layout {
     }
 
     public Layout addLine(int x0, int y0, int x1, int y1, ItemStack item, boolean override) {
-        if(item == null) throw new IllegalArgumentException("Item cannot be null!");
+        if (item == null) throw new IllegalArgumentException("Item cannot be null!");
 
         double cX = x0, cY = y0;
         Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
 
         do {
-            if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType() == Material.AIR) setItem((int) cX, (int) cY, item.clone());
+            if (override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType() == Material.AIR)
+                setItem((int) cX, (int) cY, item.clone());
             cX += v.getX();
             cY += v.getY();
-        } while((int) cX != x1 || (int) cY != y1);
+        } while ((int) cX != x1 || (int) cY != y1);
 
-        if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType() == Material.AIR) setItem((int) cX, (int) cY, item.clone());
+        if (override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType() == Material.AIR)
+            setItem((int) cX, (int) cY, item.clone());
 
         return this;
     }

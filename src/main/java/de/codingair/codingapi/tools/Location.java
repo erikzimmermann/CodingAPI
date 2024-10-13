@@ -8,10 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.text.DecimalFormat;
-
 public class Location extends org.bukkit.Location implements Serializable {
     private String worldName;
 
@@ -54,6 +50,23 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     public Location() {
         super(null, 0, 0, 0);
+    }
+
+    public static Location getByJSONString(String jsonString) {
+        if (jsonString == null) return null;
+
+        try {
+            return new Location((JSON) new JSONParser().parse(jsonString));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Location getByLocation(org.bukkit.Location location) {
+        if (location == null) return null;
+
+        return new Location(location);
     }
 
     public boolean hasOnlyCoords() {
@@ -105,7 +118,7 @@ public class Location extends org.bukkit.Location implements Serializable {
     public void write(DataMask json) {
         try {
             json.put("World", getWorld() == null ? this.worldName : getWorld().getName());
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             json.put("World", this.worldName);
         }
         json.put("X", trim(getX(), 4));
@@ -160,7 +173,7 @@ public class Location extends org.bukkit.Location implements Serializable {
 
     public void apply(org.bukkit.Location l) {
         setWorld(l.getWorld());
-        if(l instanceof Location) setWorldName(((Location) l).getWorldName());
+        if (l instanceof Location) setWorldName(((Location) l).getWorldName());
         setX(l.getX());
         setY(l.getY());
         setZ(l.getZ());
@@ -188,28 +201,22 @@ public class Location extends org.bukkit.Location implements Serializable {
         return toJSON(decimalPlaces).toJSONString();
     }
 
-    @Override
-    public void setWorld(World world) {
-        super.setWorld(world);
-        if(world != null) this.worldName = world.getName();
-    }
-
     public boolean equals(Object obj) {
-        if(obj == null) {
+        if (obj == null) {
             return false;
-        } else if(!(obj instanceof org.bukkit.Location)) {
+        } else if (!(obj instanceof org.bukkit.Location)) {
             return false;
         } else {
             org.bukkit.Location other = (org.bukkit.Location) obj;
-            if(this.getWorld() != other.getWorld() && (this.getWorld() == null || !this.getWorld().equals(other.getWorld()))) {
+            if (this.getWorld() != other.getWorld() && (this.getWorld() == null || !this.getWorld().equals(other.getWorld()))) {
                 return false;
-            } else if(Double.doubleToLongBits(this.getX()) != Double.doubleToLongBits(other.getX())) {
+            } else if (Double.doubleToLongBits(this.getX()) != Double.doubleToLongBits(other.getX())) {
                 return false;
-            } else if(Double.doubleToLongBits(this.getY()) != Double.doubleToLongBits(other.getY())) {
+            } else if (Double.doubleToLongBits(this.getY()) != Double.doubleToLongBits(other.getY())) {
                 return false;
-            } else if(Double.doubleToLongBits(this.getZ()) != Double.doubleToLongBits(other.getZ())) {
+            } else if (Double.doubleToLongBits(this.getZ()) != Double.doubleToLongBits(other.getZ())) {
                 return false;
-            } else if(Float.floatToIntBits(this.getPitch()) != Float.floatToIntBits(other.getPitch())) {
+            } else if (Float.floatToIntBits(this.getPitch()) != Float.floatToIntBits(other.getPitch())) {
                 return false;
             } else {
                 return Float.floatToIntBits(this.getYaw()) == Float.floatToIntBits(other.getYaw());
@@ -220,14 +227,20 @@ public class Location extends org.bukkit.Location implements Serializable {
     @Override
     public World getWorld() {
         try {
-            if(super.getWorld() == null) {
-                if(worldName != null) setWorld(Bukkit.getWorld(worldName));
-            } else if(Bukkit.getWorld(worldName) == null) setWorld(null);
-        } catch(IllegalArgumentException ex) {
+            if (super.getWorld() == null) {
+                if (worldName != null) setWorld(Bukkit.getWorld(worldName));
+            } else if (Bukkit.getWorld(worldName) == null) setWorld(null);
+        } catch (IllegalArgumentException ex) {
             //unloaded
             setWorld(Bukkit.getWorld(worldName));
         }
         return super.getWorld();
+    }
+
+    @Override
+    public void setWorld(World world) {
+        super.setWorld(world);
+        if (world != null) this.worldName = world.getName();
     }
 
     public boolean isEmpty() {
@@ -239,30 +252,13 @@ public class Location extends org.bukkit.Location implements Serializable {
         return new Location(this);
     }
 
-    public static Location getByJSONString(String jsonString) {
-        if(jsonString == null) return null;
-
-        try {
-            return new Location((JSON) new JSONParser().parse(jsonString));
-        } catch(Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static Location getByLocation(org.bukkit.Location location) {
-        if(location == null) return null;
-
-        return new Location(location);
-    }
-
     public String getWorldName() {
-        if(worldName == null && getWorld() != null) worldName = getWorld().getName();
+        if (worldName == null && getWorld() != null) worldName = getWorld().getName();
         return worldName;
     }
 
     public void setWorldName(String worldName) {
         this.worldName = worldName;
-        if(worldName != null) setWorld(Bukkit.getWorld(worldName));
+        if (worldName != null) setWorld(Bukkit.getWorld(worldName));
     }
 }

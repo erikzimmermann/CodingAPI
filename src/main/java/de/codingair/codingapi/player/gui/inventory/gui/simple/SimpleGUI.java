@@ -49,7 +49,8 @@ public class SimpleGUI extends GUI {
 
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
-                if(!isClosingByButton() && !isClosingByOperation() && !isClosingForGUI() && current != null) current.onExitByPlayer();
+                if (!isClosingByButton() && !isClosingByOperation() && !isClosingForGUI() && current != null)
+                    current.onExitByPlayer();
             }
 
             @Override
@@ -68,13 +69,13 @@ public class SimpleGUI extends GUI {
             }
         });
 
-        if(preInitialize) initialize(p);
+        if (preInitialize) initialize(p);
     }
 
     @Override
     public void initialize(Player p) {
-        if(this.current != null) this.current.initialize(this);
-        else if(this.main != null && this.main != this.current) this.main.initialize(this);
+        if (this.current != null) this.current.initialize(this);
+        else if (this.main != null && this.main != this.current) this.main.initialize(this);
     }
 
     void changePage(Page page) {
@@ -83,8 +84,8 @@ public class SimpleGUI extends GUI {
 
     public void changePage(Page page, boolean update) {
         this.current = page;
-        if(page.initialize(this)) updateTitle();
-        else if(update) GUI.updateInventory(getPlayer());
+        if (page.initialize(this)) updateTitle();
+        else if (update) GUI.updateInventory(getPlayer());
     }
 
     public Page getMain() {

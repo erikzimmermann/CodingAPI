@@ -28,27 +28,22 @@ public class JSON extends JSONObject implements SpigotDataMask {
         this.prefix = prefix == null ? "" : prefix;
     }
 
-    @Override
-    public String toJSONString() {
-        return super.toJSONString().replace("\\\\\\\\\\\\\\\"", "\\7\"");
-    }
-
     public static Collection<String> keySet(String prefix, Map<?, ?> map) {
-        if(prefix == null) prefix = "";
+        if (prefix == null) prefix = "";
 
         Set<String> set = new HashSet<>();
 
-        for(Object o : map.entrySet()) {
+        for (Object o : map.entrySet()) {
             Entry<Object, Object> e = (Entry<Object, Object>) o;
 
-            if(e.getValue() instanceof String) {
+            if (e.getValue() instanceof String) {
                 try {
                     e.setValue(new JSONParser().parse((String) e.getValue()));
-                } catch(ParseException ignored) {
+                } catch (ParseException ignored) {
                 }
             }
 
-            if(e.getValue() instanceof Map) {
+            if (e.getValue() instanceof Map) {
                 set.addAll(keySet((prefix.isEmpty() ? "" : prefix + ".") + e.getKey(), (Map<?, ?>) e.getValue()));
             } else {
                 set.add((prefix.isEmpty() ? "" : prefix + ".") + e.getKey());
@@ -58,20 +53,51 @@ public class JSON extends JSONObject implements SpigotDataMask {
         return set;
     }
 
+    private static Map<?, ?> getSection(Map<?, ?> map, String key) {
+        int i = key.indexOf(".");
+        if (i == -1) return map;
+
+        Object first = key.substring(0, i);
+
+        Object o = map.get(first);
+
+        if (o == null) {
+            o = map.get(removeLastKey(key));
+            if (o == null) o = map.get(key);
+            if (o == null) return null;
+
+            if (!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
+            return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
+        }
+
+        if (!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
+        return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
+    }
+
+    private static String removeLastKey(String key) {
+        if (!key.contains(".")) return key;
+        return key.substring(0, key.lastIndexOf("."));
+    }
+
+    @Override
+    public String toJSONString() {
+        return super.toJSONString().replace("\\\\\\\\\\\\\\\"", "\\7\"");
+    }
+
     @Override
     public Set<String> keySet(boolean depth) {
         Set<String> data = new HashSet<>();
         Collection<String> o = keySet("", this);
 
-        if(depth) {
-            for(String s : o) {
-                if(prefix.isEmpty()) data.add(s);
-                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+        if (depth) {
+            for (String s : o) {
+                if (prefix.isEmpty()) data.add(s);
+                else if (s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
             }
         } else {
-            for(String s : o) {
-                if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
-                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+            for (String s : o) {
+                if (prefix.isEmpty()) data.add(s.split("\\.")[0]);
+                else if (s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
             }
         }
 
@@ -80,47 +106,26 @@ public class JSON extends JSONObject implements SpigotDataMask {
 
     @Override
     public Object finalCommit(String key, Object value) {
-        if(value instanceof Serializable) {
+        if (value instanceof Serializable) {
             write((Serializable) value, key);
             return null;
         }
 
         JSON section = getOrCreateSection(k(key));
 
-        if(section == this) {
+        if (section == this) {
             return super.put(key, value);
         } else return section.put(getLastKey(key), value);
     }
 
-    private static Map<?, ?> getSection(Map<?, ?> map, String key) {
-        int i = key.indexOf(".");
-        if(i == -1) return map;
-
-        Object first = key.substring(0, i);
-
-        Object o = map.get(first);
-
-        if(o == null) {
-            o = map.get(removeLastKey(key));
-            if(o == null) o = map.get(key);
-            if(o == null) return null;
-
-            if(!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
-            return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
-        }
-
-        if(!(o instanceof Map<?, ?>)) return map; //no map found > old usage!
-        return JSON.getSection((Map<?, ?>) o, key.substring(i + 1));
-    }
-
     private JSON getOrCreateSection(String key) {
         int i = key.indexOf(".");
-        if(i == -1) return this;
+        if (i == -1) return this;
 
         String first = key.substring(0, i);
 
         Object o = super.get(first);
-        if(o == null) super.put(first, o = new JSON());
+        if (o == null) super.put(first, o = new JSON());
 
         return ((JSON) o).getOrCreateSection(key.substring(i + 1));
     }
@@ -144,14 +149,9 @@ public class JSON extends JSONObject implements SpigotDataMask {
     }
 
     private String getLastKey(String key) {
-        if(!key.contains(".")) return key;
+        if (!key.contains(".")) return key;
         String[] a = key.split("\\.", -1);
         return a[a.length - 1];
-    }
-
-    private static String removeLastKey(String key) {
-        if(!key.contains(".")) return key;
-        return key.substring(0, key.lastIndexOf("."));
     }
 
     @Override
@@ -163,7 +163,7 @@ public class JSON extends JSONObject implements SpigotDataMask {
     public <T extends Serializable> T getSerializable(String key, Serializable serializable) {
         try {
             read(serializable, key);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -183,8 +183,8 @@ public class JSON extends JSONObject implements SpigotDataMask {
     public JSONArray getList(String key) {
         List<?> i = get(key);
 
-        if(i == null) return new JSONArray();
-        else if(i instanceof JSONArray) return (JSONArray) i;
+        if (i == null) return new JSONArray();
+        else if (i instanceof JSONArray) return (JSONArray) i;
 
         JSONArray array = new JSONArray();
         array.addAll(i);
@@ -209,40 +209,40 @@ public class JSON extends JSONObject implements SpigotDataMask {
 
     public <T> T get(String key, T def, boolean raw) {
         Map<?, ?> map = getSection(this, k(key));
-        if(map == null) return null;
+        if (map == null) return null;
         Object o = map.get(getLastKey(key));
 
-        if(o == null && map == this) {
+        if (o == null && map == this) {
             //old usage
             o = map.get(prefix.isEmpty() ? key : prefix);
 
-            if(o instanceof String) {
+            if (o instanceof String) {
                 try {
                     o = new JSONParser().parse((String) o);
-                } catch(ParseException ignored) {
+                } catch (ParseException ignored) {
                 }
             }
 
-            if(o instanceof JSON) {
+            if (o instanceof JSON) {
                 o = ((JSON) o).get((Object) key);
             }
         }
 
-        if(!raw) {
-            if(o instanceof Long) {
+        if (!raw) {
+            if (o instanceof Long) {
                 long l = (long) o;
-                if(l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) return (T) (Object) Math.toIntExact(l);
+                if (l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) return (T) (Object) Math.toIntExact(l);
             }
 
-            if(o instanceof String) {
+            if (o instanceof String) {
                 try {
                     Object result = new JSONParser().parse((String) o);
-                    if(result != null) o = result;
-                } catch(ParseException ignored) {
+                    if (result != null) o = result;
+                } catch (ParseException ignored) {
                 }
             }
 
-            if(o instanceof JSONObject) return (T) new JSON((JSONObject) o);
+            if (o instanceof JSONObject) return (T) new JSON((JSONObject) o);
         }
 
         return o == null ? def : (T) o;

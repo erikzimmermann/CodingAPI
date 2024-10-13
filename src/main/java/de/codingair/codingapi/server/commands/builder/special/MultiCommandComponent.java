@@ -20,7 +20,7 @@ public abstract class MultiCommandComponent extends SpecialCommandComponent {
     public boolean runCommand(CommandSender sender, String label, String[] args) {
         int before = 0;
         CommandComponent cc = getParent();
-        while(cc != null) {
+        while (cc != null) {
             before++;
             cc = cc.getParent();
         }

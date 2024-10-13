@@ -15,30 +15,22 @@ public enum TextAlignment {
     CENTER,
     JUSTIFY;
 
-    public List<String> apply(List<String> lines) {
-        if(this.equals(CENTER)) return center(lines);
-        if(this.equals(JUSTIFY)) return justify(lines);
-
-        return new ArrayList<>(lines);
-    }
-
-    public List<String> apply(String... lines) {
-        return apply(Arrays.asList(lines));
-    }
+    private final static int CENTER_PX = 154;
+    private final static int MAX_PX = 250;
 
     private static int getLength(String text) {
         boolean isBold = false;
         boolean isColor = false;
 
-        if(text == null) return 0;
+        if (text == null) return 0;
 
         int length = 0;
         text = ChatColor.translateAlternateColorCodes('&', text);
 
-        for(char c : text.toCharArray()) {
-            if(c == ChatColor.COLOR_CHAR) {
+        for (char c : text.toCharArray()) {
+            if (c == ChatColor.COLOR_CHAR) {
                 isColor = true;
-            } else if(isColor) {
+            } else if (isColor) {
                 isColor = false;
                 isBold = c == 'l' || c == 'L';
             } else {
@@ -50,99 +42,10 @@ public enum TextAlignment {
         return length;
     }
 
-    private List<String> justify(List<String> lines) {
-        int longestLine = 0;
-
-        for(String line : lines) {
-            if(line == null) continue;
-
-            int length = getLength(line);
-
-            if(longestLine < length) longestLine = length;
-        }
-
-        List<String> configured = new ArrayList<>();
-
-        int lineIndex = 0;
-        for(String line : lines) {
-            if(lineIndex == lines.size() - 1) break;
-            lineIndex++;
-
-            if(line == null) {
-                configured.add(null);
-                continue;
-            }
-
-            String[] words = line.split(" ");
-            if(words.length <= 1) {
-                configured.add(line);
-                continue;
-            }
-
-            int messagePxSize = getLength(line);
-
-            int toCompensate = longestLine - messagePxSize;
-            int afterWord = toCompensate / (words.length - 1);
-
-            int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
-            int compensated = 0;
-
-            StringBuilder sb = new StringBuilder();
-            while(compensated < afterWord) {
-                sb.append(" ");
-                compensated += spaceLength;
-            }
-
-            StringBuilder newLine = new StringBuilder();
-
-            for(int i = 0; i < words.length; i++) {
-                if(i + 1 == words.length) newLine.append(words[i]);
-                else newLine.append(words[i]).append(sb.toString().length() == 0 ? " " : sb.toString());
-            }
-
-            configured.add(newLine.toString());
-        }
-
-        return configured;
-    }
-
-    private List<String> center(List<String> lines) {
-        int longestLine = 0;
-        String l = null;
-
-        for(String line : lines) {
-            if(line == null) continue;
-
-            int length = DefaultFontInfo.getExactLength(line);
-            if(longestLine < length) {
-                longestLine = length;
-                l = line;
-            }
-        }
-
-        List<String> configured = new ArrayList<>();
-
-        for(String line : lines) {
-            if(line == null) continue;
-            int messagePxSize = DefaultFontInfo.getExactLength(line);
-
-            int toCompensate = (longestLine - messagePxSize) / 2 / DefaultFontInfo.SPACE.getLength();
-
-            StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < toCompensate; i++) {
-                sb.append(" ");
-            }
-
-            configured.add(sb + line);
-        }
-
-        return configured;
-    }
-
     public static List<String> lineBreak(String text, int length) {
         List<String> lines = new ArrayList<>();
 
-        if(text == null || length >= getLength(text)) {
+        if (text == null || length >= getLength(text)) {
             lines.add(text);
             return lines;
         }
@@ -152,7 +55,7 @@ public enum TextAlignment {
         StringBuilder line = new StringBuilder();
         String[] lastColor = new String[]{"", ""};
 
-        for(String word : words) {
+        for (String word : words) {
             boolean isBold = false;
             boolean isColor = false;
 
@@ -161,10 +64,10 @@ public enum TextAlignment {
             String temp = de.codingair.codingapi.utils.ChatColor.getLastFullColor(word, ChatColor.COLOR_CHAR);
             lastColor[1] = temp.isEmpty() ? lastColor[1] : temp;
 
-            for(char c : word.toCharArray()) {
-                if(c == ChatColor.COLOR_CHAR) {
+            for (char c : word.toCharArray()) {
+                if (c == ChatColor.COLOR_CHAR) {
                     isColor = true;
-                } else if(!isColor) {
+                } else if (!isColor) {
                     DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
                     cells += isBold ? dFI.getBoldLength() : dFI.getLength();
                 } else {
@@ -174,41 +77,37 @@ public enum TextAlignment {
 
             line.append(word);
 
-            if(cells >= length) {
+            if (cells >= length) {
                 line = new StringBuilder(line.substring(0, line.length() - 1));
                 lines.add(lastColor[0] + line);
                 line = new StringBuilder();
                 cells = 0;
 
-                if(!lastColor[1].isEmpty()) {
+                if (!lastColor[1].isEmpty()) {
                     lastColor[0] = lastColor[1];
                     lastColor[1] = "";
                 }
             }
         }
 
-        if(line.length() > 0) {
+        if (line.length() > 0) {
             lines.add(lastColor[0] + line);
         }
         return lines;
     }
 
-
-    private final static int CENTER_PX = 154;
-    private final static int MAX_PX = 250;
-
     public static void sendCenteredMessage(Player player, String message) {
-        if(message == null || message.equals("")) player.sendMessage("");
+        if (message == null || message.equals("")) player.sendMessage("");
         message = ChatColor.translateAlternateColorCodes('&', message);
 
         int messagePxSize = 0;
         boolean previousCode = false;
         boolean isBold = false;
 
-        for(char c : message.toCharArray()) {
-            if(c == '§') {
+        for (char c : message.toCharArray()) {
+            if (c == '§') {
                 previousCode = true;
-            } else if(previousCode) {
+            } else if (previousCode) {
                 previousCode = false;
                 isBold = c == 'l' || c == 'L';
             } else {
@@ -224,7 +123,7 @@ public enum TextAlignment {
         int compensated = 0;
 
         StringBuilder sb = new StringBuilder();
-        while(compensated < toCompensate) {
+        while (compensated < toCompensate) {
             sb.append(" ");
             compensated += spaceLength;
         }
@@ -239,23 +138,23 @@ public enum TextAlignment {
         boolean previousCode = false;
         boolean isBold = false;
 
-        for(char c : message.toCharArray()) {
-            if(c == '§') {
+        for (char c : message.toCharArray()) {
+            if (c == '§') {
                 previousCode = true;
                 continue;
-            } else if(previousCode) {
+            } else if (previousCode) {
                 previousCode = false;
-                if(c == 'l' || c == 'L') {
+                if (c == 'l' || c == 'L') {
                     isBold = true;
                     continue;
                 } else isBold = false;
-            } else if(c != ' ') {
+            } else if (c != ' ') {
                 DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
                 messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
                 messagePxSize++;
             }
 
-            if(messagePxSize >= MAX_PX) {
+            if (messagePxSize >= MAX_PX) {
 //                throw new IllegalStateException("BaseComponent is to long!");
                 return;
             }
@@ -267,7 +166,7 @@ public enum TextAlignment {
         int compensated = 0;
 
         StringBuilder sb = new StringBuilder();
-        while(compensated < toCompensate) {
+        while (compensated < toCompensate) {
             sb.append(" ");
             compensated += spaceLength;
         }
@@ -276,5 +175,105 @@ public enum TextAlignment {
         spaceBase.addExtra(base);
 
         player.spigot().sendMessage(spaceBase);
+    }
+
+    public List<String> apply(List<String> lines) {
+        if (this.equals(CENTER)) return center(lines);
+        if (this.equals(JUSTIFY)) return justify(lines);
+
+        return new ArrayList<>(lines);
+    }
+
+    public List<String> apply(String... lines) {
+        return apply(Arrays.asList(lines));
+    }
+
+    private List<String> justify(List<String> lines) {
+        int longestLine = 0;
+
+        for (String line : lines) {
+            if (line == null) continue;
+
+            int length = getLength(line);
+
+            if (longestLine < length) longestLine = length;
+        }
+
+        List<String> configured = new ArrayList<>();
+
+        int lineIndex = 0;
+        for (String line : lines) {
+            if (lineIndex == lines.size() - 1) break;
+            lineIndex++;
+
+            if (line == null) {
+                configured.add(null);
+                continue;
+            }
+
+            String[] words = line.split(" ");
+            if (words.length <= 1) {
+                configured.add(line);
+                continue;
+            }
+
+            int messagePxSize = getLength(line);
+
+            int toCompensate = longestLine - messagePxSize;
+            int afterWord = toCompensate / (words.length - 1);
+
+            int spaceLength = DefaultFontInfo.SPACE.getLength() + 1;
+            int compensated = 0;
+
+            StringBuilder sb = new StringBuilder();
+            while (compensated < afterWord) {
+                sb.append(" ");
+                compensated += spaceLength;
+            }
+
+            StringBuilder newLine = new StringBuilder();
+
+            for (int i = 0; i < words.length; i++) {
+                if (i + 1 == words.length) newLine.append(words[i]);
+                else newLine.append(words[i]).append(sb.toString().length() == 0 ? " " : sb.toString());
+            }
+
+            configured.add(newLine.toString());
+        }
+
+        return configured;
+    }
+
+    private List<String> center(List<String> lines) {
+        int longestLine = 0;
+        String l = null;
+
+        for (String line : lines) {
+            if (line == null) continue;
+
+            int length = DefaultFontInfo.getExactLength(line);
+            if (longestLine < length) {
+                longestLine = length;
+                l = line;
+            }
+        }
+
+        List<String> configured = new ArrayList<>();
+
+        for (String line : lines) {
+            if (line == null) continue;
+            int messagePxSize = DefaultFontInfo.getExactLength(line);
+
+            int toCompensate = (longestLine - messagePxSize) / 2 / DefaultFontInfo.SPACE.getLength();
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < toCompensate; i++) {
+                sb.append(" ");
+            }
+
+            configured.add(sb + line);
+        }
+
+        return configured;
     }
 }

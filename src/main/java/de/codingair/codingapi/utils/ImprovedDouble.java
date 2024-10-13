@@ -8,7 +8,7 @@ public class ImprovedDouble {
     }
 
     public Number get() {
-        if(n.intValue() == n.doubleValue()) return n.intValue();
+        if (n.intValue() == n.doubleValue()) return n.intValue();
         else return n.doubleValue();
     }
 

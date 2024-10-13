@@ -36,6 +36,27 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         return new CommandWrapper(builder).register();
     }
 
+    public static CommandDispatcher<Object> dispatcher() {
+        Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, "CommandDispatcher");
+
+        Object commandDispatcher;
+        if (Version.atLeast(19.3)) {
+            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, commandDispatcherClass, new Class[0]);
+            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
+        } else if (Version.atLeast(18)) {
+            IReflection.FieldAccessor<?> vanillaCommandDispatcher = IReflection.getField(PacketUtils.MinecraftServerClass, "vanillaCommandDispatcher");
+            commandDispatcher = vanillaCommandDispatcher.get(PacketUtils.getMinecraftServer());
+        } else {
+            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
+            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
+        }
+
+        Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
+        IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, commandDispatcherBrigadierClass, new Class[]{});
+        //noinspection unchecked
+        return (CommandDispatcher<Object>) a.invoke(commandDispatcher);
+    }
+
     private CommandWrapper register() {
         registerCommand(builder.getName());
         for (String alias : builder.getMain().getAliases()) {
@@ -91,27 +112,6 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
 
         IReflection.FieldAccessor<Map<String, CommandNode<?>>> arguments = IReflection.getField(CommandNode.class, "arguments");
         arguments.get(root).remove(name);
-    }
-
-    public static CommandDispatcher<Object> dispatcher() {
-        Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, "CommandDispatcher");
-
-        Object commandDispatcher;
-        if (Version.atLeast(19.3)) {
-            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, commandDispatcherClass, new Class[0]);
-            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
-        } else if (Version.atLeast(18)) {
-            IReflection.FieldAccessor<?> vanillaCommandDispatcher = IReflection.getField(PacketUtils.MinecraftServerClass, "vanillaCommandDispatcher");
-            commandDispatcher = vanillaCommandDispatcher.get(PacketUtils.getMinecraftServer());
-        } else {
-            IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, "getCommandDispatcher");
-            commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
-        }
-
-        Class<?> commandDispatcherBrigadierClass = IReflection.getClass("com.mojang.brigadier.CommandDispatcher");
-        IReflection.MethodAccessor a = IReflection.getMethod(commandDispatcherClass, commandDispatcherBrigadierClass, new Class[] {});
-        //noinspection unchecked
-        return (CommandDispatcher<Object>) a.invoke(commandDispatcher);
     }
 
     protected static class Backup {

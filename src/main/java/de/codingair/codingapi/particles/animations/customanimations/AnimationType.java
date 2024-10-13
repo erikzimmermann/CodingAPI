@@ -28,6 +28,45 @@ public enum AnimationType {
         this.displayName = displayName;
     }
 
+    public static AnimationType getById(int id) {
+        for (AnimationType value : values()) {
+            if (value.getId() == id) return value;
+        }
+
+        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
+    }
+
+    public static AnimationType next(int id) {
+        for (int i = 0; i < values().length; i++) {
+            if (values()[i].getId() == id) return i + 1 == values().length ? values()[0] : values()[i + 1];
+        }
+
+        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
+    }
+
+    public static AnimationType previous(int id) {
+        for (int i = 0; i < values().length; i++) {
+            if (values()[i].getId() == id) {
+                return i - 1 < 0 ? values()[values().length - 1] : values()[i - 1];
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
+    }
+
+    public static void clearCache() {
+        for (AnimationType value : values()) {
+            IReflection.FieldAccessor cache = IReflection.getField(value.getClazz(), "CACHE");
+            List<List<Location>> CACHE = ((List<List<Location>>) cache.get(null));
+
+            for (List<Location> l : CACHE) {
+                l.clear();
+            }
+
+            CACHE.clear();
+        }
+    }
+
     public CustomAnimation build(Particle particle, Player[] players, MovableMid mid, double radius, double height, int speed) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         return clazz.getConstructor(Particle.class, MovableMid.class, double.class, double.class, int.class)
                 .newInstance(particle, mid, radius, height, speed).setViewers(players);
@@ -56,44 +95,5 @@ public enum AnimationType {
     @Override
     public String toString() {
         return displayName;
-    }
-
-    public static AnimationType getById(int id) {
-        for(AnimationType value : values()) {
-            if(value.getId() == id) return value;
-        }
-
-        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
-    }
-
-    public static AnimationType next(int id) {
-        for(int i = 0; i < values().length; i++) {
-            if(values()[i].getId() == id) return i + 1 == values().length ? values()[0] : values()[i + 1];
-        }
-
-        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
-    }
-
-    public static AnimationType previous(int id) {
-        for(int i = 0; i < values().length; i++) {
-            if(values()[i].getId() == id) {
-                return i - 1 < 0 ? values()[values().length - 1] : values()[i - 1];
-            }
-        }
-
-        throw new IllegalArgumentException("Couldn't found AnimationType with id=" + id);
-    }
-
-    public static void clearCache() {
-        for(AnimationType value : values()) {
-            IReflection.FieldAccessor cache = IReflection.getField(value.getClazz(), "CACHE");
-            List<List<Location>> CACHE = ((List<List<Location>>) cache.get(null));
-
-            for(List<Location> l : CACHE) {
-                l.clear();
-            }
-
-            CACHE.clear();
-        }
     }
 }

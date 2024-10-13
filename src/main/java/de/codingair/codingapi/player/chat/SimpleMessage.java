@@ -20,9 +20,9 @@ public class SimpleMessage implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
     private final List<Object> components = new ArrayList<>();
     private final Player player;
+    private final JavaPlugin plugin;
     private HoverEvent hoverEvent;
     private ClickEvent clickEvent;
-    private final JavaPlugin plugin;
     private boolean sent = false;
     private int timeOut = -1, cachedSize;
     private UniversalRunnable runnable = null;
@@ -103,7 +103,7 @@ public class SimpleMessage implements Removable {
     }
 
     private SimpleMessage add(int index, Object messageComponent) {
-        if(messageComponent instanceof String) messageComponent = ((String) messageComponent).replace("\\n", "\n");
+        if (messageComponent instanceof String) messageComponent = ((String) messageComponent).replace("\\n", "\n");
         this.components.add(index, messageComponent);
         cachedSize = -1;
         return this;
@@ -126,10 +126,10 @@ public class SimpleMessage implements Removable {
     }
 
     public SimpleMessage addComponent(int index, TextComponent messageComponent, boolean hover, boolean click) {
-        if(hover) messageComponent.setHoverEvent(this.hoverEvent);
-        if(click) messageComponent.setClickEvent(this.clickEvent);
+        if (hover) messageComponent.setHoverEvent(this.hoverEvent);
+        if (click) messageComponent.setClickEvent(this.clickEvent);
 
-        if(index >= 0) this.components.add(index, messageComponent);
+        if (index >= 0) this.components.add(index, messageComponent);
         else this.components.add(messageComponent);
         cachedSize = -1;
         return this;
@@ -142,9 +142,9 @@ public class SimpleMessage implements Removable {
     private TextComponent getTextComponent() {
         TextComponent base = null;
 
-        for(Object tc : this.components) {
+        for (Object tc : this.components) {
             TextComponent current = tc instanceof ChatButton ? ((ChatButton) tc).build() : new TextComponent((TextComponent) tc);
-            if(base == null) base = current;
+            if (base == null) base = current;
             else base.addExtra(current);
         }
 
@@ -152,7 +152,7 @@ public class SimpleMessage implements Removable {
     }
 
     public void send() {
-        if(player == null) throw new NullPointerException("The message receiver is not defined!");
+        if (player == null) throw new NullPointerException("The message receiver is not defined!");
         send(player);
     }
 
@@ -164,13 +164,13 @@ public class SimpleMessage implements Removable {
         sending.accept(sender, getTextComponent());
         sent = true;
 
-        if(this.runnable == null && timeOut > 0) {
+        if (this.runnable == null && timeOut > 0) {
             this.runnable = new UniversalRunnable() {
                 @Override
                 public void run() {
                     timeOut--;
 
-                    if(timeOut == 0) {
+                    if (timeOut == 0) {
                         onTimeOut();
                         destroy();
                     }
@@ -184,16 +184,16 @@ public class SimpleMessage implements Removable {
     public List<ChatButton> getButtons() {
         List<ChatButton> buttons = new ArrayList<>();
 
-        for(Object c : this.components) {
-            if(c instanceof ChatButton) buttons.add((ChatButton) c);
+        for (Object c : this.components) {
+            if (c instanceof ChatButton) buttons.add((ChatButton) c);
         }
 
         return buttons;
     }
 
     public ChatButton getButton(UUID uniqueId) {
-        for(Object c : this.components) {
-            if(c instanceof ChatButton && ((ChatButton) c).getUniqueId().equals(uniqueId)) return (ChatButton) c;
+        for (Object c : this.components) {
+            if (c instanceof ChatButton && ((ChatButton) c).getUniqueId().equals(uniqueId)) return (ChatButton) c;
         }
 
         return null;
@@ -213,10 +213,10 @@ public class SimpleMessage implements Removable {
         int i = 0;
         List<Object> components = new ArrayList<>(this.components);
 
-        for(Object o : components) {
+        for (Object o : components) {
             TextComponent c = o instanceof ChatButton ? ((ChatButton) o).build() : (TextComponent) o;
 
-            if(c.toLegacyText().contains(toReplaced)) {
+            if (c.toLegacyText().contains(toReplaced)) {
                 this.components.remove(c);
                 foundSth = true;
             } else {
@@ -226,10 +226,10 @@ public class SimpleMessage implements Removable {
 
             int j = 0;
             String[] a = c.toLegacyText().split(toReplaced, -1);
-            for(int k = 0; k < a.length; k++) {
+            for (int k = 0; k < a.length; k++) {
                 String s = a[k];
 
-                if(s != null && !s.isEmpty()) {
+                if (s != null && !s.isEmpty()) {
                     TextComponent tc = convert(s);
                     tc.setClickEvent(c.getClickEvent());
                     tc.setHoverEvent(c.getHoverEvent());
@@ -243,7 +243,7 @@ public class SimpleMessage implements Removable {
                     add(i + j++, tc);
                 }
 
-                if(k < a.length - 1) add(i + j++, replacement);
+                if (k < a.length - 1) add(i + j++, replacement);
             }
 
             i++;
@@ -262,7 +262,7 @@ public class SimpleMessage implements Removable {
 
         API.removeRemovable(this);
         this.components.clear();
-        if(this.runnable != null) {
+        if (this.runnable != null) {
             this.runnable.cancel();
             this.runnable = null;
         }
@@ -292,7 +292,7 @@ public class SimpleMessage implements Removable {
     }
 
     public void setTimeOut(int timeOut) {
-        if(sent) return;
+        if (sent) return;
         this.timeOut = timeOut;
     }
 
@@ -305,12 +305,12 @@ public class SimpleMessage implements Removable {
     }
 
     public int size() {
-        if(cachedSize == -1) {
+        if (cachedSize == -1) {
             cachedSize = 0;
             int from = 0;
-            for(Object c : this.components) {
+            for (Object c : this.components) {
                 String s = c.toString();
-                while((from = s.indexOf("\n", from)) != -1) {
+                while ((from = s.indexOf("\n", from)) != -1) {
                     from += 1;
                     cachedSize++;
                 }

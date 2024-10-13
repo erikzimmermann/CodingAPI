@@ -24,6 +24,11 @@ import java.util.concurrent.TimeUnit;
 
 public class Environment {
 
+    private static final Cache<Material, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(10, TimeUnit.MINUTES)
+            .softValues()
+            .build();
+
     public static boolean canBeEntered(Material m) {
         return !m.isOccluding() && !m.isSolid();
     }
@@ -42,11 +47,6 @@ public class Environment {
     public static boolean canBeEntered(Block b) {
         return canBeEntered(b.getType()) || isWaterFluid(b);
     }
-
-    private static final Cache<Material, Optional<Sound>> CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .softValues()
-            .build();
 
     public static Sound getBreakSoundOf(Block b) {
         Optional<Sound> cachedSound = CACHE.getIfPresent(b.getType());

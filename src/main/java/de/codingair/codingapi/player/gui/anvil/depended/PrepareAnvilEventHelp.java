@@ -19,14 +19,14 @@ public class PrepareAnvilEventHelp implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAnvilPrepareLow(PrepareAnvilEvent e) {
 
-        if(e.getInventory().equals(inv)) {
+        if (e.getInventory().equals(inv)) {
             result = e.getResult();
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onAnvilPrepareHigh(PrepareAnvilEvent e) {
-        if(e.getInventory().equals(inv)) {
+        if (e.getInventory().equals(inv)) {
             e.setResult(result);
         }
     }

@@ -28,7 +28,7 @@ public class CircleAnimation extends CustomAnimation {
         clear(CACHE);
 
         double t = 0;
-        while(t < 2 * Math.PI) {
+        while (t < 2 * Math.PI) {
             List<Location> l = new ArrayList<>();
             t += Math.PI / 8;
 

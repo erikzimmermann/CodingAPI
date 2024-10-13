@@ -12,8 +12,8 @@ public abstract class MovableMid {
 
     private void update() {
         Location l = getLocation();
-        if(l == null) return;
-        if(last == null) {
+        if (l == null) return;
+        if (last == null) {
             last = l;
             return;
         }
@@ -22,7 +22,7 @@ public abstract class MovableMid {
         double y = last.getY() - l.getY();
         double z = last.getZ() - l.getZ();
 
-        if(Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.05) {
+        if (Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.05) {
             last = l;
             standing = 0;
         }

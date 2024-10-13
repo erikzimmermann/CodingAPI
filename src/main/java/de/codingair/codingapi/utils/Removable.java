@@ -6,15 +6,15 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.UUID;
 
 public interface Removable {
-	void destroy();
-	
-	Player getPlayer();
+    void destroy();
 
-	UUID getUniqueId();
+    Player getPlayer();
 
-	JavaPlugin getPlugin();
-	
-	default boolean equals(Removable removable) {
-		return getUniqueId().equals(removable.getUniqueId());
-	}
+    UUID getUniqueId();
+
+    JavaPlugin getPlugin();
+
+    default boolean equals(Removable removable) {
+        return getUniqueId().equals(removable.getUniqueId());
+    }
 }

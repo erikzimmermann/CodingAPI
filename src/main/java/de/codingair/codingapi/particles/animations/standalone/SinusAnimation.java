@@ -6,10 +6,9 @@ import org.bukkit.Location;
 
 public class SinusAnimation extends Animation {
     private final Location location;
-
-    private boolean minimize = true;
     private final double radius;
     private final double fixedHeight;
+    private boolean minimize = true;
     private double height;
     private double degrees = 0;
     private Location circleLocation;
@@ -29,12 +28,12 @@ public class SinusAnimation extends Animation {
         double dif = 0.25;
         double step = 0.1;
 
-        if(minimize) {
+        if (minimize) {
             height -= step;
-            if(height < fixedHeight - dif) minimize = false;
+            if (height < fixedHeight - dif) minimize = false;
         } else {
             height += step;
-            if(height > fixedHeight + dif) minimize = true;
+            if (height > fixedHeight + dif) minimize = true;
         }
 
         this.circleLocation = this.location.clone().add(
@@ -43,8 +42,8 @@ public class SinusAnimation extends Animation {
                 radius * Math.sin(this.degrees * Math.PI / 180));
 
         degrees += (12 - this.radius * 0.2);
-        if(degrees >= 360) degrees -= 360;
-        if(degrees < 0) degrees += 360;
+        if (degrees >= 360) degrees -= 360;
+        if (degrees < 0) degrees += 360;
     }
 
     @Override

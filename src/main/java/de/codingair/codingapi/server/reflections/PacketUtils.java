@@ -353,17 +353,17 @@ public class PacketUtils {
         return id + (data << 12);
     }
 
+    public static Object emptyHolderLookupProvider() {
+        IReflection.MethodAccessor create = IReflection.getMethod(HolderLookupProvider, HolderLookupProvider, new Class[]{Stream.class});
+        return create.invoke(null, Stream.empty());
+    }
+
     public static class Blocks {
         public static Object findByName(String name) {
             IReflection.FieldAccessor<?> field = IReflection.getField(BlocksClass, name);
 
             return field.get(null);
         }
-    }
-
-    public static Object emptyHolderLookupProvider() {
-        IReflection.MethodAccessor create = IReflection.getMethod(HolderLookupProvider, HolderLookupProvider, new Class[]{Stream.class});
-        return create.invoke(null, Stream.empty());
     }
 
     public static class EntityPackets {

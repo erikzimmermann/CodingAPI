@@ -18,15 +18,15 @@ public class NBTBase<T> {
     Object invoke() {
         Type t = Type.getByObject(this.value);
 
-        if(t == Type.UNKNOWN) return null;
+        if (t == Type.UNKNOWN) return null;
 
         IReflection.ConstructorAccessor con = IReflection.getConstructor(t.getClazz(), t.getObjectClazz());
 
-        if(con == null) return null;
+        if (con == null) return null;
 
         return con.newInstance(this.value);
     }
-    
+
     private enum Type {
         BYTE(Byte.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByte")),
         BYTE_ARRAY(Byte[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByteArray")),
@@ -41,7 +41,7 @@ public class NBTBase<T> {
         SHORT(Short.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagShort")),
         STRING(String.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagString")),
         UNKNOWN(null, null);
-        
+
         private final Class<?> objectClazz;
         private final Class<?> clazz;
 
@@ -51,14 +51,14 @@ public class NBTBase<T> {
         }
 
         public static Type getByObject(Object o) {
-            if(o == null) return UNKNOWN;
+            if (o == null) return UNKNOWN;
 
-            for(Type value : values()) {
-                if(value.objectClazz == null) continue;
+            for (Type value : values()) {
+                if (value.objectClazz == null) continue;
 
-                if(o.getClass().equals(value.objectClazz)) return value;
+                if (o.getClass().equals(value.objectClazz)) return value;
             }
-            
+
             return UNKNOWN;
         }
 

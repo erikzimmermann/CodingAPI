@@ -20,6 +20,10 @@ public class PlayerPickItemEvent extends PlayerEvent {
         this.from = from;
     }
 
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     public int getSlot() {
         return slot;
     }
@@ -35,10 +39,6 @@ public class PlayerPickItemEvent extends PlayerEvent {
     @Override
     public HandlerList getHandlers() {
         return getHandlerList();
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
     }
 
     @Override

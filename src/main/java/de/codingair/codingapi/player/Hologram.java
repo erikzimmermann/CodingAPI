@@ -100,22 +100,22 @@ public class Hologram implements Removable {
                 if (e.getFrom().getWorld() != e.getTo().getWorld()) return;
 
                 UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTaskLater(
-                    () -> {
-                    List<Hologram> l = API.getRemovables(null, Hologram.class);
-                    for (Hologram hologram : l) {
-                        if (hologram.isNotWatching(e.getPlayer())) continue;
+                        () -> {
+                            List<Hologram> l = API.getRemovables(null, Hologram.class);
+                            for (Hologram hologram : l) {
+                                if (hologram.isNotWatching(e.getPlayer())) continue;
 
-                        double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
-                        double from = e.getFrom().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getFrom());
+                                double to = e.getTo().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getTo());
+                                double from = e.getFrom().getWorld() != hologram.getLocation().getWorld() ? -1 : hologram.getLocation().distance(e.getFrom());
 
-                        if ((to != -1 && to <= DISTANCE_TO_SEE) && (from == -1 || from > DISTANCE_TO_SEE)) {
-                            hologram.update(e.getPlayer());
-                        } else if ((to == -1 || to > DISTANCE_TO_SEE) && (from != -1 && from <= DISTANCE_TO_SEE)) {
-                            hologram.remove(e.getPlayer());
-                        }
-                    }
-                    l.clear();
-                }, 2);
+                                if ((to != -1 && to <= DISTANCE_TO_SEE) && (from == -1 || from > DISTANCE_TO_SEE)) {
+                                    hologram.update(e.getPlayer());
+                                } else if ((to == -1 || to > DISTANCE_TO_SEE) && (from != -1 && from <= DISTANCE_TO_SEE)) {
+                                    hologram.remove(e.getPlayer());
+                                }
+                            }
+                            l.clear();
+                        }, 2);
             }
 
             @EventHandler(priority = EventPriority.LOWEST)

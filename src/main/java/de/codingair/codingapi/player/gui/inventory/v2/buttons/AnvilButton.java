@@ -23,7 +23,7 @@ public abstract class AnvilButton extends Button implements GUISwitchButton {
                 e.setCancelled(true);
                 e.setClose(false);
 
-                if(e.getSlot() != AnvilSlot.OUTPUT) return;
+                if (e.getSlot() != AnvilSlot.OUTPUT) return;
 
                 onAnvil(gui, e);
                 e.setKeepInventory(true);

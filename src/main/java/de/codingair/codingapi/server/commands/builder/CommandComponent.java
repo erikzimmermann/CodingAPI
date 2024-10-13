@@ -8,10 +8,10 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class CommandComponent {
-    protected CommandComponent parent;
     protected final List<CommandComponent> children = new ArrayList<>();
     protected final String argument;
     protected final String permission;
+    protected CommandComponent parent;
     protected Boolean onlyPlayers = null;
     protected Boolean onlyConsole = null;
 
@@ -34,17 +34,17 @@ public abstract class CommandComponent {
 
     public abstract boolean runCommand(CommandSender sender, String label, String[] args);
 
-    private void setParent(CommandComponent parent) {
-        this.parent = parent;
-    }
-
     public CommandComponent getParent() {
         return parent;
     }
 
+    private void setParent(CommandComponent parent) {
+        this.parent = parent;
+    }
+
     public BaseComponent getBase() {
-        if(this instanceof BaseComponent) return (BaseComponent) this;
-        else if(parent instanceof BaseComponent) return (BaseComponent) parent;
+        if (this instanceof BaseComponent) return (BaseComponent) this;
+        else if (parent instanceof BaseComponent) return (BaseComponent) parent;
         return parent == null ? null : parent.getBase();
     }
 
@@ -53,7 +53,8 @@ public abstract class CommandComponent {
     }
 
     public CommandComponent addChild(CommandComponent child) {
-        if(child instanceof SpecialCommandComponent && this.getChild(null) != null) throw new IllegalStateException("There is already a SpecialCommandComponent!");
+        if (child instanceof SpecialCommandComponent && this.getChild(null) != null)
+            throw new IllegalStateException("There is already a SpecialCommandComponent!");
         child.setParent(this);
         this.children.add(child);
         return this;
@@ -93,7 +94,7 @@ public abstract class CommandComponent {
 //            return l;
 //        } catch(ClassNotFoundException e) {
 //            e.printStackTrace();
-            return null;
+        return null;
 //        }
     }
 
@@ -102,15 +103,15 @@ public abstract class CommandComponent {
         CommandComponent child = null;
         CommandComponent special = null;
 
-        for(CommandComponent c : children) {
-            if(c instanceof SpecialCommandComponent) {
+        for (CommandComponent c : children) {
+            if (c instanceof SpecialCommandComponent) {
                 special = c;
                 continue;
             }
 
-            if(arg == null || arg.isEmpty()) continue;
+            if (arg == null || arg.isEmpty()) continue;
 
-            if(c.getArgument().equalsIgnoreCase(arg)) {
+            if (c.getArgument().equalsIgnoreCase(arg)) {
                 child = c;
                 break;
             }
@@ -122,7 +123,7 @@ public abstract class CommandComponent {
     }
 
     public boolean removeChild(CommandComponent child) {
-        if(this.children.remove(child)) {
+        if (this.children.remove(child)) {
             child.setParent(null);
             return true;
         } else return false;
@@ -130,7 +131,7 @@ public abstract class CommandComponent {
 
     public boolean removeChild(String arg) {
         CommandComponent cc = getChild(arg);
-        if(cc == null) return false;
+        if (cc == null) return false;
         else return removeChild(cc);
     }
 
@@ -153,7 +154,7 @@ public abstract class CommandComponent {
     }
 
     private void addArgs(List<String> s) {
-        if(this.parent == null) s.add(this.argument);
+        if (this.parent == null) s.add(this.argument);
         else {
             this.parent.addArgs(s);
             s.add(this.argument);
@@ -161,9 +162,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyPlayers() {
-        if(onlyPlayers != null) return onlyPlayers;
+        if (onlyPlayers != null) return onlyPlayers;
 
-        if(this.parent == null) return false;
+        if (this.parent == null) return false;
         else return this.parent.isOnlyPlayers();
     }
 
@@ -173,9 +174,9 @@ public abstract class CommandComponent {
     }
 
     public boolean isOnlyConsole() {
-        if(onlyConsole != null) return onlyConsole;
+        if (onlyConsole != null) return onlyConsole;
 
-        if(this.parent == null) return false;
+        if (this.parent == null) return false;
         else return this.parent.isOnlyConsole();
     }
 

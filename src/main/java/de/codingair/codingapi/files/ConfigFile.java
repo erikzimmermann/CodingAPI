@@ -11,13 +11,13 @@ import java.io.*;
 import java.util.logging.Level;
 
 public class ConfigFile {
-    private YamlConfiguration config = null;
-    private File configFile = null;
     private final JavaPlugin plugin;
     private final String name;
+    private final boolean raw;
+    private YamlConfiguration config = null;
+    private File configFile = null;
     private String path;
     private String srcPath;
-    private final boolean raw;
 
     public ConfigFile(JavaPlugin plugin, String name, String path) {
         this(plugin, name, path, true);

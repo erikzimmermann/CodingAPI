@@ -31,13 +31,13 @@ public class SinusAnimation extends CustomAnimation {
         double degrees = 0;
         double height = -dif;
 
-        while(degrees < 360) {
-            if(minimize) {
+        while (degrees < 360) {
+            if (minimize) {
                 height -= step;
-                if(height < -dif) minimize = false;
+                if (height < -dif) minimize = false;
             } else {
                 height += step;
-                if(height > dif) minimize = true;
+                if (height > dif) minimize = true;
             }
 
             Location circleLocation = getZero().add(
@@ -47,7 +47,9 @@ public class SinusAnimation extends CustomAnimation {
 
             degrees += (12 - r * 0.2);
 
-            locations.add(new ArrayList<Location>(){{add(circleLocation);}});
+            locations.add(new ArrayList<Location>() {{
+                add(circleLocation);
+            }});
         }
 
         return locations;

@@ -22,13 +22,14 @@ public class Orientable extends BlockData {
 
     @Override
     public Object getData(Block block) {
-        if(Version.atLeast(13)) {
+        if (Version.atLeast(13)) {
             Class<?> orientable = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "block.data.Orientable");
             Class<?> axis = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Axis");
             IReflection.MethodAccessor setAxis = IReflection.getMethod(orientable, "setAxis", new Class[]{axis});
 
             Object data = getFrom(block);
-            if(!orientable.isInstance(data)) throw new IllegalStateException("BlockData cannot be casted to Orientable.class");
+            if (!orientable.isInstance(data))
+                throw new IllegalStateException("BlockData cannot be casted to Orientable.class");
 
             Object o = orientable.cast(data);
             setAxis.invoke(o, axis.getEnumConstants()[this.axis.getId()]);

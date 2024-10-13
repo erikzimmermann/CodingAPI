@@ -18,8 +18,8 @@ public abstract class Animation implements Ticker {
     }
 
     public void setRunning(boolean running) {
-        if(running && !isRunning()) API.addTicker(this);
-        else if(!running && isRunning()) API.removeTicker(this);
+        if (running && !isRunning()) API.addTicker(this);
+        else if (!running && isRunning()) API.removeTicker(this);
     }
 
     public final void sendParticle(Location location) {
@@ -31,7 +31,8 @@ public abstract class Animation implements Ticker {
     }
 
     @Override
-    public void onSecond() { }
+    public void onSecond() {
+    }
 
     public double getMaxDistance() {
         return maxDistance;

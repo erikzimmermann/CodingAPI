@@ -21,9 +21,6 @@ import java.util.Map;
 public class UTFConfiguration extends ConfigurationProvider {
     private static final String COMMENT = "#";
     private final List<Extra> extras = new ArrayList<>();
-    private boolean deployedExtras = false;
-    private Configuration config;
-
     private final ThreadLocal<Yaml> yaml = new ThreadLocal<Yaml>() {
         protected Yaml initialValue() {
             DumperOptions options = new DumperOptions();
@@ -35,6 +32,18 @@ public class UTFConfiguration extends ConfigurationProvider {
             return new Yaml(new Constructor(new LoaderOptions()), representer, options);
         }
     };
+    private boolean deployedExtras = false;
+    private Configuration config;
+
+    public static void notNull(Object object) {
+        notNull(object, "The validated object is null");
+    }
+
+    public static void notNull(Object object, String message) {
+        if (object == null) {
+            throw new IllegalArgumentException(message);
+        }
+    }
 
     public void destroy() {
         this.extras.clear();
@@ -46,18 +55,8 @@ public class UTFConfiguration extends ConfigurationProvider {
     }
 
     private Configuration createConfiguration(Map<?, ?> map, Configuration def) {
-        if(map == null) return new Configuration(def);
+        if (map == null) return new Configuration(def);
         return (Configuration) IReflection.getConstructor(Configuration.class, Map.class, Configuration.class).newInstance(map, def);
-    }
-
-    public static void notNull(Object object) {
-        notNull(object, "The validated object is null");
-    }
-
-    public static void notNull(Object object, String message) {
-        if(object == null) {
-            throw new IllegalArgumentException(message);
-        }
     }
 
     public void save(Configuration config, File file) throws IOException {
@@ -74,12 +73,12 @@ public class UTFConfiguration extends ConfigurationProvider {
 
         try {
             writer.write(data);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
                 writer.close();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -87,7 +86,7 @@ public class UTFConfiguration extends ConfigurationProvider {
 
     private String saveToString(Configuration config) {
         String dump = this.yaml.get().dump(getSelf(config));
-        if(dump.equals("{}\n")) dump = "";
+        if (dump.equals("{}\n")) dump = "";
         return dump;
     }
 
@@ -110,7 +109,7 @@ public class UTFConfiguration extends ConfigurationProvider {
 
         String line;
         try {
-            while((line = input.readLine()) != null) {
+            while ((line = input.readLine()) != null) {
                 builder.append(line);
                 builder.append('\n');
             }
@@ -134,7 +133,7 @@ public class UTFConfiguration extends ConfigurationProvider {
     public Configuration load(Reader reader) {
         try {
             return loadByString(reader, null);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return config = new Configuration();
         }
@@ -143,7 +142,7 @@ public class UTFConfiguration extends ConfigurationProvider {
     public Configuration load(Reader reader, Configuration defaults) {
         try {
             return loadByString(reader, defaults);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return config = new Configuration();
         }
@@ -156,7 +155,7 @@ public class UTFConfiguration extends ConfigurationProvider {
     public Configuration load(InputStream is, Configuration defaults) {
         try {
             return this.loadByString(new InputStreamReader(is), defaults);
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return config = new Configuration();
         }
@@ -175,7 +174,7 @@ public class UTFConfiguration extends ConfigurationProvider {
 
 
     public void removeUnused(Configuration origin) {
-        if(origin == null) return;
+        if (origin == null) return;
         removeUnused("", config, origin);
     }
 
@@ -185,18 +184,18 @@ public class UTFConfiguration extends ConfigurationProvider {
 
         List<String> toRemove = new ArrayList<>();
 
-        for(String key : data.keySet()) {
-            if(def.containsKey(key)) {
+        for (String key : data.keySet()) {
+            if (def.containsKey(key)) {
                 Object baseValue = data.get(key);
                 Object dataValue = def.get(key);
 
-                if(dataValue instanceof Configuration && baseValue instanceof Configuration) {
+                if (dataValue instanceof Configuration && baseValue instanceof Configuration) {
                     removeUnused(prefix + key + ".", (Configuration) baseValue, (Configuration) dataValue);
                 }
             } else toRemove.add(prefix + key);
         }
 
-        for(String key : toRemove) {
+        for (String key : toRemove) {
             getConfig().set(key, null);
         }
 
@@ -209,7 +208,7 @@ public class UTFConfiguration extends ConfigurationProvider {
     }
 
     private void loadExtras(String contents) {
-        if(this.deployedExtras) return;
+        if (this.deployedExtras) return;
         this.extras.clear();
 
         int line = 0;
@@ -217,37 +216,37 @@ public class UTFConfiguration extends ConfigurationProvider {
         String[] a = contents.split("\n", -1);
 
         int list = -1;
-        for(int i = 0; i < a.length - 1; i++) {
+        for (int i = 0; i < a.length - 1; i++) {
             String s = a[i];
 
             int empty = 0;
-            while(s.startsWith(" ")) {
+            while (s.startsWith(" ")) {
                 s = s.substring(1);
                 empty++;
             }
 
-            if(list > -1) {
+            if (list > -1) {
                 list = list < empty ? list : -1;
-                if(list > -1) continue;
+                if (list > -1) continue;
             }
 
-            if(s.startsWith("-")) {
+            if (s.startsWith("-")) {
                 list = empty;
                 continue;
             }
 
-            if(isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
+            if (isComment(a[i]) || isEmpty(a[i])) extras.add(new Extra(a[i], line));
             line++;
         }
     }
 
     private boolean isComment(String s) {
-        while(s.startsWith(" ")) s = s.replaceFirst(" ", "");
+        while (s.startsWith(" ")) s = s.replaceFirst(" ", "");
         return s.startsWith(COMMENT);
     }
 
     private boolean isEmpty(String s) {
-        while(s.startsWith(" ")) s = s.replaceFirst(" ", "");
+        while (s.startsWith(" ")) s = s.replaceFirst(" ", "");
         return s.isEmpty() || s.equals("\n");
     }
 
@@ -258,45 +257,45 @@ public class UTFConfiguration extends ConfigurationProvider {
         int e = 0;
         int listItems = 0;
         int list = -1;
-        for(int i = 0; i < size; i++) {
-            if(this.extras.size() == e) break;
+        for (int i = 0; i < size; i++) {
+            if (this.extras.size() == e) break;
 
-            if(lines.size() == i) {
+            if (lines.size() == i) {
                 lines.add(this.extras.get(e++).getText());
                 continue;
             }
 
             String s = lines.get(i);
             int empty = 0;
-            while(s.startsWith(" ")) {
+            while (s.startsWith(" ")) {
                 s = s.substring(1);
                 empty++;
             }
 
-            if(list > -1) {
+            if (list > -1) {
                 list = list < empty ? list : -1;
-                if(list > -1) {
+                if (list > -1) {
                     listItems++;
                     continue;
                 }
             }
 
-            if(s.startsWith("-")) {
+            if (s.startsWith("-")) {
                 listItems++;
                 list = empty;
                 continue;
             }
 
-            if(this.extras.get(e).getLine() == (i - listItems)) {
+            if (this.extras.get(e).getLine() == (i - listItems)) {
                 lines.add(i, extras.get(e++).getText());
             }
         }
 
         StringBuilder builder = new StringBuilder();
 
-        for(int j = 0; j < lines.size(); j++) {
+        for (int j = 0; j < lines.size(); j++) {
             builder.append(lines.get(j));
-            if(j < lines.size() - 1) builder.append("\n");
+            if (j < lines.size() - 1) builder.append("\n");
         }
 
         return builder.toString();

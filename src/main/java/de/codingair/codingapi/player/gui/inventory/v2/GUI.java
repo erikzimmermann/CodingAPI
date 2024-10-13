@@ -5,9 +5,7 @@ import com.google.common.base.Preconditions;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.player.gui.inventory.v2.buttons.Button;
-import de.codingair.codingapi.player.gui.inventory.v2.buttons.GUISwitchButton;
 import de.codingair.codingapi.player.gui.inventory.v2.exceptions.*;
-import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.Callback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -24,6 +22,7 @@ import java.util.Objects;
 public class GUI extends InventoryBuilder {
     protected final HashSet<Page> pages = new HashSet<>();
     protected final HashMap<Class<? extends Page>, Page> pageLink = new HashMap<>();
+    private final boolean cancelInventoryEvents;
     protected GUIListener listener;
     protected GUI fallback;
     protected Page active;
@@ -32,7 +31,6 @@ public class GUI extends InventoryBuilder {
     private int size;
     private String title;
     private String originalTitle;
-    private final boolean cancelInventoryEvents;
 
     public GUI(Player player, JavaPlugin plugin, boolean cancelInventoryEvents) {
         super(player, plugin);
@@ -156,14 +154,14 @@ public class GUI extends InventoryBuilder {
             // only open if fallback is still waiting
 
             UniversalScheduler.getScheduler(getPlugin()).runTaskLater(
-            () -> {
-                try {
-                    //safety check
-                    if (fallback != null && fallback.waiting) fallback.continueGUI();
-                } catch (IsNotWaitingException e) {
-                    e.printStackTrace();
-                }
-            }, 1);
+                    () -> {
+                        try {
+                            //safety check
+                            if (fallback != null && fallback.waiting) fallback.continueGUI();
+                        } catch (IsNotWaitingException e) {
+                            e.printStackTrace();
+                        }
+                    }, 1);
         }
     }
 

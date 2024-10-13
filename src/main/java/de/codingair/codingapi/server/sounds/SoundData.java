@@ -40,7 +40,7 @@ public class SoundData {
     }
 
     public void play(Player player) {
-        if(!sound.isSupported()) return;
+        if (!sound.isSupported()) return;
         this.sound.playSound(player, this.volume, this.pitch);
     }
 
@@ -54,8 +54,8 @@ public class SoundData {
 
     @Override
     public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         SoundData soundData = (SoundData) o;
         return Float.compare(soundData.volume, volume) == 0 &&
                 Float.compare(soundData.pitch, pitch) == 0 &&

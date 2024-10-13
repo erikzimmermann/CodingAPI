@@ -5,7 +5,6 @@ import de.codingair.codingapi.player.gui.inventory.v2.buttons.Button;
 import de.codingair.codingapi.player.gui.inventory.v2.buttons.GUISwitchButton;
 import de.codingair.codingapi.player.gui.inventory.v2.exceptions.IsNotWaitingException;
 import de.codingair.codingapi.tools.Call;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
@@ -31,7 +30,8 @@ public class GUIListener implements Listener {
         if (gui == null || gui.getInventory() == null) return;
 
         if (!gui.waiting && gui.getInventory().equals(e.getInventory())) {
-            if (gui.closing != null) UniversalScheduler.getScheduler(gui.getPlugin()).runTaskLater(() -> gui.closing.accept(gui.getPlayer()), 1); //use short delay
+            if (gui.closing != null)
+                UniversalScheduler.getScheduler(gui.getPlugin()).runTaskLater(() -> gui.closing.accept(gui.getPlayer()), 1); //use short delay
             else gui.forceClose(this, null);
         } else if (closeListener != null && e.getPlayer().equals(gui.getPlayer())) {
             UniversalScheduler.getScheduler(gui.getPlugin()).runTaskLater(() -> {

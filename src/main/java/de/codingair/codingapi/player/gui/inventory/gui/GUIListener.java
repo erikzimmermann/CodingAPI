@@ -24,7 +24,8 @@ public abstract class GUIListener {
         return false;
     }
 
-    public void onDropItem(InventoryClickEvent e) { }
+    public void onDropItem(InventoryClickEvent e) {
+    }
 
     public void onClickBottomInventory(InventoryClickEvent e) {
     }

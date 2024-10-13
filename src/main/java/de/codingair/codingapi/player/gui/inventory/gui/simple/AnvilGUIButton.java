@@ -39,9 +39,9 @@ public abstract class AnvilGUIButton extends Button {
 
     @Override
     public void onClick(InventoryClickEvent e, Player player) {
-        if(interrupt()) return;
+        if (interrupt()) return;
 
-        if(trigger == null || e.getClick() == trigger) {
+        if (trigger == null || e.getClick() == trigger) {
             getInterface().setClosingByButton(true);
             getInterface().setClosingForGUI(true);
 
@@ -58,7 +58,7 @@ public abstract class AnvilGUIButton extends Button {
                 public void onClose(AnvilCloseEvent e) {
                     AnvilGUIButton.this.onClose(e);
 
-                    if(e.getPost() == null) {
+                    if (e.getPost() == null) {
                         getInterface().reinitialize();
                         e.setPost(() -> getInterface().open());
                         getInterface().setClosingForGUI(false);

@@ -10,15 +10,15 @@ import java.util.Set;
 public interface DataMask {
 
     default Object put(String key, Object value) {
-        if(value == null) return remove(key);
+        if (value == null) return remove(key);
         else {
-            if(value.getClass().isEnum()) value = value.toString();
-            else if(value instanceof Number && ((Number) value).doubleValue() == 0) return remove(key);
-            else if(value instanceof Boolean && !((Boolean) value)) return remove(key);
-            else if(value.getClass().isArray() && Array.getLength(value) == 0) return remove(key);
-            else if(value instanceof Collection && ((Collection<?>) value).isEmpty()) return remove(key);
+            if (value.getClass().isEnum()) value = value.toString();
+            else if (value instanceof Number && ((Number) value).doubleValue() == 0) return remove(key);
+            else if (value instanceof Boolean && !((Boolean) value)) return remove(key);
+            else if (value.getClass().isArray() && Array.getLength(value) == 0) return remove(key);
+            else if (value instanceof Collection && ((Collection<?>) value).isEmpty()) return remove(key);
 
-            if(value instanceof Date) value = ((Date) value).getTime();
+            if (value instanceof Date) value = ((Date) value).getTime();
 
             return finalCommit(key, value);
         }
@@ -120,12 +120,13 @@ public interface DataMask {
     default <T extends Enum<T>> T get(String key, Class<T> def) {
         Object o = get(key);
 
-        if(o == null) return null;
-        if(!(o instanceof String)) throw new IllegalArgumentException("Value isn't a String. Can't search for a enum!");
+        if (o == null) return null;
+        if (!(o instanceof String))
+            throw new IllegalArgumentException("Value isn't a String. Can't search for a enum!");
         String name = (String) o;
 
-        for(T e : def.getEnumConstants()) {
-            if(e.name().equals(name)) return e;
+        for (T e : def.getEnumConstants()) {
+            if (e.name().equals(name)) return e;
         }
 
         return null;

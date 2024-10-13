@@ -15,13 +15,13 @@ public abstract class MultiTextCommandComponent extends MultiCommandComponent {
     public boolean runCommand(CommandSender sender, String label, String[] args) {
         int before = 0;
         CommandComponent cc = getParent();
-        while(cc != null) {
+        while (cc != null) {
             before++;
             cc = cc.getParent();
         }
 
         StringBuilder builder = new StringBuilder();
-        for(int i = before - 1; i < args.length; i++) {
+        for (int i = before - 1; i < args.length; i++) {
             builder.append(args[i]).append(" ");
         }
 

@@ -14,7 +14,7 @@ public class BlockEntityNBTTagCompound extends NBTTagCompound {
         Class<?> tileClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), "TileEntity");
 
         TILE_ENTITY = IReflection.getField(CRAFT_BLOCK_ENTITY_STATE, "tileEntity");
-        SAVE = IReflection.getMethod(tileClass, "save", PacketUtils.NBTTagCompoundClass, new Class[] {PacketUtils.NBTTagCompoundClass});
+        SAVE = IReflection.getMethod(tileClass, "save", PacketUtils.NBTTagCompoundClass, new Class[]{PacketUtils.NBTTagCompoundClass});
     }
 
     private Object entity;
@@ -24,7 +24,8 @@ public class BlockEntityNBTTagCompound extends NBTTagCompound {
     }
 
     public BlockEntityNBTTagCompound(Object entity) {
-        if(!CRAFT_BLOCK_ENTITY_STATE.isInstance(entity)) throw new IllegalArgumentException(entity.getClass() + " cannot be cast to " + CRAFT_BLOCK_ENTITY_STATE);
+        if (!CRAFT_BLOCK_ENTITY_STATE.isInstance(entity))
+            throw new IllegalArgumentException(entity.getClass() + " cannot be cast to " + CRAFT_BLOCK_ENTITY_STATE);
 
         this.entity = entity;
         tile = TILE_ENTITY.get(entity);

@@ -19,13 +19,11 @@ public abstract class HotbarGUI implements Removable {
     private final ItemComponent[] menu = new ItemComponent[9];
 
     private final Player player;
+    private final JavaPlugin plugin;
     private PlayerInventory backup;
-
     private SoundData clickSound;
     private SoundData openSound;
     private SoundData closeSound;
-
-    private final JavaPlugin plugin;
     private long lastClick = 0;
     private boolean waiting = false;
     private int startSlot = -1;
@@ -54,42 +52,42 @@ public abstract class HotbarGUI implements Removable {
         this.lastClick = System.currentTimeMillis();
 
         List<HotbarGUI> l = API.getRemovables(player, HotbarGUI.class);
-        for(HotbarGUI gui : l) {
+        for (HotbarGUI gui : l) {
             gui.setWaiting(true);
             this.backup = gui.getBackup();
             gui.destroy();
         }
         l.clear();
 
-        if(backup == null) this.backup = new PlayerInventory(this.player);
+        if (backup == null) this.backup = new PlayerInventory(this.player);
         waiting = false;
 
         this.player.getInventory().clear();
-        for(int i = 0; i < 9; i++) {
-            if(this.menu[i] != null) this.player.getInventory().setItem(i, this.menu[i].getItem());
+        for (int i = 0; i < 9; i++) {
+            if (this.menu[i] != null) this.player.getInventory().setItem(i, this.menu[i].getItem());
         }
 
-        if(startSlot >= 0 && startSlot <= 8) this.player.getInventory().setHeldItemSlot(startSlot);
+        if (startSlot >= 0 && startSlot <= 8) this.player.getInventory().setHeldItemSlot(startSlot);
         this.player.updateInventory();
 
-        if(this.openSound != null && sound) this.openSound.play(this.player);
+        if (this.openSound != null && sound) this.openSound.play(this.player);
 
         API.addRemovable(this);
 
         ItemComponent ic = getItem(player.getInventory().getHeldItemSlot());
-        if(ic != null && ic.getAction() != null) ic.getAction().onHover(this, null, ic, player);
+        if (ic != null && ic.getAction() != null) ic.getAction().onHover(this, null, ic, player);
     }
 
     public void close(boolean sound) {
-        if(!waiting) this.backup.restore();
-        if(this.closeSound != null && sound) this.closeSound.play(this.player);
+        if (!waiting) this.backup.restore();
+        if (this.closeSound != null && sound) this.closeSound.play(this.player);
 
         API.removeRemovable(this);
     }
 
     public int getSlot(ItemComponent ic) {
-        for(int i = 0; i < 9; i++) {
-            if(this.menu[i] == ic) return i;
+        for (int i = 0; i < 9; i++) {
+            if (this.menu[i] == ic) return i;
         }
 
         return -999;
@@ -97,7 +95,7 @@ public abstract class HotbarGUI implements Removable {
 
     public void updateDisplayName(ItemComponent ic, String s) {
         int slot = getSlot(ic);
-        if(slot == -999) return;
+        if (slot == -999) return;
 
         ItemMeta meta = ic.getItem().getItemMeta();
         meta.setDisplayName(s);
@@ -116,7 +114,7 @@ public abstract class HotbarGUI implements Removable {
 
     public void updateLore(ItemComponent ic, List<String> list) {
         int slot = getSlot(ic);
-        if(slot == -999) return;
+        if (slot == -999) return;
 
         ItemMeta meta = ic.getItem().getItemMeta();
         meta.setLore(list);
@@ -137,11 +135,11 @@ public abstract class HotbarGUI implements Removable {
     }
 
     public void commit() {
-        if(!this.isOpened()) return;
+        if (!this.isOpened()) return;
 
         this.player.getInventory().clear();
-        for(int i = 0; i < 9; i++) {
-            if(this.menu[i] == null || this.menu[i].getItem() == null) {
+        for (int i = 0; i < 9; i++) {
+            if (this.menu[i] == null || this.menu[i].getItem() == null) {
                 this.player.getInventory().setItem(i, new ItemStack(Material.AIR));
                 continue;
             }
@@ -158,18 +156,18 @@ public abstract class HotbarGUI implements Removable {
         ItemComponent old = this.menu[slot];
         this.menu[slot] = ic;
 
-        if(update) commit();
+        if (update) commit();
         return old;
     }
 
     public ItemComponent getItem(int slot) {
-        if(this.menu.length <= slot || slot < 0) return null;
+        if (this.menu.length <= slot || slot < 0) return null;
         return this.menu[slot];
     }
 
     public boolean addItem(ItemComponent ic) {
-        for(int i = 0; i < 9; i++) {
-            if(this.menu[i] == null) {
+        for (int i = 0; i < 9; i++) {
+            if (this.menu[i] == null) {
                 this.menu[i] = ic;
                 return true;
             }

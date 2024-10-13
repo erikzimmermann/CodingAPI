@@ -20,10 +20,10 @@ public class WalkListener implements Listener {
         double y = e.getFrom().getY() - e.getTo().getY();
         double z = e.getFrom().getZ() - e.getTo().getZ();
 
-        if(Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.05) {
+        if (Math.abs(x) + Math.abs(y) + Math.abs(z) > 0.05) {
             PlayerWalkEvent event = new PlayerWalkEvent(p, e.getFrom().clone(), e.getTo().clone());
             Bukkit.getPluginManager().callEvent(event);
-            if(event.isCancelled()) e.setCancelled(event.isCancelled());
+            if (event.isCancelled()) e.setCancelled(event.isCancelled());
             e.setTo(event.getTo());
             e.setFrom(event.getFrom());
         }

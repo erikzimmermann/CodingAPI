@@ -1,6 +1,5 @@
 package de.codingair.codingapi.server.listeners;
 
-import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.AsyncCatcher;

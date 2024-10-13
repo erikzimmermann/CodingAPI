@@ -39,6 +39,10 @@ public abstract class ItemButton {
         return item;
     }
 
+    public void setItem(ItemStack item) {
+        setItem(item, true);
+    }
+
     public ItemButton setMoveable(boolean movable) {
         this.option.setMovable(movable);
         return this;
@@ -74,10 +78,10 @@ public abstract class ItemButton {
     }
 
     public void playSound(ClickType click, Player p) {
-        if(!canClick(click)) return;
+        if (!canClick(click)) return;
 
-        if(this.option.getClickSound() != null) p.playSound(p.getLocation(), this.option.getClickSound(), 1, 1);
-        else if(this.option.getClickSound2() != null) this.option.getClickSound2().play(p);
+        if (this.option.getClickSound() != null) p.playSound(p.getLocation(), this.option.getClickSound(), 1, 1);
+        else if (this.option.getClickSound2() != null) this.option.getClickSound2().play(p);
     }
 
     @Deprecated
@@ -87,13 +91,9 @@ public abstract class ItemButton {
         i.addButton(this);
     }
 
-    public void setItem(ItemStack item) {
-        setItem(item, true);
-    }
-
     public void setItem(ItemStack item, boolean update) {
         this.item = item;
-        if(update && inv != null) inv.setItem(getSlot(), getItem());
+        if (update && inv != null) inv.setItem(getSlot(), getItem());
     }
 
     public boolean isCloseOnClick() {
@@ -114,7 +114,7 @@ public abstract class ItemButton {
     }
 
     public void updateInInterface() {
-        if(this.inv == null) return;
+        if (this.inv == null) return;
 
         inv.removeButton(this);
         inv.addButton(this);

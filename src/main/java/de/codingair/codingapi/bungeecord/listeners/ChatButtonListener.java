@@ -11,7 +11,7 @@ import java.util.HashMap;
 public class ChatButtonListener implements Listener {
     private final HashMap<Connection, String> ids = new HashMap<>();
 
-    @EventHandler (priority = -100)
+    @EventHandler(priority = -100)
     public void beforeChat(ChatEvent e) {
         if (!ChatButton.isChatButton(e.getMessage())) return;
         String id = e.getMessage();
@@ -21,7 +21,7 @@ public class ChatButtonListener implements Listener {
         e.setMessage("");
     }
 
-    @EventHandler (priority = 100)
+    @EventHandler(priority = 100)
     public void afterChat(ChatEvent e) {
         String id = ids.remove(e.getSender());
         if (id != null) {

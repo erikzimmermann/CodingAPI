@@ -3,6 +3,7 @@ package de.codingair.codingapi.tools.io.lib;
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by Fernflower decompiler)
 //
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -43,10 +44,10 @@ public class JSONValue {
             out.write("null");
         } else if (value instanceof String) {
             out.write(34);
-            out.write(escape((String)value));
+            out.write(escape((String) value));
             out.write(34);
         } else if (value instanceof Double) {
-            if (!((Double)value).isInfinite() && !((Double)value).isNaN()) {
+            if (!((Double) value).isInfinite() && !((Double) value).isNaN()) {
                 out.write(value.toString());
             } else {
                 out.write("null");
@@ -58,18 +59,18 @@ public class JSONValue {
             } else if (value instanceof Boolean) {
                 out.write(value.toString());
             } else if (value instanceof JSONStreamAware) {
-                ((JSONStreamAware)value).writeJSONString(out);
+                ((JSONStreamAware) value).writeJSONString(out);
             } else if (value instanceof JSONAware) {
-                out.write(((JSONAware)value).toJSONString());
+                out.write(((JSONAware) value).toJSONString());
             } else if (value instanceof Map) {
-                JSONObject.writeJSONString((Map)value, out);
+                JSONObject.writeJSONString((Map) value, out);
             } else if (value instanceof List) {
-                JSONArray.writeJSONString((List)value, out);
+                JSONArray.writeJSONString((List) value, out);
             } else {
                 out.write(value.toString());
             }
         } else {
-            if (!((Float)value).isInfinite() && !((Float)value).isNaN()) {
+            if (!((Float) value).isInfinite() && !((Float) value).isNaN()) {
                 out.write(value.toString());
             } else {
                 out.write("null");
@@ -82,21 +83,21 @@ public class JSONValue {
         if (value == null) {
             return "null";
         } else if (value instanceof String) {
-            return "\"" + escape((String)value) + "\"";
+            return "\"" + escape((String) value) + "\"";
         } else if (value instanceof Double) {
-            return !((Double)value).isInfinite() && !((Double)value).isNaN() ? value.toString() : "null";
+            return !((Double) value).isInfinite() && !((Double) value).isNaN() ? value.toString() : "null";
         } else if (value instanceof Float) {
-            return !((Float)value).isInfinite() && !((Float)value).isNaN() ? value.toString() : "null";
+            return !((Float) value).isInfinite() && !((Float) value).isNaN() ? value.toString() : "null";
         } else if (value instanceof Number) {
             return value.toString();
         } else if (value instanceof Boolean) {
             return value.toString();
         } else if (value instanceof JSONAware) {
-            return ((JSONAware)value).toJSONString();
+            return ((JSONAware) value).toJSONString();
         } else if (value instanceof Map) {
-            return JSONObject.toJSONString((Map)value);
+            return JSONObject.toJSONString((Map) value);
         } else {
-            return value instanceof List ? JSONArray.toJSONString((List)value) : value.toString();
+            return value instanceof List ? JSONArray.toJSONString((List) value) : value.toString();
         }
     }
 
@@ -111,9 +112,9 @@ public class JSONValue {
     }
 
     static void escape(String s, StringBuffer sb) {
-        for(int i = 0; i < s.length(); ++i) {
+        for (int i = 0; i < s.length(); ++i) {
             char ch = s.charAt(i);
-            switch(ch) {
+            switch (ch) {
                 case '\b':
                     sb.append("\\b");
                     continue;
@@ -144,7 +145,7 @@ public class JSONValue {
                 String ss = Integer.toHexString(ch);
                 sb.append("\\u");
 
-                for(int k = 0; k < 4 - ss.length(); ++k) {
+                for (int k = 0; k < 4 - ss.length(); ++k) {
                     sb.append('0');
                 }
 

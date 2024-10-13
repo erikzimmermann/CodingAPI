@@ -26,10 +26,10 @@ public abstract class Button extends ItemButton {
     public void onClick(InventoryClickEvent e) {
         onClick(e, (Player) e.getWhoClicked());
 
-        if(linkTrigger == null) proceed(e);
+        if (linkTrigger == null) proceed(e);
         else {
-            for(ClickType clickType : linkTrigger) {
-                if(clickType == e.getClick()) {
+            for (ClickType clickType : linkTrigger) {
+                if (clickType == e.getClick()) {
                     proceed(e);
                     break;
                 }
@@ -38,7 +38,7 @@ public abstract class Button extends ItemButton {
     }
 
     private void proceed(InventoryClickEvent e) {
-        if(this.link != null) getGUI().changePage(this.link);
+        if (this.link != null) getGUI().changePage(this.link);
     }
 
     public abstract void onClick(InventoryClickEvent e, Player player);

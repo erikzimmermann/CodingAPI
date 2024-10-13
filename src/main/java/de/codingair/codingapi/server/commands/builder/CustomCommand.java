@@ -12,9 +12,8 @@ import java.util.List;
 public class CustomCommand {
     private final Plugin owner;
     private final String name;
-    protected String description;
     private final List<String> aliases;
-
+    protected String description;
     private CommandExecutor executor;
     private TabCompleter tabCompleter;
 

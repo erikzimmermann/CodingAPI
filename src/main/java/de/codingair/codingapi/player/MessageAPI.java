@@ -31,13 +31,13 @@ public class MessageAPI {
 
         if (Version.atLeast(16)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
-            IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
+            IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[]{byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type, UUID.class);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2), UUID.randomUUID());
         } else if (Version.atLeast(12)) {
             Class<?> type = IReflection.getClass(IReflection.ServerPacket.CHAT, "ChatMessageType");
-            IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[] {byte.class});
+            IReflection.MethodAccessor a = IReflection.getMethod(type, "a", type, new Class[]{byte.class});
             IReflection.ConstructorAccessor constructor = IReflection.getConstructor(packet, PacketUtils.IChatBaseComponentClass, type);
 
             bar = constructor.newInstance(com, a.invoke(null, (byte) 2));
@@ -70,6 +70,7 @@ public class MessageAPI {
         }
         runnable = new UniversalRunnable() {
             int ticks = seconds;
+
             @Override
             public void run() {
                 if (ticks == 0) {

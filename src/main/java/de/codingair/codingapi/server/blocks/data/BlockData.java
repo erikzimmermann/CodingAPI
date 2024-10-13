@@ -9,7 +9,7 @@ public abstract class BlockData {
     public abstract Object getData(Block block);
 
     public void setDataTo(Block block, Object obj) {
-        if(Version.atLeast(13)) {
+        if (Version.atLeast(13)) {
             Class<?> blockData = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "block.data.BlockData");
             IReflection.MethodAccessor setBlockData = IReflection.getMethod(Block.class, "setBlockData", new Class[]{blockData});
 
@@ -21,21 +21,21 @@ public abstract class BlockData {
     }
 
     public void setTypeAndDataTo(Block block, Material material, byte data, boolean applyPhysics) {
-        if(Version.atLeast(13)) throw new IllegalStateException("setTypeIdAndData() cannot be set in v1.13+");
+        if (Version.atLeast(13)) throw new IllegalStateException("setTypeIdAndData() cannot be set in v1.13+");
 
         IReflection.MethodAccessor setTypeIdAndData = IReflection.getMethod(Block.class, "setTypeIdAndData", new Class[]{int.class, byte.class, boolean.class});
         setTypeIdAndData.invoke(block, getTypeId(material), data, applyPhysics);
     }
 
     public int getTypeId(Material material) {
-        if(Version.atLeast(13)) throw new IllegalStateException("getTypeId() cannot be set in v1.13+");
+        if (Version.atLeast(13)) throw new IllegalStateException("getTypeId() cannot be set in v1.13+");
 
         IReflection.MethodAccessor getId = IReflection.getMethod(Material.class, "getId", int.class, new Class[]{});
         return (int) getId.invoke(material);
     }
 
     public Object getFrom(Block block) {
-        if(Version.atLeast(13)) {
+        if (Version.atLeast(13)) {
             Class<?> blockData = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "block.data.BlockData");
             IReflection.MethodAccessor getBlockData = IReflection.getMethod(Block.class, "getBlockData", blockData, new Class[]{});
 

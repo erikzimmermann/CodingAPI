@@ -25,7 +25,7 @@ public class ParticlePacket {
             particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
             craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
             dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
-            toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[] {org.bukkit.Particle.class, Object.class});
+            toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[]{org.bukkit.Particle.class, Object.class});
         } else {
             packetPlayOutWorldParticles = null;
             particleParam = null;
@@ -132,7 +132,8 @@ public class ParticlePacket {
                 data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());
             }
 
-            if (particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER"))) return this;
+            if (particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER")))
+                return this;
 
             float e = 0, f = 0, g = 0, h = 0;
             int i = 1;
@@ -155,7 +156,7 @@ public class ParticlePacket {
 
                 if (data != null) {
                     int[] packetData = data.getPacketData();
-                    IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[] {packetData[0] | (packetData[1] << 12)});
+                    IReflection.setValue(packet, "k", particle == Particle.ITEM_CRACK ? packetData : new int[]{packetData[0] | (packetData[1] << 12)});
                 }
 
                 IReflection.setValue(packet, "b", (float) this.location.getX());

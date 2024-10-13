@@ -8,7 +8,6 @@ import de.codingair.codingapi.server.sounds.SoundData;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.utils.Removable;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.*;
@@ -28,21 +27,21 @@ public abstract class GUI extends Interface implements Removable {
     private final UUID uniqueId = UUID.randomUUID();
     private final JavaPlugin plugin;
     private final Player player;
+    private final List<Integer> movableSlots = new ArrayList<>();
+    private final List<GUIListener> listeners = new ArrayList<>();
+    protected boolean isClosed = false;
+    protected boolean openForFirstTime = true;
     private SoundData openSound = null;
     private SoundData cancelSound = null;
     private boolean closingByButton = false;
     private boolean closingByOperation = false;
     private boolean closingForGUI = false;
     private boolean moveOwnItems = true;
-    private final List<Integer> movableSlots = new ArrayList<>();
-    private final List<GUIListener> listeners = new ArrayList<>();
     private boolean canDropItems = false;
-    protected boolean isClosed = false;
     private boolean buffering = false;
     private Callback<GUI> closingConfirmed = null;
     private GUI fallbackGUI = null;
     private boolean useFallbackGUI = false;
-    protected boolean openForFirstTime = true;
 
     public GUI(Player p, String title, int size, JavaPlugin plugin) {
         this(p, title, size, plugin, true);
@@ -70,10 +69,10 @@ public abstract class GUI extends Interface implements Removable {
 
             @Override
             public void onInvCloseEvent(InventoryCloseEvent e) {
-                if(closingForGUI) return;
+                if (closingForGUI) return;
                 listeners.forEach(l -> l.onInvCloseEvent(e));
 
-                if(useFallbackGUI && fallbackGUI != null) {
+                if (useFallbackGUI && fallbackGUI != null) {
                     GUI fb = fallbackGUI;
                     fb.reinitialize();
                     UniversalScheduler.getScheduler(getPlugin()).runTaskLater(fb::open, 1);
@@ -98,7 +97,34 @@ public abstract class GUI extends Interface implements Removable {
 
         this.setEditableItems(false);
 
-        if(preInitialize) initialize(p);
+        if (preInitialize) initialize(p);
+    }
+
+    public static GUI getGUI(Player p) {
+        GUI g = API.getRemovable(p, GUI.class);
+        return g;
+    }
+
+    public static Interface getOldGUI(Player p) {
+        for (Interface i : interfaces) {
+            if (i.isUsing(p)) return i;
+        }
+
+        return null;
+    }
+
+    public static boolean usesGUI(Player p) {
+        return getGUI(p) != null;
+    }
+
+    public static boolean usesOldGUI(Player p) {
+        return getOldGUI(p) != null;
+    }
+
+    public static boolean updateInventory(Player player) {
+        if (Version.atLeast(14)) return false;
+        player.updateInventory();
+        return true;
     }
 
     public List<GUIListener> getGUIListeners() {
@@ -153,23 +179,23 @@ public abstract class GUI extends Interface implements Removable {
         Callback<GUI> run = new Callback<GUI>() {
             @Override
             public void accept(GUI old) {
-                if(fallbackGUI == null) fallbackGUI = old;
+                if (fallbackGUI == null) fallbackGUI = old;
 
-                if(openForFirstTime) {
-                    if(getOpenSound() != null) getOpenSound().play(player);
+                if (openForFirstTime) {
+                    if (getOpenSound() != null) getOpenSound().play(player);
                     openForFirstTime = false;
                 }
 
-                if(old != null) {
+                if (old != null) {
                     //transfer existing inventory
-                    if(old.getSize() == getSize()) {
+                    if (old.getSize() == getSize()) {
                         isClosed = old.isClosed; //transfer status
                         old.isClosed = true; //cancel closing inventory
 
                         inventory = old.getInventory();
                         reinitialize(); //initialize new items/buttons
 
-                        if(!isClosed && !old.getTitle().equals(getTitle())) {
+                        if (!isClosed && !old.getTitle().equals(getTitle())) {
                             GUI.super.addToPlayerList(getPlayer());
                             updateTitle(true);
                         }
@@ -184,28 +210,28 @@ public abstract class GUI extends Interface implements Removable {
 
                 API.addRemovable(GUI.this); //register new GUI
 
-                if(isClosed) {
+                if (isClosed) {
                     isClosed = false;
                     GUI.super.open(p); //open if closed
                 }
             }
         };
 
-        if(GUI.usesGUI(p)) {
-            if(GUI.getGUI(p) == this) return;
+        if (GUI.usesGUI(p)) {
+            if (GUI.getGUI(p) == this) return;
 
             GUI gui = GUI.getGUI(p);
 
-            if((gui.closingForGUI && gui.getSize() == getSize()) || gui.isClosed) {
+            if ((gui.closingForGUI && gui.getSize() == getSize()) || gui.isClosed) {
                 run.accept(gui);
             } else {
                 gui.closingConfirmed = run;
                 gui.close();
             }
             return;
-        } else if(GUI.usesOldGUI(p)) {
+        } else if (GUI.usesOldGUI(p)) {
             GUI.getOldGUI(p).close(p);
-        } else if(p.getOpenInventory() != null && p.getOpenInventory().getTopInventory() != null && p.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
+        } else if (p.getOpenInventory() != null && p.getOpenInventory().getTopInventory() != null && p.getOpenInventory().getTopInventory().getType() != InventoryType.CRAFTING) {
             foreignConfirmations.put(p, run);
             return;
         }
@@ -219,7 +245,7 @@ public abstract class GUI extends Interface implements Removable {
 
     @Override
     public void close(Player p, boolean isClosing) {
-        if(isClosed) return;
+        if (isClosed) return;
         else isClosed = true;
 
         closingByOperation = !isClosing;
@@ -237,7 +263,7 @@ public abstract class GUI extends Interface implements Removable {
 
     public void confirmClosing() {
         API.removeRemovable(this);
-        if(this.closingConfirmed != null) {
+        if (this.closingConfirmed != null) {
             UniversalScheduler.getScheduler(getPlugin()).runTaskLater(() -> closingConfirmed.accept(this), 1L);
         }
     }
@@ -247,13 +273,13 @@ public abstract class GUI extends Interface implements Removable {
     }
 
     public void setEditableSlots(boolean movable, List<Integer> slots) {
-        if(movable) {
-            for(int slot : slots) {
-                if(this.movableSlots.contains(slot)) continue;
+        if (movable) {
+            for (int slot : slots) {
+                if (this.movableSlots.contains(slot)) continue;
                 this.movableSlots.add(slot);
             }
         } else {
-            for(int slot : slots) {
+            for (int slot : slots) {
                 this.movableSlots.remove((Object) slot);
             }
         }
@@ -325,90 +351,92 @@ public abstract class GUI extends Interface implements Removable {
         Vector v = new Vector(x1, y1, 0).subtract(new Vector(x0, y0, 0)).normalize();
 
         do {
-            if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+            if (override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR))
+                setItem((int) cX, (int) cY, item.clone());
             cX += v.getX();
             cY += v.getY();
-        } while((int) cX != x1 || (int) cY != y1);
+        } while ((int) cX != x1 || (int) cY != y1);
 
-        if(override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR)) setItem((int) cX, (int) cY, item.clone());
+        if (override || getItem((int) cX, (int) cY) == null || getItem((int) cX, (int) cY).getType().equals(Material.AIR))
+            setItem((int) cX, (int) cY, item.clone());
     }
 
     @Override
     public void addButton(int slot, ItemButton button) {
         super.addButton(slot, button);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public HashMap<Integer, ItemStack> addItem(ItemStack... arg0) throws IllegalArgumentException {
         HashMap<Integer, ItemStack> map = super.addItem(arg0);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
         return map;
     }
 
     @Override
     public void addButton(ItemButton button) {
         super.addButton(button);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(ItemStack item, int startSlot, int endSlot) {
         super.setItem(item, startSlot, endSlot);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setFrame(ItemStack item) {
         super.setFrame(item);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setBackground(ItemStack background) {
         super.setBackground(background);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public Interface setDisplayname(int slot, String name) {
         super.setDisplayname(slot, name);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public Interface setLore(int slot, String... lore) {
         super.setLore(slot, lore);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public Interface setAmount(int slot, int amount) {
         super.setAmount(slot, amount);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
         return this;
     }
 
     @Override
     public boolean setSize(int size) {
         boolean result = super.setSize(size);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
         return result;
     }
 
     @Override
     public void setTitle(String title, boolean update) {
-        if(isOldTitle(title)) return;
+        if (isOldTitle(title)) return;
         boolean isOpened = isOpen();
 
         super.setTitle(title, update && isOpened);
-        if(!isOpened) {
+        if (!isOpened) {
             rebuildInventory();
         }
 
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
@@ -419,48 +447,27 @@ public abstract class GUI extends Interface implements Removable {
     @Override
     public void setContents(ItemStack[] arg0) throws IllegalArgumentException {
         super.setContents(arg0);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(int x, ItemStack item) {
         super.setItem(x, item);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     @Override
     public void setItem(int x, int y, ItemStack item) {
         super.setItem(x, y, item);
-        if(!buffering) updateInventory(this.player);
+        if (!buffering) updateInventory(this.player);
     }
 
     public ItemButton getButtonAt(int x, int y) {
         return getButtonAt(x + y * 9);
     }
 
-    public static GUI getGUI(Player p) {
-        GUI g = API.getRemovable(p, GUI.class);
-        return g;
-    }
-
     public boolean isOpen() {
         return getGUI(getPlayer()) == this;
-    }
-
-    public static Interface getOldGUI(Player p) {
-        for(Interface i : interfaces) {
-            if(i.isUsing(p)) return i;
-        }
-
-        return null;
-    }
-
-    public static boolean usesGUI(Player p) {
-        return getGUI(p) != null;
-    }
-
-    public static boolean usesOldGUI(Player p) {
-        return getOldGUI(p) != null;
     }
 
     public SoundData getOpenSound() {
@@ -517,17 +524,17 @@ public abstract class GUI extends Interface implements Removable {
         return this;
     }
 
+    public GUI getFallbackGUI() {
+        return fallbackGUI;
+    }
+
     public GUI setFallbackGUI(GUI fallbackGUI) {
         this.fallbackGUI = fallbackGUI;
         return this;
     }
 
-    public GUI getFallbackGUI() {
-        return fallbackGUI;
-    }
-
     public boolean fallBack() {
-        if(fallbackGUI == null) return false;
+        if (fallbackGUI == null) return false;
         useFallbackGUI = false;
         fallbackGUI.reinitialize();
         changeGUI(fallbackGUI);
@@ -540,11 +547,5 @@ public abstract class GUI extends Interface implements Removable {
 
     public void setClosingForGUI(boolean closingForGUI) {
         this.closingForGUI = closingForGUI;
-    }
-
-    public static boolean updateInventory(Player player) {
-        if(Version.atLeast(14)) return false;
-        player.updateInventory();
-        return true;
     }
 }

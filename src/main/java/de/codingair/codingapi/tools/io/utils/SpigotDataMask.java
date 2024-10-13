@@ -12,16 +12,16 @@ public interface SpigotDataMask extends DataMask {
 
     @Override
     default Object put(String key, Object value) {
-        if(value == null) return remove(key);
+        if (value == null) return remove(key);
         else {
-            if(value.getClass().isEnum()) value = value.toString();
-            else if(value instanceof Number && ((Number) value).doubleValue() == 0) return remove(key);
-            else if(value instanceof Boolean && !((Boolean) value)) return remove(key);
-            else if(value.getClass().isArray() && Array.getLength(value) == 0) return remove(key);
-            else if(value instanceof Collection && ((Collection<?>) value).isEmpty()) return remove(key);
+            if (value.getClass().isEnum()) value = value.toString();
+            else if (value instanceof Number && ((Number) value).doubleValue() == 0) return remove(key);
+            else if (value instanceof Boolean && !((Boolean) value)) return remove(key);
+            else if (value.getClass().isArray() && Array.getLength(value) == 0) return remove(key);
+            else if (value instanceof Collection && ((Collection<?>) value).isEmpty()) return remove(key);
 
-            if(value instanceof Date) value = ((Date) value).getTime();
-            if(value instanceof ItemStack) value = new ItemBuilder((ItemStack) value);
+            if (value instanceof Date) value = ((Date) value).getTime();
+            if (value instanceof ItemStack) value = new ItemBuilder((ItemStack) value);
 
             return finalCommit(key, value);
         }
@@ -32,7 +32,7 @@ public interface SpigotDataMask extends DataMask {
         Location l = new Location();
         getSerializable(key, l);
 
-        if(l.isEmpty()) return null;
+        if (l.isEmpty()) return null;
         return l;
     }
 

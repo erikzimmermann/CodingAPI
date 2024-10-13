@@ -30,11 +30,11 @@ public class PulsingCircleAnimation extends CustomAnimation {
         List<Location> l = new ArrayList<>();
         double diff = (12 - r * 0.2);
 
-        for(int i = 0; i < 360 / diff; i++) {
+        for (int i = 0; i < 360 / diff; i++) {
             double degrees = diff * i;
 
-            if(degrees >= 360) degrees -= 360;
-            if(degrees < 0) degrees += 360;
+            if (degrees >= 360) degrees -= 360;
+            if (degrees < 0) degrees += 360;
 
             double x = r * cos(degrees * Math.PI / 180);
             double z = r * sin(degrees * Math.PI / 180);

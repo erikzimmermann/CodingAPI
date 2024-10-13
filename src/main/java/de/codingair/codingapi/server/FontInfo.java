@@ -109,36 +109,12 @@ public enum FontInfo {
         this.length = length;
     }
 
-    public double getSpaceAfter(char c) {
-        double length = byChar(c).getLength();
-
-        if(length <= 5) return 2;
-        if(length <= 10) return 3;
-        if(length <= 20) return 4;
-        if(length <= 30) return 5;
-        if(length <= 40) return 6;
-        else return 7;
-    }
-
     public static FontInfo byChar(char c) {
-        for(FontInfo fontInfo : values()) {
-            if(fontInfo.getCharacter() == c) return fontInfo;
+        for (FontInfo fontInfo : values()) {
+            if (fontInfo.getCharacter() == c) return fontInfo;
         }
 
         return null;
-    }
-
-    public char getCharacter() {
-        return character;
-    }
-
-    public double getLength() {
-        return length;
-    }
-
-    public double getBoldLength() {
-        if(this == FontInfo.SPACE) return this.getLength();
-        return this.length + 1.0;
     }
 
     public static double getExactLength(String text) {
@@ -146,15 +122,15 @@ public enum FontInfo {
         boolean isColor = false;
         boolean isBold = false;
 
-        for(char c : text.toCharArray()) {
-            if(c == ChatColor.COLOR_CHAR) {
+        for (char c : text.toCharArray()) {
+            if (c == ChatColor.COLOR_CHAR) {
                 isColor = true;
-            } else if(isColor) {
+            } else if (isColor) {
                 isColor = false;
                 isBold = c == 'l' || c == 'L';
             } else {
                 FontInfo info = byChar(c);
-                if(info == null) continue;
+                if (info == null) continue;
                 length += isBold ? info.getBoldLength() : info.getLength();
                 length += SPACE_BETWEEN_CHARS;
             }
@@ -166,19 +142,43 @@ public enum FontInfo {
     public static String center(String s) {
         double length = getExactLength(s);
 
-        if(length >= CHAT_WIDTH) return s;
+        if (length >= CHAT_WIDTH) return s;
 
         double toCompensate = (CHAT_WIDTH - length) / 2;
         double space = toCompensate / (SPACE.getLength() + 1 + SPACE_BETWEEN_CHARS);
         int spaces = (int) Math.floor(space);
 
         StringBuilder builder = new StringBuilder();
-        for(int i = 0; i < spaces; i++) {
+        for (int i = 0; i < spaces; i++) {
             builder.append(" ");
         }
 
         builder.append(s);
 
         return builder.toString();
+    }
+
+    public double getSpaceAfter(char c) {
+        double length = byChar(c).getLength();
+
+        if (length <= 5) return 2;
+        if (length <= 10) return 3;
+        if (length <= 20) return 4;
+        if (length <= 30) return 5;
+        if (length <= 40) return 6;
+        else return 7;
+    }
+
+    public char getCharacter() {
+        return character;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public double getBoldLength() {
+        if (this == FontInfo.SPACE) return this.getLength();
+        return this.length + 1.0;
     }
 }

@@ -9,7 +9,7 @@ public class JSONParser extends de.codingair.codingapi.tools.io.lib.JSONParser {
     public Object parse(String s) throws ParseException {
         Object o = super.parse(s.replace("\\7\"", "\\\\\\\\\\\\\\\""));
 
-        if(o instanceof JSONObject) {
+        if (o instanceof JSONObject) {
             return new JSON((JSONObject) o);
         } else return o;
     }

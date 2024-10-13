@@ -57,7 +57,7 @@ public class FileManager {
 
     public ConfigFile loadFile(String name, String path, String srcPath, boolean removeUnused, boolean raw) {
         ConfigFile c = getFile(name);
-        if(c != null) return c;
+        if (c != null) return c;
 
         c = new ConfigFile(plugin, name, path, srcPath, removeUnused, raw);
         this.cache.put(key(c), c);

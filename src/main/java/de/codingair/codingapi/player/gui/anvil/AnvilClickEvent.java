@@ -11,22 +11,17 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 public class AnvilClickEvent extends Event {
+    public static HandlerList handlers = new HandlerList();
     private final Player player;
     private final AnvilSlot slot;
     private final ClickType clickType;
-
     private final String input;
+    private final AnvilGUI anvil;
     private String submitted = null;
-
     private boolean keepInventory = false; //for smoother GUI switch
     private boolean close = false;
     private boolean cancelled = true;
-
     private boolean payExp = false;
-
-    private final AnvilGUI anvil;
-
-    public static HandlerList handlers = new HandlerList();
 
     public AnvilClickEvent(Player player, ClickType clickType, AnvilSlot slot, ItemStack item, AnvilGUI anvil) {
         this.anvil = anvil;
@@ -46,6 +41,10 @@ public class AnvilClickEvent extends Event {
         this.input = input;
     }
 
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     @Override
     public HandlerList getHandlers() {
         return handlers;
@@ -53,10 +52,6 @@ public class AnvilClickEvent extends Event {
 
     public AnvilGUI getAnvil() {
         return anvil;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
     }
 
     public AnvilSlot getSlot() {

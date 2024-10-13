@@ -20,13 +20,13 @@ public class Area {
         double radius;
         try {
             radius = entity.getWidth() / 2;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             radius = 0.25;
         }
 
         Location height = target.clone().add(0, entity.getEyeHeight(), 0);
-        if(height.getY() >= middle.getY() - 0.5 && target.getY() <= middle.getY() + 0.5) {
-            if(target.getX() + radius >= middle.getX() - 0.5 && target.getX() - radius <= middle.getX() + 0.5) {
+        if (height.getY() >= middle.getY() - 0.5 && target.getY() <= middle.getY() + 0.5) {
+            if (target.getX() + radius >= middle.getX() - 0.5 && target.getX() - radius <= middle.getX() + 0.5) {
                 return target.getZ() + radius >= middle.getZ() - 0.5 && target.getZ() - radius <= middle.getZ() + 0.5;
             }
         }
@@ -39,7 +39,7 @@ public class Area {
     }
 
     public static boolean isInArea(LivingEntity entity, Location target, Location a, Location b) {
-        if(!entity.getWorld().equals(a.getWorld()) || !a.getWorld().equals(b.getWorld())) return false;
+        if (!entity.getWorld().equals(a.getWorld()) || !a.getWorld().equals(b.getWorld())) return false;
 
         double height = Math.abs(b.getY() - a.getY());
         double xWidth = Math.abs(b.getX() - a.getX());
@@ -51,14 +51,14 @@ public class Area {
         double radius;
         try {
             radius = entity.getWidth() / 2;
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             radius = 0.25;
         }
 
-        if(eye.getY() >= middle.getY() - height / 2 && target.getY() <= middle.getY() + height / 2) {
+        if (eye.getY() >= middle.getY() - height / 2 && target.getY() <= middle.getY() + height / 2) {
             //Ist in y ebene
 
-            if(target.getX() + radius >= middle.getX() - xWidth / 2 && target.getX() - radius <= middle.getX() + xWidth / 2) {
+            if (target.getX() + radius >= middle.getX() - xWidth / 2 && target.getX() - radius <= middle.getX() + xWidth / 2) {
                 //Ist in x ebene
 
                 //Ist in z ebene
@@ -76,7 +76,7 @@ public class Area {
     }
 
     public static boolean isInArea(Location target, Location edge1, Location edge2, boolean yCords, double puffer) {
-        if(!target.getWorld().equals(edge1.getWorld()) || !edge1.getWorld().equals(edge2.getWorld())) return false;
+        if (!target.getWorld().equals(edge1.getWorld()) || !edge1.getWorld().equals(edge2.getWorld())) return false;
 
         double minX = Math.min(edge1.getX(), edge2.getX()) - puffer;
         double minY = Math.min(edge1.getY(), edge2.getY()) - puffer;
@@ -90,9 +90,9 @@ public class Area {
         double targetY = target.getY();
         double targetZ = target.getZ();
 
-        if(targetX >= minX && targetX <= maxX) {
-            if(targetZ >= minZ && targetZ <= maxZ) {
-                if(yCords) {
+        if (targetX >= minX && targetX <= maxX) {
+            if (targetZ >= minZ && targetZ <= maxZ) {
+                if (yCords) {
                     return targetY >= minY && targetY <= maxY;
                 } else {
                     return true;
@@ -119,10 +119,10 @@ public class Area {
 
         int amount = 0;
 
-        for(int z = minZ; z <= maxZ; z++) {
-            for(int x = minX; x <= maxX; x++) {
-                if(yCords) {
-                    for(int y = minY; y <= maxY; y++) {
+        for (int z = minZ; z <= maxZ; z++) {
+            for (int x = minX; x <= maxX; x++) {
+                if (yCords) {
+                    for (int y = minY; y <= maxY; y++) {
                         amount++;
                     }
                 } else {
@@ -148,13 +148,13 @@ public class Area {
         int maxY = Math.max(edge1.getBlockY(), edge2.getBlockY());
         int maxZ = Math.max(edge1.getBlockZ(), edge2.getBlockZ());
 
-        for(int z = minZ; z <= maxZ; z++) {
+        for (int z = minZ; z <= maxZ; z++) {
             loc.setZ(z);
-            for(int x = minX; x <= maxX; x++) {
+            for (int x = minX; x <= maxX; x++) {
                 loc.setX(x);
 
-                if(yCords) {
-                    for(int y = minY; y <= maxY; y++) {
+                if (yCords) {
+                    for (int y = minY; y <= maxY; y++) {
                         loc.setY(y);
 
                         blockList.add(loc.getBlock());
@@ -176,26 +176,26 @@ public class Area {
 
         loc.setX(loc.getX() - 1);
 
-        if(loc.getBlock().getType() == search) {
+        if (loc.getBlock().getType() == search) {
             return loc;
         }
 
         loc.setX(loc.getX() + 2);
 
-        if(loc.getBlock().getType() == search) {
+        if (loc.getBlock().getType() == search) {
             return loc;
         }
 
         loc.setX(loc.getX() - 1);
         loc.setZ(loc.getZ() - 1);
 
-        if(loc.getBlock().getType() == search) {
+        if (loc.getBlock().getType() == search) {
             return loc;
         }
 
         loc.setZ(loc.getZ() + 2);
 
-        if(loc.getBlock().getType() == search) {
+        if (loc.getBlock().getType() == search) {
             return loc;
         }
 
@@ -207,7 +207,7 @@ public class Area {
         List<Location> locations = new ArrayList<Location>();
         Location loc = basic.getLocation().clone();
 
-        for(int i = 1; i <= radius; i++) {
+        for (int i = 1; i <= radius; i++) {
             Location f = loc.clone();
             f.setX(f.getX() - i);
             f.setY(f.getY() - i);
@@ -220,9 +220,9 @@ public class Area {
 
             List<Block> blocks = Area.getBlocks(f, s, false);
 
-            for(Block b : blocks) {
-                if(!b.getLocation().equals(basic.getLocation())) {
-                    if(b.getType().equals(search)) {
+            for (Block b : blocks) {
+                if (!b.getLocation().equals(basic.getLocation())) {
+                    if (b.getType().equals(search)) {
                         locations.add(b.getLocation());
                     }
                 }

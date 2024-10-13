@@ -27,7 +27,7 @@ public class VectorAnimation extends CustomAnimation {
 
         int step = 0;
         double y = -r + STEP * step++;
-        while(y < r) {
+        while (y < r) {
             List<Location> l = new ArrayList<>();
             l.add(getZero().add(0, y, 0));
             y = -r + STEP * step++;

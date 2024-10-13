@@ -4,7 +4,6 @@ import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.sign.SignGUI;
 import de.codingair.codingapi.player.gui.sign.SignTools;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -43,7 +42,8 @@ public abstract class SignGUIButton extends Button {
 
     public SignGUIButton(int slot, ItemStack item, Location signLocation, ClickType trigger, boolean updateSign) {
         super(slot, item);
-        if(signLocation == null || !(signLocation.getBlock().getState() instanceof Sign)) throw new IllegalArgumentException("signLocation must be a location of a sign!");
+        if (signLocation == null || !(signLocation.getBlock().getState() instanceof Sign))
+            throw new IllegalArgumentException("signLocation must be a location of a sign!");
 
         this.sign = (Sign) signLocation.getBlock().getState();
         this.trigger = trigger;
@@ -52,14 +52,14 @@ public abstract class SignGUIButton extends Button {
 
     @Override
     public void onClick(InventoryClickEvent e, Player player) {
-        if(interrupt()) return;
+        if (interrupt()) return;
 
-        if(trigger == null || e.getClick() == trigger) {
+        if (trigger == null || e.getClick() == trigger) {
             getInterface().setClosingByButton(true);
             getInterface().setClosingForGUI(true);
 
             String[] lines = sign.getLines();
-            for(int i = 0; i < lines.length; i++) {
+            for (int i = 0; i < lines.length; i++) {
                 lines[i] = lines[i].replace("§", "&");
             }
 
@@ -69,15 +69,15 @@ public abstract class SignGUIButton extends Button {
                 @Override
                 public void onSignChangeEvent(String[] lines) {
                     boolean notEmpty = false;
-                    for(String line : lines) {
-                        if(!line.isEmpty()) {
+                    for (String line : lines) {
+                        if (!line.isEmpty()) {
                             notEmpty = true;
                             break;
                         }
                     }
 
-                    if(notEmpty) {
-                        if(updateSign)
+                    if (notEmpty) {
+                        if (updateSign)
                             UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(() -> SignTools.updateSign(sign, lines, true));
                         SignGUIButton.this.onSignChangeEvent(lines);
                     }

@@ -26,7 +26,8 @@ public enum Type {
             if (value.getName().equals(name)) return value;
         }
 
-        if (API.getInstance().getMainPlugin() != null) API.getInstance().getMainPlugin().getLogger().log(Level.INFO, "Could not detect server type \"" + name + "\".");
+        if (API.getInstance().getMainPlugin() != null)
+            API.getInstance().getMainPlugin().getLogger().log(Level.INFO, "Could not detect server type \"" + name + "\".");
         return UNKNOWN;
     }
 

@@ -21,8 +21,8 @@ public class JSONParser {
     public static final int S_IN_PAIR_VALUE = 5;
     public static final int S_END = 6;
     public static final int S_IN_ERROR = -1;
+    private final Yylex lexer = new Yylex((Reader) null);
     private LinkedList handlerStatusStack;
-    private final Yylex lexer = new Yylex((Reader)null);
     private Yytoken token = null;
     private int status = 0;
 
@@ -33,7 +33,7 @@ public class JSONParser {
         if (statusStack.size() == 0) {
             return -1;
         } else {
-            Integer status = (Integer)statusStack.getFirst();
+            Integer status = (Integer) statusStack.getFirst();
             return status;
         }
     }
@@ -54,7 +54,7 @@ public class JSONParser {
     }
 
     public Object parse(String s) throws ParseException {
-        return this.parse(s, (ContainerFactory)null);
+        return this.parse(s, (ContainerFactory) null);
     }
 
     public Object parse(String s, ContainerFactory containerFactory) throws ParseException {
@@ -68,7 +68,7 @@ public class JSONParser {
     }
 
     public Object parse(Reader in) throws IOException, ParseException {
-        return this.parse(in, (ContainerFactory)null);
+        return this.parse(in, (ContainerFactory) null);
     }
 
     public Object parse(Reader in, ContainerFactory containerFactory) throws IOException, ParseException {
@@ -83,19 +83,19 @@ public class JSONParser {
                 Map parent;
                 List newArray;
                 label67:
-                switch(this.status) {
+                switch (this.status) {
                     case -1:
                         throw new ParseException(this.getPosition(), 1, this.token);
                     case 0:
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 this.status = 1;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(this.token.value);
                                 break label67;
                             case 1:
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(this.createObjectContainer(containerFactory));
                                 break label67;
                             case 2:
@@ -104,7 +104,7 @@ public class JSONParser {
                                 break label67;
                             case 3:
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(this.createArrayContainer(containerFactory));
                                 break label67;
                         }
@@ -115,13 +115,13 @@ public class JSONParser {
 
                         throw new ParseException(this.getPosition(), 1, this.token);
                     case 2:
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 if (this.token.value instanceof String) {
-                                    key = (String)this.token.value;
+                                    key = (String) this.token.value;
                                     valueStack.addFirst(key);
                                     this.status = 4;
-                                    statusStack.addFirst(new Integer(this.status));
+                                    statusStack.addFirst(Integer.valueOf(this.status));
                                 } else {
                                     this.status = -1;
                                 }
@@ -142,17 +142,17 @@ public class JSONParser {
                         }
                     case 3:
                         List val;
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
-                                val = (List)valueStack.getFirst();
+                                val = (List) valueStack.getFirst();
                                 val.add(this.token.value);
                                 break label67;
                             case 1:
-                                val = (List)valueStack.getFirst();
+                                val = (List) valueStack.getFirst();
                                 parent = this.createObjectContainer(containerFactory);
                                 val.add(parent);
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(parent);
                                 break label67;
                             case 2:
@@ -160,11 +160,11 @@ public class JSONParser {
                                 this.status = -1;
                                 break label67;
                             case 3:
-                                val = (List)valueStack.getFirst();
+                                val = (List) valueStack.getFirst();
                                 newArray = this.createArrayContainer(containerFactory);
                                 val.add(newArray);
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(newArray);
                                 break label67;
                             case 4:
@@ -179,22 +179,22 @@ public class JSONParser {
                                 break label67;
                         }
                     case 4:
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 statusStack.removeFirst();
-                                key = (String)valueStack.removeFirst();
-                                parent = (Map)valueStack.getFirst();
+                                key = (String) valueStack.removeFirst();
+                                parent = (Map) valueStack.getFirst();
                                 parent.put(key, this.token.value);
                                 this.status = this.peekStatus(statusStack);
                                 break;
                             case 1:
                                 statusStack.removeFirst();
-                                key = (String)valueStack.removeFirst();
-                                parent = (Map)valueStack.getFirst();
+                                key = (String) valueStack.removeFirst();
+                                parent = (Map) valueStack.getFirst();
                                 Map newObject = this.createObjectContainer(containerFactory);
                                 parent.put(key, newObject);
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(newObject);
                                 break;
                             case 2:
@@ -205,12 +205,12 @@ public class JSONParser {
                                 break;
                             case 3:
                                 statusStack.removeFirst();
-                                key = (String)valueStack.removeFirst();
-                                parent = (Map)valueStack.getFirst();
+                                key = (String) valueStack.removeFirst();
+                                parent = (Map) valueStack.getFirst();
                                 newArray = this.createArrayContainer(containerFactory);
                                 parent.put(key, newArray);
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 valueStack.addFirst(newArray);
                             case 6:
                         }
@@ -219,7 +219,7 @@ public class JSONParser {
                 if (this.status == -1) {
                     throw new ParseException(this.getPosition(), 1, this.token);
                 }
-            } while(this.token.type != -1);
+            } while (this.token.type != -1);
         } catch (IOException var9) {
             throw var9;
         }
@@ -286,23 +286,23 @@ public class JSONParser {
         try {
             do {
                 label175:
-                switch(this.status) {
+                switch (this.status) {
                     case -1:
                         throw new ParseException(this.getPosition(), 1, this.token);
                     case 0:
                         contentHandler.startJSON();
                         this.nextToken();
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 this.status = 1;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.primitive(this.token.value)) {
                                     return;
                                 }
                                 break label175;
                             case 1:
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startObject()) {
                                     return;
                                 }
@@ -313,7 +313,7 @@ public class JSONParser {
                                 break label175;
                             case 3:
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startArray()) {
                                     return;
                                 }
@@ -331,12 +331,12 @@ public class JSONParser {
                         throw new ParseException(this.getPosition(), 1, this.token);
                     case 2:
                         this.nextToken();
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 if (this.token.value instanceof String) {
-                                    String key = (String)this.token.value;
+                                    String key = (String) this.token.value;
                                     this.status = 4;
-                                    statusStack.addFirst(new Integer(this.status));
+                                    statusStack.addFirst(Integer.valueOf(this.status));
                                     if (!contentHandler.startObjectEntry(key)) {
                                         return;
                                     }
@@ -363,7 +363,7 @@ public class JSONParser {
                         }
                     case 3:
                         this.nextToken();
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 if (!contentHandler.primitive(this.token.value)) {
                                     return;
@@ -371,7 +371,7 @@ public class JSONParser {
                                 break label175;
                             case 1:
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startObject()) {
                                     return;
                                 }
@@ -382,7 +382,7 @@ public class JSONParser {
                                 break label175;
                             case 3:
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startArray()) {
                                     return;
                                 }
@@ -403,7 +403,7 @@ public class JSONParser {
                         }
                     case 4:
                         this.nextToken();
-                        switch(this.token.type) {
+                        switch (this.token.type) {
                             case 0:
                                 statusStack.removeFirst();
                                 this.status = this.peekStatus(statusStack);
@@ -417,9 +417,9 @@ public class JSONParser {
                                 break label175;
                             case 1:
                                 statusStack.removeFirst();
-                                statusStack.addFirst(new Integer(5));
+                                statusStack.addFirst(Integer.valueOf(5));
                                 this.status = 2;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startObject()) {
                                     return;
                                 }
@@ -432,9 +432,9 @@ public class JSONParser {
                                 break label175;
                             case 3:
                                 statusStack.removeFirst();
-                                statusStack.addFirst(new Integer(5));
+                                statusStack.addFirst(Integer.valueOf(5));
                                 this.status = 3;
-                                statusStack.addFirst(new Integer(this.status));
+                                statusStack.addFirst(Integer.valueOf(this.status));
                                 if (!contentHandler.startArray()) {
                                     return;
                                 }
@@ -455,7 +455,7 @@ public class JSONParser {
                 if (this.status == -1) {
                     throw new ParseException(this.getPosition(), 1, this.token);
                 }
-            } while(this.token.type != -1);
+            } while (this.token.type != -1);
         } catch (IOException var6) {
             this.status = -1;
             throw var6;

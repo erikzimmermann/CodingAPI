@@ -59,15 +59,15 @@ public class HitBox {
 
     public boolean collides(HitBox box) {
         HitBox lower, higher;
-        if(hX - lX >= box.hX - box.lX) {
+        if (hX - lX >= box.hX - box.lX) {
             higher = this;
             lower = box;
         } else {
             higher = box;
             lower = this;
         }
-        if((higher.lX <= lower.lX && higher.hX >= lower.lX) || (higher.lX <= lower.hX && higher.hX >= lower.hX) || (higher.lX > lower.lX && higher.hX < lower.hX)) {
-            if(hY - lY >= box.hY - box.lY) {
+        if ((higher.lX <= lower.lX && higher.hX >= lower.lX) || (higher.lX <= lower.hX && higher.hX >= lower.hX) || (higher.lX > lower.lX && higher.hX < lower.hX)) {
+            if (hY - lY >= box.hY - box.lY) {
                 higher = this;
                 lower = box;
             } else {
@@ -75,8 +75,8 @@ public class HitBox {
                 lower = this;
             }
 
-            if((higher.lY <= lower.lY && higher.hY >= lower.lY) || (higher.lY <= lower.hY && higher.hY >= lower.hY) || (higher.lY > lower.lY && higher.hY < lower.hY)) {
-                if(hZ - lZ >= box.hZ - box.lZ) {
+            if ((higher.lY <= lower.lY && higher.hY >= lower.lY) || (higher.lY <= lower.hY && higher.hY >= lower.hY) || (higher.lY > lower.lY && higher.hY < lower.hY)) {
+                if (hZ - lZ >= box.hZ - box.lZ) {
                     higher = this;
                     lower = box;
                 } else {

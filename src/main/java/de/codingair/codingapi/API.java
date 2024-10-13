@@ -28,7 +28,6 @@ import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,157 +41,14 @@ public class API {
     private static final ConcurrentHashMap.KeySetView<Ticker, Boolean> TICKERS = ConcurrentHashMap.newKeySet();
 
     private static API instance;
-    private boolean initialized = false;
-
-    private final List<JavaPlugin> plugins = new ArrayList<>();
-    private MyScheduledTask tickerTimer = null;
 
     static {
         NmsCheck.testInternalApi();
     }
 
-    public void onEnable(JavaPlugin plugin) {
-        if (!this.plugins.contains(plugin)) this.plugins.add(plugin);
-        if (initialized) return;
-        if (this.plugins.size() == 1) initPlugin(plugin);
-    }
-
-    public void onDisable(JavaPlugin plugin) {
-        if (!initialized || !plugins.contains(plugin)) return;
-
-        List<CommandBuilder> toDisable = new ArrayList<>();
-
-        List<CommandBuilder> l = getRemovables(null, CommandBuilder.class);
-        for (CommandBuilder commandBuilder : l) {
-            if (commandBuilder.getPlugin().equals(plugin)) toDisable.add(commandBuilder);
-        }
-        l.clear();
-
-        for (CommandBuilder b : toDisable) {
-            b.unregister();
-        }
-        toDisable.clear();
-
-        HandlerList.unregisterAll(plugin);
-
-        removePlugin(plugin);
-        this.plugins.remove(plugin);
-        if (!plugins.isEmpty()) initPlugin(this.plugins.get(0));
-    }
-
-    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, FileNotFoundException, InvalidPluginException {
-        List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
-
-        for (JavaPlugin p : plugins) {
-            if (p == plugin) continue;
-            disablePlugin(p);
-        }
-
-        disablePlugin(plugin);
-        enablePlugin(plugin.getName(), plugin);
-
-        for (JavaPlugin p : plugins) {
-            if (p == plugin) continue;
-            enablePlugin(p.getName(), p);
-        }
-
-        plugins.clear();
-    }
-
-    public void disablePlugin(JavaPlugin plugin) {
-        Bukkit.getPluginManager().disablePlugin(plugin);
-
-        try {
-            IReflection.FieldAccessor<?> lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
-            IReflection.FieldAccessor<?> plugins = IReflection.getField(SimplePluginManager.class, "plugins");
-
-            Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
-            List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
-
-            if (map.remove(plugin.getDescription().getName().toLowerCase()) == null)
-                map.remove(plugin.getDescription().getName());
-            pluginList.remove(plugin);
-        } catch (Exception ignored) {
-        }
-    }
-
-    public void enablePlugin(String name, JavaPlugin backup) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
-        File pluginFile = new File("plugins", name + ".jar");
-
-        if (!pluginFile.exists()) {
-            File f = new File("plugins");
-
-            for (File file : f.listFiles()) {
-                if (!file.isDirectory() && file.getName().toLowerCase().contains(name.toLowerCase()) && file.getName().endsWith(".jar")) {
-                    pluginFile = file;
-                    break;
-                }
-            }
-        }
-
-        if (pluginFile.exists())
-            Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
-        else Bukkit.getPluginManager().enablePlugin(backup);
-    }
-
-    private void removePlugin(JavaPlugin plugin) {
-        HandlerList.unregisterAll(plugin);
-        if (tickerTimer != null && tickerTimer.getOwningPlugin() == plugin) {
-            tickerTimer.cancel();
-            tickerTimer = null;
-        }
-
-        List<Removable> removables = getRemovables(plugin);
-        removables.forEach(Removable::destroy);
-        removables.clear();
-        AnimationType.clearCache();
-
-        if (plugin.equals(GUIListener.getPlugin())) GUIListener.setUnregistered();
-
-        initialized = false;
-    }
-
-    private void initPlugin(JavaPlugin plugin) {
-        initialized = true;
-        GUIListener.register(plugin);
-        Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new PickItemListener(plugin), plugin);
-        Bukkit.getPluginManager().registerEvents(new Listener() {
-            @EventHandler(priority = EventPriority.HIGH)
-            public void onQuit(PlayerQuitEvent e) {
-                removeRemovables(e.getPlayer());
-            }
-        }, plugin);
-
-        runTicker(plugin);
-    }
-
-    public void runTicker(JavaPlugin plugin) {
-        if (this.tickerTimer != null) return;
-
-        this.tickerTimer = UniversalScheduler.getScheduler(plugin).runTaskTimerAsynchronously(
-                new Runnable() {
-            int i = 0;
-
-            @Override
-            public void run() {
-                if (i == 20) {
-                    TICKERS.forEach(t -> {
-                        t.onTick();
-                        t.onSecond();
-                    });
-
-                    i = 0;
-                } else {
-                    TICKERS.forEach(Ticker::onTick);
-
-                    i++;
-                }
-            }
-        }, 0, 1);
-    }
+    private final List<JavaPlugin> plugins = new ArrayList<>();
+    private boolean initialized = false;
+    private MyScheduledTask tickerTimer = null;
 
     public static API getInstance() {
         if (instance == null) instance = new API();
@@ -404,6 +260,149 @@ public class API {
 
     public static boolean isRunning(Ticker t) {
         return TICKERS.contains(t);
+    }
+
+    public void onEnable(JavaPlugin plugin) {
+        if (!this.plugins.contains(plugin)) this.plugins.add(plugin);
+        if (initialized) return;
+        if (this.plugins.size() == 1) initPlugin(plugin);
+    }
+
+    public void onDisable(JavaPlugin plugin) {
+        if (!initialized || !plugins.contains(plugin)) return;
+
+        List<CommandBuilder> toDisable = new ArrayList<>();
+
+        List<CommandBuilder> l = getRemovables(null, CommandBuilder.class);
+        for (CommandBuilder commandBuilder : l) {
+            if (commandBuilder.getPlugin().equals(plugin)) toDisable.add(commandBuilder);
+        }
+        l.clear();
+
+        for (CommandBuilder b : toDisable) {
+            b.unregister();
+        }
+        toDisable.clear();
+
+        HandlerList.unregisterAll(plugin);
+
+        removePlugin(plugin);
+        this.plugins.remove(plugin);
+        if (!plugins.isEmpty()) initPlugin(this.plugins.get(0));
+    }
+
+    public void reload(JavaPlugin plugin) throws InvalidDescriptionException, FileNotFoundException, InvalidPluginException {
+        List<JavaPlugin> plugins = new ArrayList<>(this.plugins);
+
+        for (JavaPlugin p : plugins) {
+            if (p == plugin) continue;
+            disablePlugin(p);
+        }
+
+        disablePlugin(plugin);
+        enablePlugin(plugin.getName(), plugin);
+
+        for (JavaPlugin p : plugins) {
+            if (p == plugin) continue;
+            enablePlugin(p.getName(), p);
+        }
+
+        plugins.clear();
+    }
+
+    public void disablePlugin(JavaPlugin plugin) {
+        Bukkit.getPluginManager().disablePlugin(plugin);
+
+        try {
+            IReflection.FieldAccessor<?> lookupNames = IReflection.getField(SimplePluginManager.class, "lookupNames");
+            IReflection.FieldAccessor<?> plugins = IReflection.getField(SimplePluginManager.class, "plugins");
+
+            Map<String, Plugin> map = (Map<String, Plugin>) lookupNames.get(Bukkit.getPluginManager());
+            List<Plugin> pluginList = (List<Plugin>) plugins.get(Bukkit.getPluginManager());
+
+            if (map.remove(plugin.getDescription().getName().toLowerCase()) == null)
+                map.remove(plugin.getDescription().getName());
+            pluginList.remove(plugin);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void enablePlugin(String name, JavaPlugin backup) throws InvalidDescriptionException, InvalidPluginException, FileNotFoundException {
+        File pluginFile = new File("plugins", name + ".jar");
+
+        if (!pluginFile.exists()) {
+            File f = new File("plugins");
+
+            for (File file : f.listFiles()) {
+                if (!file.isDirectory() && file.getName().toLowerCase().contains(name.toLowerCase()) && file.getName().endsWith(".jar")) {
+                    pluginFile = file;
+                    break;
+                }
+            }
+        }
+
+        if (pluginFile.exists())
+            Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
+        else Bukkit.getPluginManager().enablePlugin(backup);
+    }
+
+    private void removePlugin(JavaPlugin plugin) {
+        HandlerList.unregisterAll(plugin);
+        if (tickerTimer != null && tickerTimer.getOwningPlugin() == plugin) {
+            tickerTimer.cancel();
+            tickerTimer = null;
+        }
+
+        List<Removable> removables = getRemovables(plugin);
+        removables.forEach(Removable::destroy);
+        removables.clear();
+        AnimationType.clearCache();
+
+        if (plugin.equals(GUIListener.getPlugin())) GUIListener.setUnregistered();
+
+        initialized = false;
+    }
+
+    private void initPlugin(JavaPlugin plugin) {
+        initialized = true;
+        GUIListener.register(plugin);
+        Bukkit.getPluginManager().registerEvents(Hologram.getListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new WalkListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new PickItemListener(plugin), plugin);
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+            @EventHandler(priority = EventPriority.HIGH)
+            public void onQuit(PlayerQuitEvent e) {
+                removeRemovables(e.getPlayer());
+            }
+        }, plugin);
+
+        runTicker(plugin);
+    }
+
+    public void runTicker(JavaPlugin plugin) {
+        if (this.tickerTimer != null) return;
+
+        this.tickerTimer = UniversalScheduler.getScheduler(plugin).runTaskTimerAsynchronously(
+                new Runnable() {
+                    int i = 0;
+
+                    @Override
+                    public void run() {
+                        if (i == 20) {
+                            TICKERS.forEach(t -> {
+                                t.onTick();
+                                t.onSecond();
+                            });
+
+                            i = 0;
+                        } else {
+                            TICKERS.forEach(Ticker::onTick);
+
+                            i++;
+                        }
+                    }
+                }, 0, 1);
     }
 
     public boolean isInitialized() {

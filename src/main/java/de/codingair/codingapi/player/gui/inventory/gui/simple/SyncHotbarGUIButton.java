@@ -31,10 +31,10 @@ public abstract class SyncHotbarGUIButton extends SyncTriggerButton {
 
     @Override
     public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
-        for(Node<ClickType, HotbarGUI> hotbar : hotbars) {
-            if(hotbar.getValue() == null) continue;
+        for (Node<ClickType, HotbarGUI> hotbar : hotbars) {
+            if (hotbar.getValue() == null) continue;
 
-            if(hotbar.getKey() == null || hotbar.getKey() == trigger) {
+            if (hotbar.getKey() == null || hotbar.getKey() == trigger) {
                 hotbar.getValue().setOnFinish(() -> onFinish(player));
                 getInterface().setClosingForGUI(true);
                 getInterface().close();

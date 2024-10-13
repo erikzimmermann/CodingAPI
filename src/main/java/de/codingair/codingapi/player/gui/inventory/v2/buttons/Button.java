@@ -12,6 +12,10 @@ import org.jetbrains.annotations.Nullable;
 public abstract class Button {
     private SoundData clickSound = defaultSound();
 
+    public static SoundData defaultSound() {
+        return new SoundData(Sound.UI_BUTTON_CLICK, 0.7F, 1F);
+    }
+
     public abstract @Nullable ItemStack buildItem();
 
     public abstract boolean canClick(ClickType type);
@@ -19,7 +23,7 @@ public abstract class Button {
     public abstract void onClick(GUI gui, InventoryClickEvent e);
 
     public void playSound(Player player) {
-        if(clickSound != null) clickSound.play(player);
+        if (clickSound != null) clickSound.play(player);
     }
 
     public SoundData getClickSound() {
@@ -28,9 +32,5 @@ public abstract class Button {
 
     public void setClickSound(SoundData clickSound) {
         this.clickSound = clickSound;
-    }
-
-    public static SoundData defaultSound() {
-        return new SoundData(Sound.UI_BUTTON_CLICK, 0.7F, 1F);
     }
 }

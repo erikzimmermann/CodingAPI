@@ -11,9 +11,9 @@ import java.io.Reader;
 
 class Yylex {
     public static final int YYEOF = -1;
-    private static final int ZZ_BUFFERSIZE = 16384;
     public static final int YYINITIAL = 0;
     public static final int STRING_BEGIN = 2;
+    private static final int ZZ_BUFFERSIZE = 16384;
     private static final int[] ZZ_LEXSTATE = new int[]{0, 0, 1, 1};
     private static final String ZZ_CMAP_PACKED = "\t\u0000\u0001\u0007\u0001\u0007\u0002\u0000\u0001\u0007\u0012\u0000\u0001\u0007\u0001\u0000\u0001\t\b\u0000\u0001\u0006\u0001\u0019\u0001\u0002\u0001\u0004\u0001\n\n\u0003\u0001\u001a\u0006\u0000\u0004\u0001\u0001\u0005\u0001\u0001\u0014\u0000\u0001\u0017\u0001\b\u0001\u0018\u0003\u0000\u0001\u0012\u0001\u000b\u0002\u0001\u0001\u0011\u0001\f\u0005\u0000\u0001\u0013\u0001\u0000\u0001\r\u0003\u0000\u0001\u000e\u0001\u0014\u0001\u000f\u0001\u0010\u0005\u0000\u0001\u0015\u0001\u0000\u0001\u0016ﾂ\u0000";
     private static final char[] ZZ_CMAP = zzUnpackCMap("\t\u0000\u0001\u0007\u0001\u0007\u0002\u0000\u0001\u0007\u0012\u0000\u0001\u0007\u0001\u0000\u0001\t\b\u0000\u0001\u0006\u0001\u0019\u0001\u0002\u0001\u0004\u0001\n\n\u0003\u0001\u001a\u0006\u0000\u0004\u0001\u0001\u0005\u0001\u0001\u0014\u0000\u0001\u0017\u0001\b\u0001\u0018\u0003\u0000\u0001\u0012\u0001\u000b\u0002\u0001\u0001\u0011\u0001\f\u0005\u0000\u0001\u0013\u0001\u0000\u0001\r\u0003\u0000\u0001\u000e\u0001\u0014\u0001\u000f\u0001\u0010\u0005\u0000\u0001\u0015\u0001\u0000\u0001\u0016ﾂ\u0000");
@@ -28,6 +28,7 @@ class Yylex {
     private static final String[] ZZ_ERROR_MSG = new String[]{"Unkown internal scanner error", "Error: could not match input", "Error: pushback value was too large"};
     private static final int[] ZZ_ATTRIBUTE = zzUnpackAttribute();
     private static final String ZZ_ATTRIBUTE_PACKED_0 = "\u0002\u0000\u0001\t\u0003\u0001\u0001\t\u0003\u0001\u0006\t\u0002\u0001\u0001\t\u0005\u0000\b\t\u0001\u0000\u0001\u0001\u0001\u0000\u0001\u0001\u0004\u0000\u0002\t\u0002\u0000\u0001\t";
+    private final StringBuffer sb;
     private Reader zzReader;
     private int zzState;
     private int zzLexicalState;
@@ -41,7 +42,18 @@ class Yylex {
     private int yycolumn;
     private boolean zzAtBOL;
     private boolean zzAtEOF;
-    private final StringBuffer sb;
+
+    Yylex(Reader in) {
+        this.zzLexicalState = 0;
+        this.zzBuffer = new char[16384];
+        this.zzAtBOL = true;
+        this.sb = new StringBuffer();
+        this.zzReader = in;
+    }
+
+    Yylex(InputStream in) {
+        this(new InputStreamReader(in));
+    }
 
     private static int[] zzUnpackAction() {
         int[] result = new int[45];
@@ -55,11 +67,11 @@ class Yylex {
         int j = offset;
         int l = packed.length();
 
-        while(i < l) {
+        while (i < l) {
             int count = packed.charAt(i++);
             char value = packed.charAt(i++);
 
-            while(true) {
+            while (true) {
                 result[j++] = value;
                 --count;
                 if (count <= 0) {
@@ -83,7 +95,7 @@ class Yylex {
         int j = offset;
 
         int high;
-        for(int l = packed.length(); i < l; result[j++] = high | packed.charAt(i++)) {
+        for (int l = packed.length(); i < l; result[j++] = high | packed.charAt(i++)) {
             high = packed.charAt(i++) << 16;
         }
 
@@ -102,11 +114,11 @@ class Yylex {
         int j = offset;
         int l = packed.length();
 
-        while(i < l) {
+        while (i < l) {
             int count = packed.charAt(i++);
             char value = packed.charAt(i++);
 
-            while(true) {
+            while (true) {
                 result[j++] = value;
                 --count;
                 if (count <= 0) {
@@ -118,32 +130,16 @@ class Yylex {
         return j;
     }
 
-    int getPosition() {
-        return this.yychar;
-    }
-
-    Yylex(Reader in) {
-        this.zzLexicalState = 0;
-        this.zzBuffer = new char[16384];
-        this.zzAtBOL = true;
-        this.sb = new StringBuffer();
-        this.zzReader = in;
-    }
-
-    Yylex(InputStream in) {
-        this(new InputStreamReader(in));
-    }
-
     private static char[] zzUnpackCMap(String packed) {
         char[] map = new char[65536];
         int i = 0;
         int var3 = 0;
 
-        while(i < 90) {
+        while (i < 90) {
             int count = packed.charAt(i++);
             char value = packed.charAt(i++);
 
-            while(true) {
+            while (true) {
                 map[var3++] = value;
                 --count;
                 if (count <= 0) {
@@ -153,6 +149,10 @@ class Yylex {
         }
 
         return map;
+    }
+
+    int getPosition() {
+        return this.yychar;
     }
 
     private boolean zzRefill() throws IOException {
@@ -179,7 +179,7 @@ class Yylex {
             if (c == -1) {
                 return true;
             } else {
-                this.zzBuffer[this.zzEndRead++] = (char)c;
+                this.zzBuffer[this.zzEndRead++] = (char) c;
                 return false;
             }
         } else {
@@ -253,7 +253,7 @@ class Yylex {
         int[] zzRowMapL = ZZ_ROWMAP;
         int[] zzAttrL = ZZ_ATTRIBUTE;
 
-        while(true) {
+        while (true) {
             int zzMarkedPosL = this.zzMarkedPos;
             this.yychar += zzMarkedPosL - this.zzStartRead;
             int zzAction = -1;
@@ -262,7 +262,7 @@ class Yylex {
 
             int zzInput;
             int ch;
-            while(true) {
+            while (true) {
                 if (zzCurrentPosL < zzEndReadL) {
                     zzInput = zzBufferL[zzCurrentPosL++];
                 } else {
@@ -303,7 +303,7 @@ class Yylex {
             }
 
             this.zzMarkedPos = zzMarkedPosL;
-            switch(zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
+            switch (zzAction < 0 ? zzAction : ZZ_ACTION[zzAction]) {
                 case 1:
                     throw new ParseException(this.yychar, 0, new Character(this.yycharat(0)));
                 case 2:
@@ -392,7 +392,7 @@ class Yylex {
                 case 24:
                     try {
                         ch = Integer.parseInt(this.yytext().substring(2), 16);
-                        this.sb.append((char)ch);
+                        this.sb.append((char) ch);
                         break;
                     } catch (Exception var13) {
                         throw new ParseException(this.yychar, 2, var13);

@@ -25,7 +25,7 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
             Iterator iter = list.iterator();
             out.write(91);
 
-            while(iter.hasNext()) {
+            while (iter.hasNext()) {
                 if (first) {
                     first = false;
                 } else {
@@ -44,10 +44,6 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
         }
     }
 
-    public void writeJSONString(Writer out) throws IOException {
-        writeJSONString(this, out);
-    }
-
     public static String toJSONString(List list) {
         if (list == null) {
             return "null";
@@ -57,7 +53,7 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
             Iterator iter = list.iterator();
             sb.append('[');
 
-            while(iter.hasNext()) {
+            while (iter.hasNext()) {
                 if (first) {
                     first = false;
                 } else {
@@ -75,6 +71,10 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
             sb.append(']');
             return sb.toString();
         }
+    }
+
+    public void writeJSONString(Writer out) throws IOException {
+        writeJSONString(this, out);
     }
 
     public String toJSONString() {

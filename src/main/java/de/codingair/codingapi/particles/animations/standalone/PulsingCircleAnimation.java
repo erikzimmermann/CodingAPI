@@ -11,10 +11,9 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 public class PulsingCircleAnimation extends Animation {
+    private final Location location;
     private double radius;
     private double height;
-    private final Location location;
-
     private int ticksBetweenParticles = 0;
     private int skippedTicks = 0;
 
@@ -35,20 +34,20 @@ public class PulsingCircleAnimation extends Animation {
 
     @Override
     public void onTick() {
-        if(ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
+        if (ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
             skippedTicks++;
             return;
-        } else if(ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
+        } else if (ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
 
         List<Location> locations = new ArrayList<>();
 
         double diff = (12 - this.radius * 0.2);
 
-        for(int i = 0; i < 360 / diff; i++) {
+        for (int i = 0; i < 360 / diff; i++) {
             double degrees = diff * i;
 
-            if(degrees >= 360) degrees -= 360;
-            if(degrees < 0) degrees += 360;
+            if (degrees >= 360) degrees -= 360;
+            if (degrees < 0) degrees += 360;
 
             double x = radius * cos(degrees * Math.PI / 180);
             double y = height;
@@ -59,7 +58,7 @@ public class PulsingCircleAnimation extends Animation {
             locations.add(loc);
         }
 
-        for(Location loc : locations) {
+        for (Location loc : locations) {
             sendParticle(loc);
         }
     }

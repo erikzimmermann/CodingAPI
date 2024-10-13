@@ -1,7 +1,6 @@
 package de.codingair.codingapi.player.gui;
 
 import de.codingair.codingapi.API;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.utils.Removable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -27,6 +26,10 @@ public abstract class PlayerItem extends ItemStack implements Removable {
 
         API.addRemovable(this);
         GUIListener.register(plugin);
+    }
+
+    public static boolean isUsing(Player p) {
+        return API.getRemovable(p, PlayerItem.class) != null;
     }
 
     @Override
@@ -88,18 +91,14 @@ public abstract class PlayerItem extends ItemStack implements Removable {
         return this;
     }
 
-    public static boolean isUsing(Player p) {
-        return API.getRemovable(p, PlayerItem.class) != null;
+    public String getDisplayName() {
+        ItemMeta meta = getItemMeta();
+        return meta.hasDisplayName() ? meta.getDisplayName() : null;
     }
 
     public void setDisplayName(String name) {
         ItemMeta meta = getItemMeta();
         meta.setDisplayName(name);
         setItemMeta(meta);
-    }
-
-    public String getDisplayName() {
-        ItemMeta meta = getItemMeta();
-        return meta.hasDisplayName() ? meta.getDisplayName() : null;
     }
 }

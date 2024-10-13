@@ -2,8 +2,6 @@ package de.codingair.codingapi.player.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import de.codingair.codingapi.server.reflections.IReflection;
-import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
@@ -19,40 +17,14 @@ import java.util.Scanner;
 import java.util.UUID;
 
 public abstract class Skin {
-    public enum SkinElement {
-        SKIN("SKIN", String.class),
-        CAPE("CAPE", String.class),
-        TIMESTAMP("timestamp", long.class),
-        PROFILE_ID("profileId", String.class),
-        PROFILE_NAME("profileName", String.class);
-
-        private final String name;
-        private final Class<?> clazz;
-
-        SkinElement(String name, Class<?> clazz) {
-            this.name = name;
-            this.clazz = clazz;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Class<?> getClazz() {
-            return clazz;
-        }
-    }
-
     public static final String JSON_SKIN = "{\"timestamp\":%d,\"profileId\":\"%s\",\"profileName\":\"%s\",\"textures\":{\"SKIN\":{\"url\":\"%s\"}}}";
     public static final String JSON_CAPE = "{\"timestamp\":%d,\"profileId\":\"%s\",\"profileName\":\"%s\",\"textures\":{\"SKIN\":{\"url\":\"%s\"},\"CAPE\":{\"url\":\"%s\"}}}";
-
     private final UUID uuid;
     private final String name;
     private String signature;
     private String value;
     private boolean loaded = false;
     private boolean unsigned = false;
-
     @Deprecated
     public Skin(UUID uuid, String name) {
         this.uuid = uuid;
@@ -93,6 +65,49 @@ public abstract class Skin {
         });
 
         loaded = true;
+    }
+
+    @Deprecated
+    public static Skin getSkin(UUID uuid) {
+        return new Skin(uuid, "none") {
+            @Override
+            public void onLoad(Skin skin) {
+
+            }
+
+            @Override
+            public void onFail(Skin skin) {
+
+            }
+        };
+    }
+
+    public static Skin getSkin(UUID uuid, String name) {
+        return new Skin(uuid, name) {
+            @Override
+            public void onLoad(Skin skin) {
+
+            }
+
+            @Override
+            public void onFail(Skin skin) {
+
+            }
+        };
+    }
+
+    public static Skin getSkin(GameProfile profile) {
+        return new Skin(profile) {
+            @Override
+            public void onLoad(Skin skin) {
+
+            }
+
+            @Override
+            public void onFail(Skin skin) {
+
+            }
+        };
     }
 
     private void load() {
@@ -243,46 +258,27 @@ public abstract class Skin {
 
     }
 
-    @Deprecated
-    public static Skin getSkin(UUID uuid) {
-        return new Skin(uuid, "none") {
-            @Override
-            public void onLoad(Skin skin) {
+    public enum SkinElement {
+        SKIN("SKIN", String.class),
+        CAPE("CAPE", String.class),
+        TIMESTAMP("timestamp", long.class),
+        PROFILE_ID("profileId", String.class),
+        PROFILE_NAME("profileName", String.class);
 
-            }
+        private final String name;
+        private final Class<?> clazz;
 
-            @Override
-            public void onFail(Skin skin) {
+        SkinElement(String name, Class<?> clazz) {
+            this.name = name;
+            this.clazz = clazz;
+        }
 
-            }
-        };
-    }
+        public String getName() {
+            return name;
+        }
 
-    public static Skin getSkin(UUID uuid, String name) {
-        return new Skin(uuid, name) {
-            @Override
-            public void onLoad(Skin skin) {
-
-            }
-
-            @Override
-            public void onFail(Skin skin) {
-
-            }
-        };
-    }
-
-    public static Skin getSkin(GameProfile profile) {
-        return new Skin(profile) {
-            @Override
-            public void onLoad(Skin skin) {
-
-            }
-
-            @Override
-            public void onFail(Skin skin) {
-
-            }
-        };
+        public Class<?> getClazz() {
+            return clazz;
+        }
     }
 }

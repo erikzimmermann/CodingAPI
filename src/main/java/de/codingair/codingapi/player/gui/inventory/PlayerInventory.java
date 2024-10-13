@@ -15,6 +15,11 @@ import java.util.Objects;
 
 public class PlayerInventory {
     private static IReflection.FieldAccessor<ItemMeta> META = null;
+
+    static {
+        if (Version.before(21)) META = IReflection.getField(ItemStack.class, ItemMeta.class, 0);
+    }
+
     private final Player player;
     private final ItemStack[] content;
     private final ItemStack[] armor;
@@ -22,10 +27,6 @@ public class PlayerInventory {
     private final boolean exact;
     private final Map<Integer, Integer> type = new HashMap<>();
     private Integer emptySlot = 0;
-
-    static {
-        if (Version.before(21)) META = IReflection.getField(ItemStack.class, ItemMeta.class, 0);
-    }
 
     @NmsLoader
     private PlayerInventory() {

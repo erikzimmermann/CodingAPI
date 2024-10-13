@@ -75,7 +75,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
             try {
                 // use package name in case of relocation
                 wrapper = Class.forName(path + ".CommandWrapper");
-                register = IReflection.getMethod(wrapper, "register", wrapper, new Class[] {CommandBuilder.class});
+                register = IReflection.getMethod(wrapper, "register", wrapper, new Class[]{CommandBuilder.class});
                 unregister = IReflection.getMethod(wrapper, "unregister");
             } catch (ClassNotFoundException ex) {
                 ex.printStackTrace();
@@ -193,7 +193,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         Map<String, Command> commands = getKnownCommands();
         Command c = commands.get(label);
 
-        if (c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName())) commands.remove(label);
+        if (c instanceof PluginCommand && ((PluginCommand) c).getPlugin().getName().equals(plugin.getName()))
+            commands.remove(label);
         commands.remove(main.getPlugin().getName().toLowerCase(Locale.ENGLISH).trim() + ":" + label);
     }
 
@@ -278,7 +279,8 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
                     if (child.useInTabCompleter(sender, label, args)) {
                         List<String> suggestion = new ArrayList<>();
 
-                        if (child instanceof MultiCommandComponent) ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
+                        if (child instanceof MultiCommandComponent)
+                            ((MultiCommandComponent) child).addArguments(sender, args, suggestion);
                         else suggestion.add(child.getArgument());
 
                         if (!suggestion.isEmpty()) sub.put(child, suggestion);
@@ -391,7 +393,7 @@ public class CommandBuilder implements CommandExecutor, TabCompleter, Removable 
         s = b.toString().trim().replaceAll(" {2,}?", "") + (endingSpace ? " " : "");
 
         if (s.isEmpty()) {
-            return new String[] {""};
+            return new String[]{""};
         }
 
         List<String> nArgs = new ArrayList<>();

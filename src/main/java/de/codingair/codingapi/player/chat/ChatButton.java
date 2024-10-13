@@ -21,19 +21,6 @@ public abstract class ChatButton {
     private BaseComponent[] hover;
     private SoundData sound = null;
 
-    public static boolean isChatButton(@Nullable String message) {
-        if (message == null) return false;
-
-        if (message.startsWith("/")) message = message.substring(1);
-        return message.startsWith(ChatButton.PREFIX);
-    }
-
-    @Contract("null -> null")
-    public static String removePrefix(@Nullable String message) {
-        if (message == null) return null;
-        return message.substring((message.startsWith("/") ? 1 : 0) + PREFIX.length());
-    }
-
     public ChatButton(String text) {
         this.text = text;
     }
@@ -58,6 +45,19 @@ public abstract class ChatButton {
         setHover(hover);
     }
 
+    public static boolean isChatButton(@Nullable String message) {
+        if (message == null) return false;
+
+        if (message.startsWith("/")) message = message.substring(1);
+        return message.startsWith(ChatButton.PREFIX);
+    }
+
+    @Contract("null -> null")
+    public static String removePrefix(@Nullable String message) {
+        if (message == null) return null;
+        return message.substring((message.startsWith("/") ? 1 : 0) + PREFIX.length());
+    }
+
     public boolean canClick() {
         return true;
     }
@@ -79,7 +79,7 @@ public abstract class ChatButton {
     }
 
     public ChatButton setHover(BaseComponent hover) {
-        this.hover = new BaseComponent[] {hover};
+        this.hover = new BaseComponent[]{hover};
         return this;
     }
 

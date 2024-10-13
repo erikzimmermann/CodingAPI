@@ -1,6 +1,5 @@
 package de.codingair.codingapi.player.gui.sign;
 
-import com.github.Anon8281.universalScheduler.UniversalRunnable;
 import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;

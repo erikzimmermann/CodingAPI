@@ -36,7 +36,7 @@ public class FileManager {
         for (ConfigFile file : this.configList) {
             try {
                 file.load();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

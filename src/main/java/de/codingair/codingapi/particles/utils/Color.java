@@ -38,6 +38,24 @@ public enum Color {
         this.noteColor = noteColor;
     }
 
+    public static Color next(Color color) {
+        for (int i = 0; i < values().length; i++) {
+            if (values()[i] == color) return i + 1 == values().length ? values()[0] : values()[i + 1];
+        }
+
+        throw new IllegalArgumentException("Couldn't found AnimationType with name=" + color.getName());
+    }
+
+    public static Color previous(Color color) {
+        for (int i = 0; i < values().length; i++) {
+            if (values()[i] == color) {
+                return i - 1 < 0 ? values()[values().length - 1] : values()[i - 1];
+            }
+        }
+
+        throw new IllegalArgumentException("Couldn't found AnimationType with name=" + color.getName());
+    }
+
     public int getNoteColor() {
         return noteColor;
     }
@@ -60,23 +78,5 @@ public enum Color {
 
     public Color previous() {
         return previous(this);
-    }
-
-    public static Color next(Color color) {
-        for(int i = 0; i < values().length; i++) {
-            if(values()[i] == color) return i + 1 == values().length ? values()[0] : values()[i + 1];
-        }
-
-        throw new IllegalArgumentException("Couldn't found AnimationType with name=" + color.getName());
-    }
-
-    public static Color previous(Color color) {
-        for(int i = 0; i < values().length; i++) {
-            if(values()[i] == color) {
-                return i - 1 < 0 ? values()[values().length - 1] : values()[i - 1];
-            }
-        }
-
-        throw new IllegalArgumentException("Couldn't found AnimationType with name=" + color.getName());
     }
 }

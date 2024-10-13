@@ -17,20 +17,11 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ChatListener implements Listener {
+    static final Set<UUID> DEAD_BUTTONS = new HashSet<>();
+    private static final IReflection.FieldAccessor<String> text;
+    static boolean showError = true;
     private static Class<?> chatPacket;
     private static String messagePrefix = "";
-    private static final IReflection.FieldAccessor<String> text;
-    static final Set<UUID> DEAD_BUTTONS = new HashSet<>();
-    static boolean showError = true;
-
-    @NotNull
-    static UUID getRandom() {
-        while (true) {
-            UUID id = UUID.randomUUID();
-            if (DEAD_BUTTONS.contains(id)) continue;
-            return id;
-        }
-    }
 
     static {
         try {
@@ -46,6 +37,15 @@ public class ChatListener implements Listener {
     public ChatListener() {
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
             inject(onlinePlayer);
+        }
+    }
+
+    @NotNull
+    static UUID getRandom() {
+        while (true) {
+            UUID id = UUID.randomUUID();
+            if (DEAD_BUTTONS.contains(id)) continue;
+            return id;
         }
     }
 

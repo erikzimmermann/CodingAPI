@@ -11,8 +11,8 @@ import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 public class InventoryUtils {
-    private static final Class<?> CONTAINER_CLASS;
     public static final Class<?> CONTAINERS_CLASS;
+    private static final Class<?> CONTAINER_CLASS;
     private static final IReflection.FieldAccessor<?> TITLE;
     private static final IReflection.MethodAccessor UPDATE_INVENTORY;
     private static final IReflection.FieldAccessor<?> ACTIVE_CONTAINER;

@@ -28,7 +28,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
 
     @Override
     public void onTrigger(InventoryClickEvent e, ClickType trigger, Player player) {
-        if(!canTrigger(e, trigger, player)) return;
+        if (!canTrigger(e, trigger, player)) return;
 
         getInterface().setClosingByButton(true);
         getInterface().setClosingForGUI(true);
@@ -41,7 +41,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
                 e.setCancelled(true);
                 e.setClose(false);
 
-                if(onlyOutputTrigger && e.getSlot() != AnvilSlot.OUTPUT) return;
+                if (onlyOutputTrigger && e.getSlot() != AnvilSlot.OUTPUT) return;
 
                 playSound(e.getClickType(), player);
                 SyncAnvilGUIButton.this.onClick(e);
@@ -51,7 +51,7 @@ public abstract class SyncAnvilGUIButton extends SyncTriggerButton {
             public void onClose(AnvilCloseEvent e) {
                 SyncAnvilGUIButton.this.onClose(e);
 
-                if(e.getPost() == null) {
+                if (e.getPost() == null) {
                     getInterface().reinitialize();
                     e.setPost(() -> getInterface().open());
                 }

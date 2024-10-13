@@ -29,14 +29,14 @@ public class RotatingCircleAnimation extends CustomAnimation {
 
         double d = 0;
 
-        while(d < 36) {
+        while (d < 36) {
             List<Location> l = new ArrayList<>();
             d += 2;
 
-            for(int i = 0; i < 360; i += 36) {
+            for (int i = 0; i < 360; i += 36) {
                 double degrees = i + d;
-                if(degrees >= 360) degrees -= 360;
-                if(degrees < 0) degrees += 360;
+                if (degrees >= 360) degrees -= 360;
+                if (degrees < 0) degrees += 360;
 
                 double x = r * cos(degrees * Math.PI / 180);
                 double z = r * sin(degrees * Math.PI / 180);

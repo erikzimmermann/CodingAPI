@@ -23,7 +23,7 @@ public class Yytoken {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        switch(this.type) {
+        switch (this.type) {
             case -1:
                 sb.append("END OF FILE");
                 break;

@@ -26,7 +26,7 @@ public class ConfigFile {
         try {
             this.load();
             this.save();
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -52,16 +52,16 @@ public class ConfigFile {
     }
 
     public void load() throws IOException {
-        if(getDataFolder() == null || !getDataFolder().exists()) getDataFolder().mkdir();
+        if (getDataFolder() == null || !getDataFolder().exists()) getDataFolder().mkdir();
 
         File file = new File(getDataFolder() + this.path, this.name + ".yml");
 
         InputStream in = plugin.getResourceAsStream(srcPath + this.name + ".yml");
 
-        if(!file.exists()) {
+        if (!file.exists()) {
             file.createNewFile();
 
-            if(in != null) {
+            if (in != null) {
                 OutputStream out = new FileOutputStream(file);
                 copy(in, out);
                 out.close();
@@ -73,13 +73,13 @@ public class ConfigFile {
         Configuration defaults = in == null ? null : configuration.load(in);
         configuration.load(file, defaults);
 
-        if(defaults != null) {
+        if (defaults != null) {
             configuration.removeUnused(defaults);
             merge(configuration.getConfig(), defaults);
         }
 
         in = plugin.getResourceAsStream(srcPath + this.name + ".yml");
-        if(in != null) {
+        if (in != null) {
             InputStreamReader reader = new InputStreamReader(in, Charsets.UTF_8);
 
             BufferedReader input = new BufferedReader(reader);
@@ -88,36 +88,36 @@ public class ConfigFile {
             String line;
             try {
                 try {
-                    while((line = input.readLine()) != null) {
+                    while ((line = input.readLine()) != null) {
                         builder.append(line);
                         builder.append('\n');
                     }
                 } finally {
                     input.close();
                 }
-            } catch(IOException ex) {
+            } catch (IOException ex) {
                 ex.printStackTrace();
             }
 
-            if(builder.toString().startsWith("~Config\n")) {
+            if (builder.toString().startsWith("~Config\n")) {
                 configuration.deployExtras(builder.toString());
             }
         }
 
-        if(in != null) in.close();
+        if (in != null) in.close();
     }
 
     private void merge(Configuration config, Configuration defaults) {
         Map<String, Object> data = getSelf(config);
         Map<String, Object> def = getSelf(defaults);
 
-        for(String key : def.keySet()) {
-            if(data.containsKey(key)) {
+        for (String key : def.keySet()) {
+            if (data.containsKey(key)) {
                 Object baseValue = data.get(key);
                 Object dataValue = def.get(key);
 
-                if(dataValue instanceof Configuration) {
-                    if(baseValue instanceof Configuration) {
+                if (dataValue instanceof Configuration) {
+                    if (baseValue instanceof Configuration) {
                         merge((Configuration) baseValue, (Configuration) dataValue);
                     } else data.put(key, dataValue);
                 }
@@ -128,15 +128,15 @@ public class ConfigFile {
     }
 
     private long copy(InputStream from, OutputStream to) throws IOException {
-        if(from == null) return -1;
-        if(to == null) throw new NullPointerException();
+        if (from == null) return -1;
+        if (to == null) throw new NullPointerException();
 
         byte[] buf = new byte[4096];
         long total = 0L;
 
-        while(true) {
+        while (true) {
             int r = from.read(buf);
-            if(r == -1) {
+            if (r == -1) {
                 return total;
             }
 
@@ -148,7 +148,7 @@ public class ConfigFile {
     public void save() {
         try {
             configuration.save(configuration.getConfig(), new File(getDataFolder(), path + this.name + ".yml"));
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -159,10 +159,10 @@ public class ConfigFile {
     }
 
     public Configuration getConfig() {
-        if(configuration.getConfig() == null) {
+        if (configuration.getConfig() == null) {
             try {
                 this.load();
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -170,7 +170,7 @@ public class ConfigFile {
     }
 
     public void clearConfig() {
-        for(String key : getConfig().getKeys()) {
+        for (String key : getConfig().getKeys()) {
             getConfig().set(key, null);
         }
     }

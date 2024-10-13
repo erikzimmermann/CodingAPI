@@ -6,10 +6,10 @@ package de.codingair.codingapi.tools.io.lib;
 //
 
 public class ParseException extends Exception {
-    private static final long serialVersionUID = -7880698968187728548L;
     public static final int ERROR_UNEXPECTED_CHAR = 0;
     public static final int ERROR_UNEXPECTED_TOKEN = 1;
     public static final int ERROR_UNEXPECTED_EXCEPTION = 2;
+    private static final long serialVersionUID = -7880698968187728548L;
     private int errorType;
     private Object unexpectedObject;
     private int position;
@@ -54,7 +54,7 @@ public class ParseException extends Exception {
 
     public String toString() {
         StringBuffer sb = new StringBuffer();
-        switch(this.errorType) {
+        switch (this.errorType) {
             case 0:
                 sb.append("Unexpected character (").append(this.unexpectedObject).append(") at position ").append(this.position).append(".");
                 break;

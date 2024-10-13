@@ -5,66 +5,64 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public class AnvilCloseEvent extends Event {
-	private final Player player;
-	public static HandlerList handlers = new HandlerList();
-	private boolean cancelled = false;
-	private Runnable post = null;
+    public static HandlerList handlers = new HandlerList();
+    private final Player player;
+    private final AnvilGUI anvil;
+    private boolean cancelled = false;
+    private Runnable post = null;
+    private String submittedText;
+    private boolean submitted;
 
-	private String submittedText;
-	private boolean submitted;
+    public AnvilCloseEvent(Player player, AnvilGUI anvil) {
+        this.player = player;
+        this.anvil = anvil;
+    }
 
-	private final AnvilGUI anvil;
+    public AnvilCloseEvent(Player player, AnvilGUI anvil, boolean submitted, String submittedText) {
+        this.player = player;
+        this.anvil = anvil;
+        this.submitted = submitted;
+        this.submittedText = submittedText;
+    }
 
-	public AnvilCloseEvent(Player player, AnvilGUI anvil) {
-		this.player = player;
-		this.anvil = anvil;
-	}
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
 
-	public AnvilCloseEvent(Player player, AnvilGUI anvil, boolean submitted, String submittedText) {
-		this.player = player;
-		this.anvil = anvil;
-		this.submitted = submitted;
-		this.submittedText = submittedText;
-	}
-	
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
-	
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
-	
-	public AnvilGUI getAnvil() {
-		return anvil;
-	}
-	
-	public boolean isCancelled() {
-		return cancelled;
-	}
-	
-	public void setCancelled(boolean cancelled) {
-		this.cancelled = cancelled;
-	}
-	
-	public Player getPlayer() {
-		return player;
-	}
-	
-	public Runnable getPost() {
-		return post;
-	}
-	
-	public void setPost(Runnable post) {
-		this.post = post;
-	}
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
 
-	public boolean isSubmitted() {
-		return submitted;
-	}
+    public AnvilGUI getAnvil() {
+        return anvil;
+    }
 
-	public String getSubmittedText() {
-		return submittedText;
-	}
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public Runnable getPost() {
+        return post;
+    }
+
+    public void setPost(Runnable post) {
+        this.post = post;
+    }
+
+    public boolean isSubmitted() {
+        return submitted;
+    }
+
+    public String getSubmittedText() {
+        return submittedText;
+    }
 }

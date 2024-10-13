@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Page {
-    private String title;
     private final Layout layout;
     private final List<Button> buttons = new ArrayList<>();
+    private String title;
     private SimpleGUI last;
 
     public Page(Player p, String title, Layout layout) {
@@ -27,7 +27,7 @@ public abstract class Page {
         this.title = title;
         this.layout = layout;
 
-        if(preInitialize) initialize(p);
+        if (preInitialize) initialize(p);
     }
 
     public abstract void initialize(Player p);
@@ -36,22 +36,22 @@ public abstract class Page {
         this.last = gui;
         boolean haveToBeReopened = false;
 
-        if(this.title != null && !gui.getTitle().equals(this.title)) {
+        if (this.title != null && !gui.getTitle().equals(this.title)) {
             gui.setTitle(this.title, false);
             haveToBeReopened = gui.isOpen();
         }
 
         gui.clear();
 
-        if(gui.getLayout() != null) {
-            if(gui.getLayout().initialize(gui)) haveToBeReopened = true;
+        if (gui.getLayout() != null) {
+            if (gui.getLayout().initialize(gui)) haveToBeReopened = true;
         }
 
-        if(this.layout != null) {
-            if(this.layout.initialize(gui)) haveToBeReopened = true;
+        if (this.layout != null) {
+            if (this.layout.initialize(gui)) haveToBeReopened = true;
         }
 
-        for(Button button : this.buttons) {
+        for (Button button : this.buttons) {
             gui.addButton(button);
         }
 
@@ -59,15 +59,15 @@ public abstract class Page {
     }
 
     public Button getButton(int slot) {
-        for(Button button : this.buttons) {
-            if(button.getSlot() == slot) return button;
+        for (Button button : this.buttons) {
+            if (button.getSlot() == slot) return button;
         }
 
         return null;
     }
 
     public void close() {
-        if(this.last != null) this.last.close();
+        if (this.last != null) this.last.close();
     }
 
     public Button getButton(int x, int y) {
@@ -76,7 +76,7 @@ public abstract class Page {
 
     public Button removeButton(int slot) {
         Button button = getButton(slot);
-        if(button != null) this.buttons.remove(button);
+        if (button != null) this.buttons.remove(button);
         return button;
     }
 
@@ -95,9 +95,9 @@ public abstract class Page {
 
     public void setTitle(String title, boolean reopen) {
         this.title = title;
-        if(getLast() != null) {
-            if(reopen) {
-                if(initialize(getLast())) getLast().updateTitle();
+        if (getLast() != null) {
+            if (reopen) {
+                if (initialize(getLast())) getLast().updateTitle();
             }
         }
     }
@@ -107,8 +107,8 @@ public abstract class Page {
     }
 
     public void updatePage() {
-        for(Button button : this.buttons) {
-            if(button instanceof SyncButton) ((SyncButton) button).update();
+        for (Button button : this.buttons) {
+            if (button instanceof SyncButton) ((SyncButton) button).update();
         }
     }
 

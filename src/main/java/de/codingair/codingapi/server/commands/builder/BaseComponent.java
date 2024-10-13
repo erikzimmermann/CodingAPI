@@ -34,18 +34,18 @@ public abstract class BaseComponent extends CommandComponent {
         try {
             Class<?> lArgBuilder = Class.forName("com.mojang.brigadier.builder.LiteralArgumentBuilder");
             Class<?> argBuilder = Class.forName("com.mojang.brigadier.builder.ArgumentBuilder");
-            IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[] {String.class});
-            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[] {argBuilder});
+            IReflection.MethodAccessor literal = IReflection.getMethod(lArgBuilder, "literal", lArgBuilder, new Class[]{String.class});
+            IReflection.MethodAccessor then = IReflection.getMethod(argBuilder, "then", argBuilder, new Class[]{argBuilder});
 
             Object l = literal.invoke(null, argument);
 
-            for(CommandComponent child : getChildren()) {
+            for (CommandComponent child : getChildren()) {
                 Object o = child.buildArgument();
-                if(o != null) then.invoke(l, o);
+                if (o != null) then.invoke(l, o);
             }
 
             return l;
-        } catch(ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;
         }

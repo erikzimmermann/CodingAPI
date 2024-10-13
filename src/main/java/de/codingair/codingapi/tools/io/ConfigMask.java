@@ -15,8 +15,8 @@ import java.util.List;
 import java.util.Set;
 
 public class ConfigMask implements SpigotDataMask {
-    private String prefix;
     private final ConfigFile file;
+    private String prefix;
 
     public ConfigMask(ConfigFile file) {
         this(file, null);
@@ -48,15 +48,15 @@ public class ConfigMask implements SpigotDataMask {
         Set<String> o = c().getKeys(true);
         Set<String> data = new HashSet<>();
 
-        if(depth) {
-            for(String s : o) {
-                if(prefix.isEmpty()) data.add(s);
-                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
+        if (depth) {
+            for (String s : o) {
+                if (prefix.isEmpty()) data.add(s);
+                else if (s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", ""));
             }
         } else {
-            for(String s : o) {
-                if(prefix.isEmpty()) data.add(s.split("\\.")[0]);
-                else if(s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
+            for (String s : o) {
+                if (prefix.isEmpty()) data.add(s.split("\\.")[0]);
+                else if (s.startsWith(prefix + ".")) data.add(s.replace(prefix + ".", "").split("\\.")[0]);
             }
         }
 
@@ -81,7 +81,7 @@ public class ConfigMask implements SpigotDataMask {
     public Object finalCommit(String key, Object value) {
         Object prev;
 
-        if(value instanceof Serializable) {
+        if (value instanceof Serializable) {
             write((Serializable) value, key);
             prev = null;
         } else {
@@ -103,7 +103,7 @@ public class ConfigMask implements SpigotDataMask {
     public <T extends Serializable> T getSerializable(String key, Serializable serializable) {
         try {
             read(serializable, key);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -125,7 +125,7 @@ public class ConfigMask implements SpigotDataMask {
         JSONArray array = new JSONArray();
         List l = c().getList(k(key));
 
-        if(l == null) return array;
+        if (l == null) return array;
 
         array.addAll(l);
         return array;
@@ -151,21 +151,21 @@ public class ConfigMask implements SpigotDataMask {
     public <T> T get(String key, T def, boolean raw) {
         Object o = c().get(k(key));
 
-        if(!raw) {
-            if(o instanceof Long) {
+        if (!raw) {
+            if (o instanceof Long) {
                 long l = (long) o;
-                if(l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) return (T) (Object) Math.toIntExact(l);
+                if (l <= Integer.MAX_VALUE && l >= Integer.MIN_VALUE) return (T) (Object) Math.toIntExact(l);
             }
 
-            if(o instanceof String) {
+            if (o instanceof String) {
                 try {
                     Object result = new JSONParser().parse((String) o);
-                    if(result != null) o = result;
-                } catch(ParseException ignored) {
+                    if (result != null) o = result;
+                } catch (ParseException ignored) {
                 }
             }
 
-            if(o instanceof JSONObject) return (T) new JSON((JSONObject) o);
+            if (o instanceof JSONObject) return (T) new JSON((JSONObject) o);
         }
 
         return o == null ? def : (T) o;

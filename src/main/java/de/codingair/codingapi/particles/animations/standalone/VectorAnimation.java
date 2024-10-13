@@ -8,9 +8,8 @@ import org.bukkit.util.Vector;
 public class VectorAnimation extends Animation {
     private final Location start;
     private final Vector direction;
-    private int pos = 0;
     private final int length;
-
+    private int pos = 0;
     private int repetitions = -1;
     private int runs = 0;
 
@@ -44,16 +43,16 @@ public class VectorAnimation extends Animation {
 
     @Override
     public void onTick() {
-        if(ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
+        if (ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
             skippedTicks++;
             return;
-        } else if(ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
+        } else if (ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
 
-        if(pos > length) {
+        if (pos > length) {
             runs++;
 
-            if(repetitions < 0 || runs < repetitions) pos = 0;
-            else if(runs >= repetitions) {
+            if (repetitions < 0 || runs < repetitions) pos = 0;
+            else if (runs >= repetitions) {
                 pos = 0;
                 runs = 0;
 

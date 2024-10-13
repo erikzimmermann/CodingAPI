@@ -18,9 +18,8 @@ public class InventoryBuilder implements Removable {
     protected final Player player;
     protected final UUID id = UUID.randomUUID();
     protected final JavaPlugin plugin;
-    private String title;
-
     protected Inventory inventory;
+    private String title;
 
     public InventoryBuilder(Player player, JavaPlugin plugin) {
         this.player = player;

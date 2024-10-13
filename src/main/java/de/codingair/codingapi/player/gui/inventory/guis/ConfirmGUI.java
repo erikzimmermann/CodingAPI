@@ -10,7 +10,6 @@ import de.codingair.codingapi.tools.Callback;
 import de.codingair.codingapi.tools.items.ItemBuilder;
 import de.codingair.codingapi.tools.items.XMaterial;
 import de.codingair.codingapi.utils.TextAlignment;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -23,11 +22,10 @@ import java.util.List;
 
 public class ConfirmGUI extends GUI {
     private final Callback<Boolean> callback;
-    private Runnable close;
-
     private final String accept;
     private final String message;
     private final String decline;
+    private Runnable close;
 
     public ConfirmGUI(Player p, String title, String accept, String message, String decline, JavaPlugin plugin, Callback<Boolean> callback) {
         super(p, title, 9, plugin, false);
@@ -53,21 +51,25 @@ public class ConfirmGUI extends GUI {
             boolean run = false;
 
             @Override
-            public void onInvClickEvent(InventoryClickEvent e) {}
-
-            @Override
-            public void onInvOpenEvent(InventoryOpenEvent e) {}
-
-            @Override
-            public void onInvCloseEvent(InventoryCloseEvent e) {
-                if(run) return;
-                run = true;
-
-                if(ConfirmGUI.this.close != null) UniversalScheduler.getScheduler(plugin).runTaskLater(ConfirmGUI.this.close, 1L);
+            public void onInvClickEvent(InventoryClickEvent e) {
             }
 
             @Override
-            public void onInvDragEvent(InventoryDragEvent e) {}
+            public void onInvOpenEvent(InventoryOpenEvent e) {
+            }
+
+            @Override
+            public void onInvCloseEvent(InventoryCloseEvent e) {
+                if (run) return;
+                run = true;
+
+                if (ConfirmGUI.this.close != null)
+                    UniversalScheduler.getScheduler(plugin).runTaskLater(ConfirmGUI.this.close, 1L);
+            }
+
+            @Override
+            public void onInvDragEvent(InventoryDragEvent e) {
+            }
         });
 
         initialize(p);

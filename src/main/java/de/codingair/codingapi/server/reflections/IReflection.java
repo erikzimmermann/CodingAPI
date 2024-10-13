@@ -389,14 +389,14 @@ public class IReflection {
             return "";
         }
 
-        @Override
-        public String toString() {
-            return this.path + ".";
-        }
-
         public static String MINECRAFT_PACKAGE(String path) {
             if (Version.before(17)) return MINECRAFT_PACKAGE.toString();
             else return path + ".";
+        }
+
+        @Override
+        public String toString() {
+            return this.path + ".";
         }
     }
 

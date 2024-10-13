@@ -28,7 +28,7 @@ public class LineAnimation extends CustomAnimation {
         List<Location> l = new ArrayList<>();
         int step = 0;
         double y = 0;
-        while(y < r) {
+        while (y < r) {
             y = -r + STEP * step++;
             l.add(getZero().add(0, y, 0));
         }

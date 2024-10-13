@@ -26,12 +26,6 @@ public class UTFConfig extends YamlConfiguration {
     private UTFConfig() {
     }
 
-    public UTFConfig copy() {
-        UTFConfig config = new UTFConfig();
-        config.map.putAll(map);
-        return config;
-    }
-
     public static UTFConfig loadConf(File file) {
         UTFConfig loader = new UTFConfig();
 
@@ -54,6 +48,12 @@ public class UTFConfig extends YamlConfiguration {
         }
 
         return loader;
+    }
+
+    public UTFConfig copy() {
+        UTFConfig config = new UTFConfig();
+        config.map.putAll(map);
+        return config;
     }
 
     public void destroy() {
@@ -141,8 +141,10 @@ public class UTFConfig extends YamlConfiguration {
 
                 if (!(old instanceof Map) && current instanceof Map) toRemove.add(key);
                 else if (!(current instanceof Map) && old instanceof Map) toRemove.add(key);
-                if (!(old instanceof ConfigurationSection) && current instanceof ConfigurationSection) toRemove.add(key);
-                else if (!(current instanceof ConfigurationSection) && old instanceof ConfigurationSection) toRemove.add(key);
+                if (!(old instanceof ConfigurationSection) && current instanceof ConfigurationSection)
+                    toRemove.add(key);
+                else if (!(current instanceof ConfigurationSection) && old instanceof ConfigurationSection)
+                    toRemove.add(key);
             }
         }
 

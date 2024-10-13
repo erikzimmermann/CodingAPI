@@ -8,11 +8,10 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 public class RotatingCircleAnimation extends Animation {
+    private final Location location;
     private double radius;
     private double degrees;
     private double height;
-    private final Location location;
-
     private int ticksBetweenParticles = 0;
     private int skippedTicks = 0;
 
@@ -33,19 +32,19 @@ public class RotatingCircleAnimation extends Animation {
 
     @Override
     public void onTick() {
-        if(ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
+        if (ticksBetweenParticles > 0 && skippedTicks < ticksBetweenParticles) {
             skippedTicks++;
             return;
-        } else if(ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
+        } else if (ticksBetweenParticles > 0 && skippedTicks == ticksBetweenParticles) skippedTicks = 0;
 
 
         this.degrees += 2;
         double radius = this.radius;
 
-        for(int i = 0; i < 360; i += 36) {
+        for (int i = 0; i < 360; i += 36) {
             double degrees = i + this.degrees;
-            if(degrees >= 360) degrees -= 360;
-            if(degrees < 0) degrees += 360;
+            if (degrees >= 360) degrees -= 360;
+            if (degrees < 0) degrees += 360;
 
             Location loc = this.location.clone();
 
