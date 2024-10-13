@@ -172,7 +172,7 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if (this.tickerTimer != null) return;
 
-        this.tickerTimer = UniversalScheduler.getScheduler(plugin).runTaskTimer(
+        this.tickerTimer = UniversalScheduler.getScheduler(plugin).runTaskTimerAsynchronously(
                 new Runnable() {
             int i = 0;
 

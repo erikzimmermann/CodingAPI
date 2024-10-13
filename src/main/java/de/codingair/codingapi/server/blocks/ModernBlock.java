@@ -19,17 +19,20 @@ public class ModernBlock {
 
     private void prepareBlock() {
         UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(
-            () -> {
-            if(this.data != null) {
-                if(!Version.atLeast(13)) this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
-                else {
-                    block.setType(material);
-                    this.data.setDataTo(block, this.data.getData(block));
+                block.getLocation(),
+                () -> {
+                    if (this.data != null) {
+                        if (!Version.atLeast(13))
+                            this.data.setTypeAndDataTo(this.block, this.material, (byte) this.data.getData(block), false);
+                        else {
+                            block.setType(material);
+                            this.data.setDataTo(block, this.data.getData(block));
+                        }
+                    } else {
+                        block.setType(material);
+                    }
                 }
-            } else {
-                block.setType(material);
-            }
-        });
+        );
     }
 
     public Block getBlock() {

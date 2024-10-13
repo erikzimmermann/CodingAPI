@@ -88,12 +88,11 @@ public class PickItemListener implements Listener {
                     else if (slotId instanceof Short) slot = (Short) slotId;
                     else throw new IllegalStateException("Cannot cast '" + slotId + "' (" + slotId.getClass() + ")");
 
-                    AsyncCatcher.runSync(plugin, new UniversalRunnable() {
-                        @Override
-                        public void run() {
-                            call(p, slot, PacketUtils.getItemStack(item.get(packet)));
-                        }
-                    }, p.getLocation());
+                    AsyncCatcher.runSync(
+                            plugin,
+                            () -> call(p, slot, PacketUtils.getItemStack(item.get(packet))),
+                            p.getLocation()
+                    );
                 }
 
                 return false;

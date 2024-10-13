@@ -19,19 +19,18 @@ public class MusicData extends SoundData {
     }
 
     public void play(Player player, JavaPlugin plugin) {
-        UniversalRunnable runnable = new UniversalRunnable(
-
-        ) {
+        UniversalRunnable runnable = new UniversalRunnable() {
             int currentDelay = 0;
             MusicData musicPlayer = MusicData.this;
+
             @Override
             public void run() {
-                if(currentDelay == musicPlayer.getDelay()) {
+                if (currentDelay == musicPlayer.getDelay()) {
                     currentDelay = 0;
 
                     musicPlayer.getSound().playSound(player, musicPlayer.getVolume(), musicPlayer.getPitch());
 
-                    if(musicPlayer.getFollower() == null) {
+                    if (musicPlayer.getFollower() == null) {
                         this.cancel();
                         return;
                     }

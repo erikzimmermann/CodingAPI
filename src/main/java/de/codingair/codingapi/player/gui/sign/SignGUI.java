@@ -374,14 +374,11 @@ public abstract class SignGUI {
         l.clear();
 
         if (packetReader != null) packetReader.unInject();
-        UniversalRunnable runnable = new UniversalRunnable() {
-            @Override
-            public void run() {
-                player.closeInventory();
-                if (call != null) call.proceed();
-            }
-        };
-        AsyncCatcher.runSync(plugin, runnable, player.getLocation());
+        AsyncCatcher.runSync(plugin, () -> {
+            revertTempSignBlock();
+            player.closeInventory();
+            if (call != null) call.proceed();
+        }, player.getLocation());
     }
 
     public String[] getLines() {
