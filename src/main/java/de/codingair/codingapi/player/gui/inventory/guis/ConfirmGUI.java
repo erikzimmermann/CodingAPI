@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.guis;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.player.gui.inventory.gui.GUI;
 import de.codingair.codingapi.player.gui.inventory.gui.InterfaceListener;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
@@ -62,7 +63,7 @@ public class ConfirmGUI extends GUI {
                 if(run) return;
                 run = true;
 
-                if(ConfirmGUI.this.close != null) Bukkit.getScheduler().runTaskLater(plugin, ConfirmGUI.this.close, 1L);
+                if(ConfirmGUI.this.close != null) UniversalScheduler.getScheduler(plugin).runTaskLater(ConfirmGUI.this.close, 1L);
             }
 
             @Override

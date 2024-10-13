@@ -1,6 +1,9 @@
 package de.codingair.codingapi.server;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AsyncCatcher {
@@ -12,8 +15,8 @@ public class AsyncCatcher {
         return !isOnMainThread();
     }
 
-    public static void runSync(JavaPlugin plugin, Runnable runnable) {
+    public static void runSync(JavaPlugin plugin, UniversalRunnable runnable, Location loc) {
         if(isOnMainThread()) runnable.run();
-        else Bukkit.getScheduler().runTask(plugin, runnable);
+        else UniversalScheduler.getScheduler(plugin).runTask(loc, runnable);
     }
 }

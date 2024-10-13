@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.player.gui.GUIListener;
 import de.codingair.codingapi.player.gui.inventory.InventoryUtils;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
@@ -352,7 +353,7 @@ public class Interface {
         setTitle(this.title, false);
         if(oldUsage) interfaces.add(this);
 
-        Bukkit.getScheduler().runTask(plugin, () -> p.openInventory(this.inventory));
+        UniversalScheduler.getScheduler(plugin).runTask(() -> p.openInventory(this.inventory));
     }
 
     protected void addToPlayerList(Player player) {

@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.gui.inventory.gui;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.gui.inventory.gui.itembutton.ItemButton;
 import de.codingair.codingapi.server.sounds.Sound;
@@ -75,7 +76,7 @@ public abstract class GUI extends Interface implements Removable {
                 if(useFallbackGUI && fallbackGUI != null) {
                     GUI fb = fallbackGUI;
                     fb.reinitialize();
-                    Bukkit.getScheduler().runTaskLater(getPlugin(), (Runnable) fb::open, 1);
+                    UniversalScheduler.getScheduler(getPlugin()).runTaskLater(fb::open, 1);
                 }
             }
 
@@ -237,7 +238,7 @@ public abstract class GUI extends Interface implements Removable {
     public void confirmClosing() {
         API.removeRemovable(this);
         if(this.closingConfirmed != null) {
-            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> closingConfirmed.accept(this), 1L);
+            UniversalScheduler.getScheduler(getPlugin()).runTaskLater(() -> closingConfirmed.accept(this), 1L);
         }
     }
 

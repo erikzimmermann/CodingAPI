@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.data;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -112,7 +113,7 @@ public abstract class PacketReader implements Removable {
         if (later != null) {
             if (plugin.isEnabled()) {
                 //uninject asynchronously.
-                Bukkit.getScheduler().runTask(plugin, later);
+                UniversalScheduler.getScheduler(plugin).runTask(later);
             } else later.run();
         }
     }

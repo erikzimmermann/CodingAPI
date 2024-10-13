@@ -1,5 +1,7 @@
 package de.codingair.codingapi.player.gui.sign;
 
+import com.github.Anon8281.universalScheduler.UniversalRunnable;
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.player.data.PacketReader;
@@ -10,7 +12,6 @@ import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.Call;
 import de.codingair.codingapi.tools.items.XMaterial;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -137,7 +138,7 @@ public abstract class SignGUI {
 
             signLocation = getTemporarySignLocation();
             prepareTemporarySign(XMaterial.OAK_SIGN, signLocation);
-        } else Bukkit.getScheduler().runTask(plugin, runnable);
+        } else UniversalScheduler.getScheduler(plugin).runTask(runnable);
     }
 
     private void injectPacketReader() {
@@ -174,7 +175,7 @@ public abstract class SignGUI {
                         }
                     }
 
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    UniversalScheduler.getScheduler(plugin).runTask(() -> {
                         onSignChangeEvent(lines);
                         close();
                     });
@@ -214,7 +215,7 @@ public abstract class SignGUI {
                 }
 
                 if (waiting != null && packet.getClass().equals(playOutTileEntityData)) {
-                    Bukkit.getScheduler().runTask(plugin, waiting);
+                    UniversalScheduler.getScheduler(plugin).runTask(waiting);
                     waiting = null;
                 }
 
@@ -373,11 +374,14 @@ public abstract class SignGUI {
         l.clear();
 
         if (packetReader != null) packetReader.unInject();
-        AsyncCatcher.runSync(plugin, () -> {
-            revertTempSignBlock();
-            player.closeInventory();
-            if (call != null) call.proceed();
-        });
+        UniversalRunnable runnable = new UniversalRunnable() {
+            @Override
+            public void run() {
+                player.closeInventory();
+                if (call != null) call.proceed();
+            }
+        };
+        AsyncCatcher.runSync(plugin, runnable, player.getLocation());
     }
 
     public String[] getLines() {

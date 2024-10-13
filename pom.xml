@@ -6,7 +6,7 @@
 
     <groupId>com.github.CodingAir</groupId>
     <artifactId>CodingAPI</artifactId>
-    <version>1.88</version>
+    <version>1.82</version>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -28,9 +28,19 @@
             <id>minecraft-repo</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.Anon8281</groupId>
+            <artifactId>UniversalScheduler</artifactId>
+            <version>0.1.6</version>
+            <scope>compile</scope>
+        </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
@@ -60,8 +70,14 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <version>1.20.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>23.0.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.mojang</groupId>

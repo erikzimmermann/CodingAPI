@@ -1,5 +1,7 @@
 package de.codingair.codingapi;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
+import com.github.Anon8281.universalScheduler.scheduling.tasks.MyScheduledTask;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -43,7 +45,7 @@ public class API {
     private boolean initialized = false;
 
     private final List<JavaPlugin> plugins = new ArrayList<>();
-    private BukkitTask tickerTimer = null;
+    private MyScheduledTask tickerTimer = null;
 
     static {
         NmsCheck.testInternalApi();
@@ -135,7 +137,7 @@ public class API {
 
     private void removePlugin(JavaPlugin plugin) {
         HandlerList.unregisterAll(plugin);
-        if (tickerTimer != null && tickerTimer.getOwner() == plugin) {
+        if (tickerTimer != null && tickerTimer.getOwningPlugin() == plugin) {
             tickerTimer.cancel();
             tickerTimer = null;
         }
@@ -170,7 +172,8 @@ public class API {
     public void runTicker(JavaPlugin plugin) {
         if (this.tickerTimer != null) return;
 
-        this.tickerTimer = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, new Runnable() {
+        this.tickerTimer = UniversalScheduler.getScheduler(plugin).runTaskTimer(
+                new Runnable() {
             int i = 0;
 
             @Override

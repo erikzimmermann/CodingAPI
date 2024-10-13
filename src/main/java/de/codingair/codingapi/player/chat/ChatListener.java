@@ -1,5 +1,6 @@
 package de.codingair.codingapi.player.chat;
 
+import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
@@ -109,7 +110,7 @@ public class ChatListener implements Listener {
                 if (button != null) {
                     clicked = true;
 
-                    Bukkit.getScheduler().runTask(API.getInstance().getMainPlugin(), () -> {
+                    UniversalScheduler.getScheduler(API.getInstance().getMainPlugin()).runTask(() -> {
                         if (button.canClick()) {
                             if (button.getSound() != null) button.getSound().play(player);
                             button.onClick(player);

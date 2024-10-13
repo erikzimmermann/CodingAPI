@@ -7,11 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.plugin.Plugin;
 
 public class EventListener implements Listener {
@@ -110,10 +110,13 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
-    public void onPickup(PlayerPickupItemEvent e) {
-        if (API.getRemovable(e.getPlayer(), HotbarGUI.class) != null) {
-            e.setCancelled(true);
+    public void onPickup(EntityPickupItemEvent e) {
+        if(e.getEntity() instanceof Player) {
+            if (API.getRemovable((Player) e.getEntity(), HotbarGUI.class) != null) {
+                e.setCancelled(true);
+            }
         }
+
     }
 
     @EventHandler(priority = EventPriority.HIGH)
