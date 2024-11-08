@@ -602,7 +602,7 @@ public class Hologram implements Removable {
                 DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
             if (DESTROY_PACKET_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
 
-            if (Version.atLeast(17)) {
+            if (Version.atLeast(17) && Version.before(21.2)) {
                 TELEPORT_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityTeleportClass, PacketUtils.EntityClass);
                 if (TELEPORT_PACKET_CONSTRUCTOR == null)
                     throw new NullPointerException("Constructor could not be found.");
@@ -715,10 +715,12 @@ public class Hologram implements Removable {
         }
 
         public static void teleport(Object armorStand, Location location, Player... players) {
-            if (Version.atLeast(17)) {
+            if(Version.atLeast(21.2)) {
+                Object packet = PacketUtils.EntityPackets.getTeleportPacket(armorStand, location);
+                PacketUtils.sendPacket(packet, players);
+            } else if (Version.atLeast(17)) {
                 //set location before sending this packet
                 Object packet = TELEPORT_PACKET_CONSTRUCTOR.newInstance(armorStand);
-
                 PacketUtils.sendPacket(packet, players);
             } else {
                 Object packet = PacketUtils.EntityPackets.getTeleportPacket(armorStand, location);

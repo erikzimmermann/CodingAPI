@@ -16,6 +16,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
+import java.util.HashSet;
 import java.util.stream.Stream;
 
 public class PacketUtils {
@@ -35,6 +36,8 @@ public class PacketUtils {
     public static final Class<?> TileEntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("BlockEntity", "TileEntity"));
     public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("SignBlockEntity", "TileEntitySign"));
     public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.NBT, Version.choose("CompoundTag", "NBTTagCompound"));
+    public static final Class<?> PositionMoveRotationClass = IReflection.wrap(Version.atLeast(21.2), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "PositionMoveRotation"));
+    public static final Class<?> Vec3DClass = IReflection.wrap(Version.atLeast(21), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D"));
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "Entity");
     public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("ServerPlayer", "EntityPlayer"));
@@ -327,6 +330,21 @@ public class PacketUtils {
         }
     }
 
+    public static Object getPositionMoveRotation(Object position, Object deltaMovement, float yRot, float xRot) {
+        IReflection.ConstructorAccessor con = IReflection.getConstructor(PositionMoveRotationClass, Vec3DClass, Vec3DClass, float.class, float.class);
+        return con.newInstance(position, deltaMovement, yRot, xRot);
+    }
+
+    public static Object getPositionMoveRotation(Object entity) {
+        IReflection.MethodAccessor of = IReflection.getMethod(PositionMoveRotationClass, "of", PositionMoveRotationClass, new Class[]{EntityClass});
+        return of.invoke(null, entity);
+    }
+
+    public static Object getVec3d(double x, double y, double z) {
+        IReflection.ConstructorAccessor con = IReflection.getConstructor(Vec3DClass, double.class, double.class, double.class);
+        return con.newInstance(x, y, z);
+    }
+
     public static Object getIBlockData(XMaterial material) {
         IReflection.MethodAccessor getBlockData = IReflection.getMethod(PacketUtils.BlockClass, PacketUtils.IBlockDataClass, new Class[]{});
 
@@ -385,21 +403,32 @@ public class PacketUtils {
             IReflection.MethodAccessor getId = IReflection.getMethod(PacketUtils.EntityPlayerClass, "getId", int.class, null);
             int id = (int) getId.invoke(entity);
 
+            if(Version.atLeast(21.2)) {
+                return IReflection.getConstructor(PacketPlayOutEntityTeleportClass, int.class,
+                        PositionMoveRotationClass, HashSet.class, boolean.class)
+                        .newInstance(id,
+                                getPositionMoveRotation(getVec3d(location.getX(), location.getY(), location.getZ()),
+                                getVec3d(0, 0, 0), location.getYaw(), location.getPitch()),
+                                new HashSet<>(),
+                                false);
+            }
+
             Object packet = IReflection.getConstructor(PacketPlayOutEntityTeleportClass).newInstance();
 
             IReflection.FieldAccessor<?> a = IReflection.getField(PacketPlayOutEntityTeleportClass, "a");
             IReflection.FieldAccessor<?> b = IReflection.getField(PacketPlayOutEntityTeleportClass, "b");
             IReflection.FieldAccessor<?> c = IReflection.getField(PacketPlayOutEntityTeleportClass, "c");
             IReflection.FieldAccessor<?> d = IReflection.getField(PacketPlayOutEntityTeleportClass, "d");
+
             IReflection.FieldAccessor<?> e = IReflection.getField(PacketPlayOutEntityTeleportClass, "e");
             IReflection.FieldAccessor<?> f = IReflection.getField(PacketPlayOutEntityTeleportClass, "f");
             IReflection.FieldAccessor<?> g = IReflection.getField(PacketPlayOutEntityTeleportClass, "g");
 
             a.set(packet, id);
 
-            if (Version.atLeast(9)) {
-                //new
-                b.set(packet, location.getX());
+            if(Version.atLeast(9)) {
+                //new (< 1.21.2)
+                // b.set(packet, location.getX());
                 c.set(packet, location.getY());
                 d.set(packet, location.getZ());
             } else {
@@ -409,9 +438,9 @@ public class PacketUtils {
                 d.set(packet, toFixedPointNumber(location.getZ()));
             }
 
-            e.set(packet, toAngle(location.getYaw()));
-            f.set(packet, toAngle(location.getPitch()));
-            g.set(packet, false);
+             e.set(packet, toAngle(location.getYaw()));
+             f.set(packet, toAngle(location.getPitch()));
+             g.set(packet, false);
 
             return packet;
         }
