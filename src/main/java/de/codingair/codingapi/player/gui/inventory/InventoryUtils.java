@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Modifier;
+
 public class InventoryUtils {
     public static final Class<?> CONTAINERS_CLASS;
     private static final Class<?> CONTAINER_CLASS;
@@ -32,7 +34,7 @@ public class InventoryUtils {
             UPDATE_INVENTORY = IReflection.getMethod(PacketUtils.EntityPlayerClass, "updateInventory", new Class[]{CONTAINER_CLASS});
         }
 
-        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, Version.choose("containerId", "windowId", 17, "j"));
+        WINDOW_ID = IReflection.getField(CONTAINER_CLASS, int.class, 0, i -> Modifier.isPublic(i) && !Modifier.isStatic(i));
         ACTIVE_CONTAINER = IReflection.getField(PacketUtils.EntityHumanClass, CONTAINER_CLASS, 1);
 
         if (Version.atLeast(14)) {

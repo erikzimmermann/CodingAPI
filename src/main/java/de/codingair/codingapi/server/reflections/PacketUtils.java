@@ -403,12 +403,12 @@ public class PacketUtils {
             IReflection.MethodAccessor getId = IReflection.getMethod(PacketUtils.EntityPlayerClass, "getId", int.class, null);
             int id = (int) getId.invoke(entity);
 
-            if(Version.atLeast(21.2)) {
+            if (Version.atLeast(21.2)) {
                 return IReflection.getConstructor(PacketPlayOutEntityTeleportClass, int.class,
-                        PositionMoveRotationClass, HashSet.class, boolean.class)
+                                PositionMoveRotationClass, HashSet.class, boolean.class)
                         .newInstance(id,
                                 getPositionMoveRotation(getVec3d(location.getX(), location.getY(), location.getZ()),
-                                getVec3d(0, 0, 0), location.getYaw(), location.getPitch()),
+                                        getVec3d(0, 0, 0), location.getYaw(), location.getPitch()),
                                 new HashSet<>(),
                                 false);
             }
@@ -426,21 +426,19 @@ public class PacketUtils {
 
             a.set(packet, id);
 
-            if(Version.atLeast(9)) {
-                //new (< 1.21.2)
-                // b.set(packet, location.getX());
+            if (Version.atLeast(9)) {
+                b.set(packet, location.getX());
                 c.set(packet, location.getY());
                 d.set(packet, location.getZ());
             } else {
-                //old
                 b.set(packet, toFixedPointNumber(location.getX()));
                 c.set(packet, toFixedPointNumber(location.getY()));
                 d.set(packet, toFixedPointNumber(location.getZ()));
             }
 
-             e.set(packet, toAngle(location.getYaw()));
-             f.set(packet, toAngle(location.getPitch()));
-             g.set(packet, false);
+            e.set(packet, toAngle(location.getYaw()));
+            f.set(packet, toAngle(location.getPitch()));
+            g.set(packet, false);
 
             return packet;
         }
