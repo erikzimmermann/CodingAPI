@@ -1,5 +1,6 @@
 package de.codingair.codingapi.nms;
 
+import de.codingair.codingapi.particles.ParticlePacket;
 import de.codingair.codingapi.player.Hologram;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.player.gui.anvil.AnvilGUI;
@@ -32,6 +33,7 @@ public class NmsCheck {
                 Hologram.HologramPackets.class, Hologram.class,
                 PacketReader.NmsWrapper.class,
                 PlayerInventory.class,
+                ParticlePacket.class,
         };
     }
 

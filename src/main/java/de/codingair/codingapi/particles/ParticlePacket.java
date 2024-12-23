@@ -1,5 +1,6 @@
 package de.codingair.codingapi.particles;
 
+import de.codingair.codingapi.nms.NmsLoader;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
@@ -7,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.lang.reflect.Constructor;
@@ -18,6 +20,7 @@ public class ParticlePacket {
     private static final Class<?> craftParticle;
     private static final Class<?> dustOptions;
     private static final IReflection.MethodAccessor toNMS;
+    private static final IReflection.ConstructorAccessor particlePacketConstructor;
 
     static {
         if (Version.atLeast(13)) {
@@ -26,12 +29,22 @@ public class ParticlePacket {
             craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
             dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
             toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[]{org.bukkit.Particle.class, Object.class});
+
+            if (Version.atLeast(21.4)) {
+                particlePacketConstructor = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
+            } else if (Version.atLeast(17)) {
+                particlePacketConstructor = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
+            } else {
+                particlePacketConstructor = IReflection.getConstructor(packetPlayOutWorldParticles);
+            }
+            if (particlePacketConstructor == null) throw new NullPointerException("Cannot find particle constructor");
         } else {
             packetPlayOutWorldParticles = null;
             particleParam = null;
             craftParticle = null;
             dustOptions = null;
             toNMS = null;
+            particlePacketConstructor = null;
         }
     }
 
@@ -42,6 +55,11 @@ public class ParticlePacket {
     private Location location;
     private double maxDistance = 0;
     private int noteId = 0;
+
+    @NmsLoader
+    private ParticlePacket() {
+        this.particle = null;
+    }
 
     public ParticlePacket(Particle particle) {
         this.particle = particle;
@@ -56,9 +74,6 @@ public class ParticlePacket {
     public ParticlePacket initialize(Location loc) {
         if (!available()) return this;
         this.location = loc;
-
-        Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
-        Constructor<?> packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
         if (Version.atLeast(13)) {
             Object data = null;
@@ -87,10 +102,20 @@ public class ParticlePacket {
                 return this;
             }
 
-            if (Version.atLeast(17)) {
-                IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
-                assert packetCon != null;
-                packet = packetCon.newInstance(particle,
+            if (Version.atLeast(21.4)) {
+                packet = particlePacketConstructor.newInstance(particle,
+                        false, // force: false by default
+                        this.longDistance,
+                        this.location.getX(),
+                        this.location.getY(),
+                        this.location.getZ(),
+                        offsetX,
+                        offsetY,
+                        offsetZ,
+                        extra,
+                        count);
+            } else if (Version.atLeast(17)) {
+                packet = particlePacketConstructor.newInstance(particle,
                         this.longDistance,
                         this.location.getX(),
                         this.location.getY(),
@@ -101,9 +126,7 @@ public class ParticlePacket {
                         extra,
                         count);
             } else {
-                IReflection.ConstructorAccessor packetCon = IReflection.getConstructor(packetPlayOutWorldParticles);
-                assert packetCon != null;
-                packet = packetCon.newInstance();
+                packet = particlePacketConstructor.newInstance();
                 try {
                     IReflection.setValue(packet, "a", (float) this.location.getX());      //x
                     IReflection.setValue(packet, "b", (float) this.location.getY());      //y
@@ -120,19 +143,22 @@ public class ParticlePacket {
                 }
             }
         } else {
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
+            Constructor<?> packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
+
             Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");
 
             ParticleData data = null;
 
             if (particle.requiresData()) {
-                Location below = loc.clone();
-                below.setY(loc.getBlockY() - 0.49);
+                Location below = location.clone();
+                below.setY(location.getBlockY() - 0.49);
 
                 //noinspection deprecation
                 data = new ParticleData(below.getBlock().getType(), below.getBlock().getData());
             }
 
-            if (particle.requiresWater() && !loc.getBlock().getType().equals(Material.WATER) && !loc.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER")))
+            if (particle.requiresWater() && !location.getBlock().getType().equals(Material.WATER) && !location.getBlock().getType().equals(Material.valueOf("STATIONARY_WATER")))
                 return this;
 
             float e = 0, f = 0, g = 0, h = 0;
@@ -181,19 +207,17 @@ public class ParticlePacket {
         return enumParticle.getEnumConstants().length - 1 >= this.particle.getId();
     }
 
-    public void send(Player... p) {
+    public void send(@NotNull Player player) {
         if (packet == null || location == null) return;
 
-        for (Player player : p) {
-            if (player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
-                PacketUtils.sendPacket(packet, player);
-            }
+        if (player.getWorld() == this.location.getWorld() && (this.maxDistance <= 0 || this.location.distance(player.getLocation()) <= maxDistance)) {
+            PacketUtils.sendPacket(packet, player);
         }
     }
 
     public void send() {
         if (packet == null || location == null) return;
-        send(Bukkit.getOnlinePlayers().toArray(new Player[0]));
+        Bukkit.getOnlinePlayers().forEach(this::send);
     }
 
     public Particle getParticle() {
