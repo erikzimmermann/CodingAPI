@@ -860,6 +860,12 @@ public class ItemBuilder implements Serializable {
         return this;
     }
 
+    public ItemBuilder addEnchantmentEffect() {
+        addEnchantment(Enchantment.values()[0], 1);
+        setHideEnchantments(true);
+        return this;
+    }
+
     public boolean isHideStandardLore() {
         return hideStandardLore;
     }
