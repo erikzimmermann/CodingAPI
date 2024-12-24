@@ -30,6 +30,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -860,8 +861,14 @@ public class ItemBuilder implements Serializable {
         return this;
     }
 
+    @NotNull
+    public static Enchantment anyEnchantment() {
+        //noinspection deprecation
+        return Enchantment.values()[0];
+    }
+
     public ItemBuilder addEnchantmentEffect() {
-        addEnchantment(Enchantment.values()[0], 1);
+        addEnchantment(anyEnchantment(), 1);
         setHideEnchantments(true);
         return this;
     }
