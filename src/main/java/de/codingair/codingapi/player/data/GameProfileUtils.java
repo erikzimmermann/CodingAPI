@@ -49,13 +49,17 @@ public class GameProfileUtils {
 
     @Nullable
     public static String extractSkinId(@NotNull ItemMeta meta) {
-        if (Version.before(21)) {
-            IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
-            return GameProfileUtils.extractSkinId(profile.get(meta));
-        }
-
-        // do not import any classes or this breaks in some lower versions
         if (!(meta instanceof SkullMeta)) return null;
+
+        if (Version.before(21)) {
+            try {
+                IReflection.FieldAccessor<GameProfile> profile = IReflection.getField(meta.getClass(), "profile");
+                return GameProfileUtils.extractSkinId(profile.get(meta));
+            } catch (IllegalStateException ex) {
+                // illegal ItemMeta class
+                return null;
+            }
+        }
 
         org.bukkit.profile.PlayerProfile profile = ((SkullMeta) meta).getOwnerProfile();
         if (profile == null) return null;
