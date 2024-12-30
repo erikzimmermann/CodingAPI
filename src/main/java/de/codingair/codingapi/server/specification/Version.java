@@ -86,6 +86,11 @@ public class Version {
         return version < get();
     }
 
+    /**
+     * @param version The maximum version that will be accepted. Attention: When on 1.8.8, the method call with version
+     *                `8` will return false because 'v1.8.8' transforms into the float 8.8 which is higher than 8.
+     * @return True, if the current version is at most the given version.
+     */
     public static boolean atMost(double version) {
         return get() <= version;
     }

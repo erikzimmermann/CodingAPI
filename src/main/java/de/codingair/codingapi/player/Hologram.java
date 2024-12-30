@@ -564,7 +564,7 @@ public class Hologram implements Removable {
         private final static IReflection.ConstructorAccessor ARMOR_STAND_CONSTRUCTOR;
 
         static {
-            if (Version.atMost(8)) {
+            if (Version.before(9)) {
                 invulnerableField = IReflection.getField(PacketUtils.EntityClass, "invulnerable");
             } else invulnerableField = null;
 
