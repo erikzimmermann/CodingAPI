@@ -24,6 +24,7 @@ package de.codingair.codingapi.server.sounds;
 import com.google.common.base.Enums;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import de.codingair.codingapi.server.specification.Type;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -31,6 +32,7 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -1516,7 +1518,22 @@ public enum Sound {
         private static final Map<String, Sound> NAMES = new HashMap<>();
 
         static {
-            for (org.bukkit.Sound sound : org.bukkit.Sound.values()) BUKKIT_NAMES.put(sound.name(), sound);
+            if(Version.type() == Type.PAPER && Version.atLeast(21.4)) {
+                // Workaround: Get sounds using reflection, as with Paper 1.21.4, sounds enum was replaced
+                // Solution: Use Kyori library for sounds when using paper.
+                for(Field field : org.bukkit.Sound.class.getFields()) {
+                    if(field.getType() != org.bukkit.Sound.class) continue;
+                    try {
+                        BUKKIT_NAMES.put(field.getName(), (org.bukkit.Sound) field.get(null));
+                    } catch (IllegalAccessException ignored) {
+                    }
+                }
+            } else {
+                // Use standard way to retrieve sounds
+                for (org.bukkit.Sound sound : org.bukkit.Sound.values()) {
+                    BUKKIT_NAMES.put(sound.name(), sound);
+                }
+            }
         }
     }
 }
