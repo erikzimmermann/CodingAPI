@@ -27,6 +27,7 @@ import com.google.common.cache.CacheBuilder;
 import de.codingair.codingapi.server.specification.Type;
 import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Location;
+import org.bukkit.Registry;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -37,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * <b>XSound</b> - Universal Minecraft Sound Support<br>
@@ -1518,7 +1520,12 @@ public enum Sound {
         private static final Map<String, Sound> NAMES = new HashMap<>();
 
         static {
-            if(Version.type() == Type.PAPER && Version.atLeast(21.4)) {
+            if (Version.type() == Type.SPIGOT && Version.atLeast(21.3)) {
+                List<org.bukkit.Sound> sounds = Registry.SOUNDS.stream().collect(Collectors.toList());
+                for(org.bukkit.Sound sound : sounds) {
+                    BUKKIT_NAMES.put(sound.getKey().getKey().replaceAll("\\.", "_").toUpperCase(), sound);
+                }
+            } else if(Version.type() == Type.PAPER && Version.atLeast(21.4)) {
                 // Workaround: Get sounds using reflection, as with Paper 1.21.4, sounds enum was replaced
                 // Solution: Use Kyori library for sounds when using paper.
                 for(Field field : org.bukkit.Sound.class.getFields()) {
