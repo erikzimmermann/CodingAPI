@@ -87,7 +87,8 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
     }
 
     public int run(CommandContext<Object> context) {
-        return Bukkit.getServer().dispatchCommand(wrapper.getBukkitSender(context.getSource()), context.getInput()) ? 1 : 0;
+        String args = context.getArgument("args", String.class);
+        return this.builder.onCommand(wrapper.getBukkitSender(context.getSource()), builder.getMain(), builder.getName(), args.split(" ")) ? 1 : 0;
     }
 
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<Object> context, SuggestionsBuilder builder) {
