@@ -37,7 +37,7 @@ public class PacketUtils {
     public static final Class<?> TileEntitySignClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("SignBlockEntity", "TileEntitySign"));
     public static final Class<?> NBTTagCompoundClass = getClass(IReflection.ServerPacket.NBT, Version.choose("CompoundTag", "NBTTagCompound"));
     public static final Class<?> PositionMoveRotationClass = IReflection.wrap(Version.atLeast(21.2), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "PositionMoveRotation"));
-    public static final Class<?> Vec3DClass = IReflection.wrap(Version.atLeast(21), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), "Vec3D"));
+    public static final Class<?> Vec3DClass = IReflection.wrap(Version.atLeast(21), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.phys"), Version.choose("Vec3D", 21.6, "Vec3")));
 
     public static final Class<?> EntityClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity"), "Entity");
     public static final Class<?> EntityPlayerClass = getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.server.level"), Version.choose("ServerPlayer", "EntityPlayer"));
@@ -68,9 +68,10 @@ public class PacketUtils {
     public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
     public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
 
-    public static final Class<?> ChatSerializerClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("Component$Serializer", "IChatBaseComponent$ChatSerializer"));
+    public static final Class<?> ChatSerializerClass = IReflection.wrap(Version.atMost(21.4), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("Component$Serializer", "IChatBaseComponent$ChatSerializer")));
     public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("MutableComponent", "IChatMutableComponent")));
     public static final Class<?> IChatBaseComponentClass = getClass(IReflection.ServerPacket.CHAT, Version.choose("Component", "IChatBaseComponent"));
+    public static final Class<?> CraftChatMessageClass = IReflection.wrap(Version.atLeast(21.5), () -> getClass(IReflection.ServerPacket.CRAFTBUKKIT_UTILS, "CraftChatMessage"));
 
     public static final IReflection.MethodAccessor getHandle = getMethod(CraftPlayerClass, "getHandle", EntityPlayerClass, new Class[]{});
     public static final IReflection.MethodAccessor getHandleEntity = getMethod(CraftEntityClass, "getHandle", EntityClass, new Class[]{});
@@ -87,7 +88,9 @@ public class PacketUtils {
     public static final Class<?> HolderLookupProvider = IReflection.wrap(Version.atLeast(20.5), () -> getClass(IReflection.ServerPacket.CORE, Version.choose("HolderLookup$Provider", "HolderLookup$a")));
 
     static {
-        if (Version.atLeast(20.2)) {
+        if(Version.atLeast(21.6)) {
+            sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass});
+        } else if (Version.atLeast(20.2)) {
             Class<?> packetSendListenerClass = IReflection.getClass(IReflection.ServerPacket.NETWORK, "PacketSendListener");
             sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass, packetSendListenerClass});
         } else {
@@ -264,7 +267,10 @@ public class PacketUtils {
     }
 
     public static Object getRawIChatBaseComponent(String jsonFormat) {
-        if (Version.atLeast(20.5)) {
+        if(Version.atLeast(21.5)) {
+            IReflection.MethodAccessor fromJson = IReflection.getMethod(CraftChatMessageClass, IChatBaseComponentClass, new Class[]{String.class});
+            return fromJson.invoke(null, jsonFormat);
+        } else if (Version.atLeast(20.5)) {
             IReflection.MethodAccessor fromJson = IReflection.getMethod(ChatSerializerClass, IChatMutableComponentClass, new Class[]{String.class, HolderLookupProvider});
             return fromJson.invoke(null, jsonFormat, emptyHolderLookupProvider());
         } else {
