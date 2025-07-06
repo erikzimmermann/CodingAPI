@@ -87,7 +87,13 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
     }
 
     public int run(CommandContext<Object> context) {
-        String args = context.getArgument("args", String.class);
+        String args = "";
+
+        try {
+            args = context.getArgument("args", String.class);
+        } catch (IllegalArgumentException ignored) {
+        }
+        
         return this.builder.onCommand(wrapper.getBukkitSender(context.getSource()), builder.getMain(), builder.getName(), args.split(" ")) ? 1 : 0;
     }
 
