@@ -217,7 +217,7 @@ public class PacketUtils {
     public static void sendPacket(Player target, Object packet) {
         if (!target.isOnline()) return;
 
-        if (Version.atLeast(20.2)) {
+        if (Version.atLeast(20.2) && Version.before(21.6)) {
             sendPacket.invoke(getPlayerConnection(target), packet, null);
         } else {
             sendPacket.invoke(getPlayerConnection(target), packet);

@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class CommandWrapper implements Predicate<Object>, Command<Object>, SuggestionProvider<Object> {
+public class CommandWrapper implements Predicate<Object>, SuggestionProvider<Object> {
     private final CommandListenerWrapper wrapper;
 
     private final CommandBuilder builder;
@@ -75,9 +75,9 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
     private void registerCommand(String name) {
         CommandDispatcher<Object> dispatcher = dispatcher();
         LiteralArgumentBuilder<Object> l = LiteralArgumentBuilder.literal(name);
-        l.requires(this).executes(this);
+        l.requires(this).executes(ctx -> run(ctx, false));
         RequiredArgumentBuilder<Object, ?> r = RequiredArgumentBuilder.argument("args", StringArgumentType.greedyString());
-        l.then(r.suggests(this).executes(this));
+        l.then(r.suggests(this).executes(ctx -> run(ctx, true)));
 
         dispatcher.register(l);
     }
@@ -86,9 +86,13 @@ public class CommandWrapper implements Predicate<Object>, Command<Object>, Sugge
         return true;
     }
 
-    public int run(CommandContext<Object> context) {
-        String args = context.getArgument("args", String.class);
-        return this.builder.onCommand(wrapper.getBukkitSender(context.getSource()), builder.getMain(), builder.getName(), args.split(" ")) ? 1 : 0;
+    public int run(CommandContext<Object> context, boolean withArgs) {
+        String[] args = new String[0];
+        if(withArgs) {
+            String argsString = context.getArgument("args", String.class);
+            args = argsString.split(" ");
+        }
+        return this.builder.onCommand(wrapper.getBukkitSender(context.getSource()), builder.getMain(), builder.getName(), args) ? 1 : 0;
     }
 
     public CompletableFuture<Suggestions> getSuggestions(CommandContext<Object> context, SuggestionsBuilder builder) {
