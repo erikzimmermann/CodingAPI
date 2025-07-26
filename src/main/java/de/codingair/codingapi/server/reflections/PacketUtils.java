@@ -89,7 +89,7 @@ public class PacketUtils {
 
     static {
         if(Version.atLeast(21.6)) {
-            sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass});
+            sendPacket = IReflection.getMethod(PlayerConnectionClass, "send", new Class[]{PacketClass});
         } else if (Version.atLeast(20.2)) {
             Class<?> packetSendListenerClass = IReflection.getClass(IReflection.ServerPacket.NETWORK, "PacketSendListener");
             sendPacket = IReflection.getMethod(PlayerConnectionClass, (Class<?>) null, new Class[]{PacketClass, packetSendListenerClass});
