@@ -375,7 +375,6 @@ public abstract class SignGUI {
         if (packetReader != null) packetReader.unInject();
         AsyncCatcher.runSync(plugin, () -> {
             revertTempSignBlock();
-            player.closeInventory();
             if (call != null) call.proceed();
         }, player.getLocation());
     }
