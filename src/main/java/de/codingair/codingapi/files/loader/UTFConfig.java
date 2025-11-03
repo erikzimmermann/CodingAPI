@@ -91,7 +91,7 @@ public class UTFConfig extends YamlConfiguration {
         Files.createParentDirs(file);
 
         String data;
-        if (Version.atLeast(18.1)) data = this.saveToString();
+        if (Version.atLeast(18.01)) data = this.saveToString();
         else data = writeExtras(this.saveToString());
 
         BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charsets.UTF_8));
@@ -127,7 +127,7 @@ public class UTFConfig extends YamlConfiguration {
     @Override
     public void loadFromString(@NotNull String contents) throws InvalidConfigurationException {
         super.loadFromString(contents);
-        if (Version.before(18.1)) loadExtras(contents);
+        if (Version.before(18.01)) loadExtras(contents);
     }
 
     public void removeUnused(UTFConfig origin) {

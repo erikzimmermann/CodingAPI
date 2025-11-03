@@ -57,7 +57,7 @@ public abstract class SignGUI {
             packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, String[].class, 0);
         else packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
 
-        if (Version.atLeast(20.6)) {
+        if (Version.atLeast(20.06)) {
             setWorld = IReflection.getMethod(PacketUtils.TileEntityClass, new Class[]{PacketUtils.WorldClass});
         } else setWorld = null;
     }
@@ -274,7 +274,7 @@ public abstract class SignGUI {
             setBlockPos.set(tileEntity, blockPos);
         }
 
-        if (Version.atLeast(20.6)) {
+        if (Version.atLeast(20.06)) {
             // Fix: Since 20.6, the PacketPlayOutTileEntityData requires the world to be set.
             setWorld.invoke(tileEntity, PacketUtils.getWorldServer(tempSign.getWorld()));
         }

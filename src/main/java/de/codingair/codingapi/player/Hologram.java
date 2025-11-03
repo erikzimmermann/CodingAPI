@@ -35,7 +35,7 @@ public class Hologram implements Removable {
     private static final Set<Object> DATA_WATCHER_OBJECTS = new HashSet<>();
 
     static {
-        if (Version.atLeast(19.3)) {
+        if (Version.atLeast(19.03)) {
             Class<?> c = HologramPackets.getArmorStandClass();
             DATA_WATCHER_OBJECTS.addAll(HologramPackets.getDataWatcherObjects(c));
         }
@@ -568,9 +568,9 @@ public class Hologram implements Removable {
                 invulnerableField = IReflection.getField(PacketUtils.EntityClass, "invulnerable");
             } else invulnerableField = null;
 
-            if (Version.atLeast(19.3)) {
+            if (Version.atLeast(19.03)) {
                 dataWatcherItemClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataItem", "DataWatcher$Item"));
-                dataWatcherDataValueClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataValue", "DataWatcher$b", 20.5, "DataWatcher$c"));
+                dataWatcherDataValueClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("SynchedEntityData$DataValue", "DataWatcher$b", 20.05, "DataWatcher$c"));
                 getDataWatcherItem = IReflection.getMethod(PacketUtils.DataWatcherClass, dataWatcherItemClass, new Class[]{PacketUtils.DataWatcherObjectClass});
                 serializeItem = IReflection.getMethod(dataWatcherItemClass, dataWatcherDataValueClass, new Class[0]);
             } else {
@@ -583,7 +583,7 @@ public class Hologram implements Removable {
             if (Version.atLeast(21)) {
                 setPosition = IReflection.getMethod(PacketUtils.EntityClass, null, new Class[]{double.class, double.class, double.class}, 0, m -> Modifier.isPublic(m) && Modifier.isFinal(m));
             } else {
-                setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.3, "p"), new Class[]{double.class, double.class, double.class});
+                setPosition = IReflection.getMethod(PacketUtils.EntityClass, Version.choose("setPos", "setPosition", 18, "c", 19.03, "p"), new Class[]{double.class, double.class, double.class});
             }
 
             getDataWatcher = IReflection.getMethod(PacketUtils.EntityClass, PacketUtils.DataWatcherClass, new Class[]{});
@@ -602,7 +602,7 @@ public class Hologram implements Removable {
                 DESTROY_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityDestroyClass, int[].class);
             if (DESTROY_PACKET_CONSTRUCTOR == null) throw new NullPointerException("Constructor could not be found.");
 
-            if (Version.atLeast(17) && Version.before(21.2)) {
+            if (Version.atLeast(17) && Version.before(21.02)) {
                 TELEPORT_PACKET_CONSTRUCTOR = IReflection.getConstructor(PacketUtils.PacketPlayOutEntityTeleportClass, PacketUtils.EntityClass);
                 if (TELEPORT_PACKET_CONSTRUCTOR == null)
                     throw new NullPointerException("Constructor could not be found.");
@@ -660,7 +660,7 @@ public class Hologram implements Removable {
         }
 
         public static void sendDataWatcher(Player player, Object armorStand) {
-            if (Version.atLeast(19.3)) {
+            if (Version.atLeast(19.03)) {
                 assert PacketUtils.DataWatcherObjectClass != null;
 
                 Object watcher = getDataWatcher.invoke(armorStand);
@@ -715,7 +715,7 @@ public class Hologram implements Removable {
         }
 
         public static void teleport(Object armorStand, Location location, Player... players) {
-            if(Version.atLeast(21.2)) {
+            if(Version.atLeast(21.02)) {
                 Object packet = PacketUtils.EntityPackets.getTeleportPacket(armorStand, location);
                 PacketUtils.sendPacket(packet, players);
             } else if (Version.atLeast(17)) {

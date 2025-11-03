@@ -124,7 +124,7 @@ public class ConfigFile {
 
             InputStream reader = raw ? null : plugin.getResource((srcPath == null ? "" : srcPath) + this.name + ".yml");
             if (reader != null) {
-                if (Version.atLeast(19.3)) {
+                if (Version.atLeast(19.03)) {
                     config = YamlConfiguration.loadConfiguration(new InputStreamReader(reader, Charsets.UTF_8));
                 } else config = UTFConfig.loadConf(reader);
 

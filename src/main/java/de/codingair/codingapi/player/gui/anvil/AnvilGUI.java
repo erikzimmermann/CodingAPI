@@ -58,7 +58,7 @@ public class AnvilGUI implements Removable {
         assert ENTITY_PLAYER_CLASS != null;
 
         // paper made the switch already in late 1.21 but spigot not before 1.21.1
-        Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, Version.choose("inventory.CraftInventoryView", Version.choose(21D, 21.1), "inventory.view.CraftAnvilView"));
+        Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, Version.choose("inventory.CraftInventoryView", Version.choose(21D, 21.01), "inventory.view.CraftAnvilView"));
         PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
 
@@ -289,7 +289,7 @@ public class AnvilGUI implements Removable {
 
         try {
             if (Version.atLeast(14)) {
-                String genericField = Version.choose("ANVIL", "ANVIL", 17, "h", 20.4, "i");
+                String genericField = Version.choose("ANVIL", "ANVIL", 17, "h", 20.04, "i");
 
                 IReflection.FieldAccessor<?> generic = IReflection.getField(InventoryUtils.CONTAINERS_CLASS, genericField);
                 IReflection.ConstructorAccessor packetPlayOutOpenWindowCon = IReflection.getConstructor(PACKET_PLAY_OUT_OPEN_WINDOW_CLASS, int.class, InventoryUtils.CONTAINERS_CLASS, PacketUtils.IChatBaseComponentClass);

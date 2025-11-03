@@ -1520,7 +1520,7 @@ public enum Sound {
         private static final Map<String, Sound> NAMES = new HashMap<>();
 
         static {
-            if (Version.type() == Type.SPIGOT && Version.atLeast(21.3)) {
+            if (Version.type() == Type.SPIGOT && Version.atLeast(21.03)) {
                 List<org.bukkit.Sound> sounds = Registry.SOUNDS.stream().collect(Collectors.toList());
                 for(org.bukkit.Sound sound : sounds) {
                     BUKKIT_NAMES.put(sound.getKey().getKey().replaceAll("\\.", "_").toUpperCase(), sound);

@@ -22,7 +22,7 @@ public class NBTTagCompound {
     static {
         TAG = IReflection.getClass(IReflection.ServerPacket.NBT, "NBTBase");
 
-        if (Version.atLeast(20.5)) {
+        if (Version.atLeast(20.05)) {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, TAG, new Class[]{String.class, TAG});
             GET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, TAG, new Class[]{String.class});
 

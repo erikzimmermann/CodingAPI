@@ -27,7 +27,7 @@ public class PickItemListener implements Listener {
     static {
         PACKET_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInSetCreativeSlot");
 
-        if (Version.atLeast(20.5)) {
+        if (Version.atLeast(20.05)) {
             slot = IReflection.getField(PACKET_CLASS, short.class, 0);
             item = IReflection.getField(PACKET_CLASS, PacketUtils.ItemStackClass, 0);
         } else {

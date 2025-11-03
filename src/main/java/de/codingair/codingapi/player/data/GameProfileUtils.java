@@ -1,7 +1,11 @@
 package de.codingair.codingapi.player.data;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
 import de.codingair.codingapi.server.specification.Version;
@@ -127,18 +131,46 @@ public class GameProfileUtils {
             String pValue = json.get("Property_Value");
             String pSignature = json.get("Property_Signature");
 
-            GameProfile gameProfile = new GameProfile(uniqueId, name);
-            gameProfile.getProperties().put("textures", new Property(pName, pValue, pSignature));
+            Multimap<String, Property> propertyMap = LinkedHashMultimap.create();
+            propertyMap.put("textures", new Property(pName, pValue, pSignature));
 
-            return gameProfile;
+            return GameProfileUtils.createGameProfile(uniqueId, name,
+                    GameProfileUtils.createPropertyMap(propertyMap));
 
         } catch (Exception e) {
             return null;
         }
     }
 
+    public static PropertyMap createPropertyMap(Multimap<String, Property> properties) {
+        if(Version.before(21.08)) {
+            PropertyMap map = new PropertyMap();
+            map.putAll(properties);
+            return map;
+        }
+
+        IReflection.ConstructorAccessor constructor = IReflection.getConstructor(PropertyMap.class, Multimap.class);
+        return (PropertyMap) constructor.newInstance(properties);
+    }
+
+    public static PropertyMap getProperties(GameProfile gameProfile) {
+        IReflection.MethodAccessor getProperties = IReflection.getMethod(GameProfile.class, PropertyMap.class, new Class[0]);
+        return  (PropertyMap) getProperties.invoke(gameProfile);
+    }
+
+    public static GameProfile createGameProfile(UUID uuid, String name, PropertyMap properties) {
+        IReflection.ConstructorAccessor[] constructors = IReflection.getConstructors(GameProfile.class);
+
+        if(constructors[0].getConstructor().getParameterCount() == 2) {
+            GameProfile profile = new GameProfile(uuid, name);
+            profile.getProperties().putAll(properties);
+            return profile;
+        } else {
+            return  (GameProfile) constructors[0].newInstance(uuid, name, properties);
+        }
+    }
+
     public static GameProfile getGameProfile(UUID uuid, String name, long timestamp, String signature, String skinUrl, String capeUrl) {
-        GameProfile profile = new GameProfile(uuid, name);
         boolean cape = capeUrl != null && !capeUrl.isEmpty();
 
         List<Object> args = new ArrayList<>();
@@ -148,7 +180,9 @@ public class GameProfileUtils {
         args.add(skinUrl);
         if (cape) args.add(capeUrl);
 
-        profile.getProperties().put("textures", new Property("textures", Base64Coder.encodeString(String.format(cape ? Skin.JSON_CAPE : Skin.JSON_SKIN, args.toArray(new Object[args.size()]))), signature));
-        return profile;
+        Multimap<String, Property> properties = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+        properties.put("textures", new Property("textures", Base64Coder.encodeString(String.format(cape ? Skin.JSON_CAPE : Skin.JSON_SKIN, args.toArray(new Object[args.size()]))), signature));
+
+        return createGameProfile(uuid, name, createPropertyMap(properties));
     }
 }

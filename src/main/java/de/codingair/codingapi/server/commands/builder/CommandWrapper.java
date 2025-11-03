@@ -40,7 +40,7 @@ public class CommandWrapper implements Predicate<Object>, SuggestionProvider<Obj
         Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, "CommandDispatcher");
 
         Object commandDispatcher;
-        if (Version.atLeast(19.3)) {
+        if (Version.atLeast(19.03)) {
             IReflection.MethodAccessor getCommandDispatcher = IReflection.getMethod(PacketUtils.MinecraftServerClass, commandDispatcherClass, new Class[0]);
             commandDispatcher = getCommandDispatcher.invoke(PacketUtils.getMinecraftServer());
         } else if (Version.atLeast(18)) {

@@ -30,7 +30,7 @@ public class ParticlePacket {
             dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
             toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[]{org.bukkit.Particle.class, Object.class});
 
-            if (Version.atLeast(21.4)) {
+            if (Version.atLeast(21.04)) {
                 particlePacketConstructor = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
             } else if (Version.atLeast(17)) {
                 particlePacketConstructor = IReflection.getConstructor(packetPlayOutWorldParticles, particleParam, boolean.class, double.class, double.class, double.class, float.class, float.class, float.class, float.class, int.class);
@@ -102,7 +102,7 @@ public class ParticlePacket {
                 return this;
             }
 
-            if (Version.atLeast(21.4)) {
+            if (Version.atLeast(21.04)) {
                 packet = particlePacketConstructor.newInstance(particle,
                         false, // force: false by default
                         this.longDistance,

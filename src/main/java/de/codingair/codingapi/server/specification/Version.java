@@ -27,7 +27,13 @@ public class Version {
                 name = "Paper";
                 specification = ServerBuildInfo.minecraftVersionName();
 
-                version = Double.parseDouble(ServerBuildInfo.minecraftVersionId().substring(2));
+                String parts = ServerBuildInfo.minecraftVersionId();
+                String minorVersion = parts.split("\\.")[1];
+                String subVersion = parts.contains(".") ? parts.split("\\.")[2] : "0";
+
+                String newVersion = minorVersion + "." + (Integer.parseInt(subVersion) < 10 ? "0" + subVersion : subVersion);
+
+                version = Double.parseDouble(newVersion);
             } else {
                 // version
                 String bukkitVersion = Bukkit.getVersion();
@@ -35,7 +41,13 @@ public class Version {
                 Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d?)?");
                 Matcher match = p.matcher(bukkitVersion);
                 if (match.find()) {
-                    version = Double.parseDouble(match.group().substring(7));
+                    String parts = match.group().substring(7);
+                    String majorVersion = parts.split("\\.")[0];
+                    String subVersion = parts.contains(".") ? parts.split("\\.")[1] : "0";
+
+                    String newVersion = majorVersion + "." + (Integer.parseInt(subVersion) < 10 ? "0" + subVersion : subVersion);
+
+                    version = Double.parseDouble(newVersion);
                 }
 
                 // specification
@@ -65,8 +77,14 @@ public class Version {
         return version;
     }
 
+    private static String getRightVersion() {
+        String ver = String.valueOf(version);
+        if(ver.split("\\.")[1].length() == 1) ver += "0";
+        return ver.replace(".0", ".");
+    }
+
     public static String versionTag() {
-        return "1." + version;
+        return "1." + getRightVersion();
     }
 
     public static String fullVersion() {

@@ -1,7 +1,12 @@
 package de.codingair.codingapi.player.data;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
+import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.tools.io.lib.JSONArray;
 import de.codingair.codingapi.tools.io.lib.JSONObject;
 import de.codingair.codingapi.tools.io.lib.JSONParser;
@@ -38,7 +43,9 @@ public abstract class Skin {
         this.uuid = profile.getId();
         this.name = profile.getName();
 
-        profile.getProperties().get("textures").forEach(property -> {
+        PropertyMap properties = GameProfileUtils.getProperties(profile);
+
+        properties.get("textures").forEach(property -> {
             this.value = PropertyUtils.getValue(property);
             this.signature = PropertyUtils.getSignature(property);
         });
@@ -59,7 +66,7 @@ public abstract class Skin {
         this.name = profile.getName();
         this.unsigned = unsigned;
 
-        profile.getProperties().get("textures").forEach(property -> {
+        GameProfileUtils.getProperties(profile).get("textures").forEach(property -> {
             this.value = PropertyUtils.getValue(property);
             this.signature = PropertyUtils.getSignature(property);
         });
@@ -190,9 +197,20 @@ public abstract class Skin {
     public GameProfile modifyProfile(GameProfile profile) {
         if (!this.isLoaded()) return profile;
 
-        profile.getProperties().removeAll("textures");
-        profile.getProperties().put("textures", new Property("textures", this.value, this.signature));
-        return profile;
+        PropertyMap properties = GameProfileUtils.getProperties(profile);
+
+        Multimap<String, Property> copy = LinkedHashMultimap.create(properties);
+
+        copy.removeAll("textures");
+        copy.put("textures", new Property("textures", this.value, this.signature));
+
+        IReflection.MethodAccessor getId = IReflection.getMethod(GameProfile.class, UUID.class, new Class[0]);
+        IReflection.MethodAccessor getName = IReflection.getMethod(GameProfile.class, String.class, new Class[0]);
+
+        UUID uuid = (UUID)getId.invoke(profile);
+        String name = (String) getName.invoke(profile);
+
+        return GameProfileUtils.createGameProfile(uuid, name, GameProfileUtils.createPropertyMap(copy));
     }
 
     @Nullable

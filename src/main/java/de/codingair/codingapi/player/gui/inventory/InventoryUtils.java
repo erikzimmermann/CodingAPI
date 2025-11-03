@@ -27,7 +27,7 @@ public class InventoryUtils {
 
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("AbstractContainerMenu", "Container"));
 
-        if (Version.atLeast(20.5)) UPDATE_INVENTORY = null;
+        if (Version.atLeast(20.05)) UPDATE_INVENTORY = null;
         else if (Version.atLeast(17)) {
             UPDATE_INVENTORY = IReflection.getMethod(CONTAINER_CLASS, Version.choose("updateInventory", 18, "b"));
         } else {
@@ -92,6 +92,7 @@ public class InventoryUtils {
 
     private static Object preparePacket(@NotNull Object activeContainer, @NotNull String title, @NotNull Inventory inventory) {
         Object messageComponent = getTitleComponent(title);
+
         int size = inventory.getSize();
         int id = getWindowId(activeContainer);
 
