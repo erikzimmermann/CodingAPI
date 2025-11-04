@@ -21,6 +21,7 @@ import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -143,7 +144,7 @@ public class GameProfileUtils {
     }
 
     public static PropertyMap createPropertyMap(Multimap<String, Property> properties) {
-        if(Version.before(21.08)) {
+        if(Version.before(21.10)) {
             PropertyMap map = new PropertyMap();
             map.putAll(properties);
             return map;
