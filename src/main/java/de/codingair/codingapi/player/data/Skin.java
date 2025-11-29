@@ -40,8 +40,8 @@ public abstract class Skin {
 
     @Deprecated
     public Skin(GameProfile profile) {
-        this.uuid = profile.getId();
-        this.name = profile.getName();
+        this.uuid = GameProfileUtils.getUUID(profile);
+        this.name = GameProfileUtils.getName(profile);
 
         PropertyMap properties = GameProfileUtils.getProperties(profile);
 
@@ -62,8 +62,8 @@ public abstract class Skin {
     }
 
     public Skin(GameProfile profile, boolean unsigned) {
-        this.uuid = profile.getId();
-        this.name = profile.getName();
+        this.uuid = GameProfileUtils.getUUID(profile);
+        this.name = GameProfileUtils.getName(profile);
         this.unsigned = unsigned;
 
         GameProfileUtils.getProperties(profile).get("textures").forEach(property -> {

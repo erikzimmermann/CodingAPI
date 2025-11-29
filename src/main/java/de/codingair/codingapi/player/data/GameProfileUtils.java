@@ -143,6 +143,20 @@ public class GameProfileUtils {
         }
     }
 
+    public static UUID getUUID(GameProfile gameProfile) {
+        IReflection.MethodAccessor getId = IReflection.getMethod(GameProfile.class,
+                Version.before(21.10) ? "getId" : "id");
+
+        return (UUID) getId.invoke(gameProfile);
+    }
+
+    public static String getName(GameProfile gameProfile) {
+        IReflection.MethodAccessor getName = IReflection.getMethod(GameProfile.class,
+                Version.before(21.10) ? "getName" : "name");
+
+        return (String) getName.invoke(gameProfile);
+    }
+
     public static PropertyMap createPropertyMap(Multimap<String, Property> properties) {
         if(Version.before(21.10)) {
             PropertyMap map = new PropertyMap();
