@@ -38,11 +38,11 @@ public abstract class SignGUI {
     private static final IReflection.MethodAccessor setWorld;
 
     static {
-        playInUpdateSignClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
-        playOutBlockChangeClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockChange");
+        playInUpdateSignClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayInUpdateSign", 21.11, "ServerboundSignUpdatePacket"));
+        playOutBlockChangeClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutBlockChange", 21.11, "ClientboundBlockUpdatePacket"));
 
         if (Version.atLeast(9))
-            playOutTileEntityData = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData");
+            playOutTileEntityData = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutTileEntityData", 21.11, "ClientboundBlockEntityDataPacket"));
         else playOutTileEntityData = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutUpdateSign");
 
         playOutBlockChangeClass$BlockPosition = IReflection.getField(playOutBlockChangeClass, PacketUtils.BlockPositionClass, 0);
@@ -258,7 +258,7 @@ public abstract class SignGUI {
         Object blockPos = PacketUtils.getBlockPosition(tempSign);
 
         // create tile entity instance
-        Class<?> tileEntitySignClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, "TileEntitySign");
+        Class<?> tileEntitySignClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, Version.choose("TileEntitySign", 21.11, "SignBlockEntity"));
         Object tileEntity;
         if (Version.atLeast(17)) {
             con = IReflection.getConstructor(tileEntitySignClass, PacketUtils.BlockPositionClass, PacketUtils.IBlockDataClass);
@@ -281,8 +281,8 @@ public abstract class SignGUI {
 
         // write line contents
         if (Version.atLeast(20)) {
-            Class<?> signTextClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, "SignText");
-            Class<?> enumColorClass = IReflection.getClass(IReflection.ServerPacket.WORLD_ITEM, "EnumColor");
+            Class<?> signTextClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, Version.choose("SignText", 21.11, "SignText"));
+            Class<?> enumColorClass = IReflection.getClass(IReflection.ServerPacket.WORLD_ITEM, Version.choose("EnumColor", 21.11, "DyeColor"));
             con = IReflection.getConstructor(signTextClass, iChatBaseComponentArrayClass, iChatBaseComponentArrayClass, enumColorClass, boolean.class);
             if (con == null)
                 throw new NullPointerException("Cannot prepare temporary sign: Could not find SignText constructor.");
@@ -310,7 +310,7 @@ public abstract class SignGUI {
         if (Version.atLeast(9)) {
             IReflection.MethodAccessor createUpdatePacket = IReflection.getMethod(
                     tileEntity.getClass(),
-                    IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutTileEntityData"),
+                    IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutTileEntityData", 21.11, "ClientboundBlockEntityDataPacket")),
                     new Class[0]
             );
             packet = createUpdatePacket.invoke(tileEntity);

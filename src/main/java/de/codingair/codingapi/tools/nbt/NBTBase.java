@@ -1,6 +1,7 @@
 package de.codingair.codingapi.tools.nbt;
 
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 
 import java.util.List;
 
@@ -28,18 +29,18 @@ public class NBTBase<T> {
     }
 
     private enum Type {
-        BYTE(Byte.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByte")),
-        BYTE_ARRAY(Byte[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagByteArray")),
-        DOUBLE(Double.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagDouble")),
-        END(null, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagEnd")),
-        FLOAT(Float.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagFloat")),
-        INT(Integer.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagInt")),
-        INT_ARRAY(Integer[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagIntArray")),
-        LIST(List.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagList")),
-        LONG(Long.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagLong")),
-        LONG_ARRAY(Long[].class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagLongArray")),
-        SHORT(Short.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagShort")),
-        STRING(String.class, IReflection.getClass(IReflection.ServerPacket.NBT, "NBTTagString")),
+        BYTE(Byte.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagByte", 21.11, "ByteTag"))),
+        BYTE_ARRAY(Byte[].class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagByteArray", 21.11, "ByteArrayTag"))),
+        DOUBLE(Double.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagDouble", 21.11, "DoubleTag"))),
+        END(null, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagEnd", 21.11, "EndTag"))),
+        FLOAT(Float.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagFloat", 21.11, "FloatTag"))),
+        INT(Integer.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagInt", 21.11, "IntTag"))),
+        INT_ARRAY(Integer[].class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagIntArray", 21.11, "IntArrayTag"))),
+        LIST(List.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagList", 21.11, "ListTag"))),
+        LONG(Long.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagLong", 21.11, "LongTag"))),
+        LONG_ARRAY(Long[].class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagLongArray", 21.11, "LongArrayTag"))),
+        SHORT(Short.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagShort", 21.11, "ShortTag"))),
+        STRING(String.class, IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTTagString", 21.11, "StringTag"))),
         UNKNOWN(null, null);
 
         private final Class<?> objectClazz;

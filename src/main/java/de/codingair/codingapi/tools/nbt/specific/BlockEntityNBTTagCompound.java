@@ -2,6 +2,7 @@ package de.codingair.codingapi.tools.nbt.specific;
 
 import de.codingair.codingapi.server.reflections.IReflection;
 import de.codingair.codingapi.server.reflections.PacketUtils;
+import de.codingair.codingapi.server.specification.Version;
 import de.codingair.codingapi.tools.nbt.NBTTagCompound;
 
 public class BlockEntityNBTTagCompound extends NBTTagCompound {
@@ -11,7 +12,7 @@ public class BlockEntityNBTTagCompound extends NBTTagCompound {
 
     static {
         CRAFT_BLOCK_ENTITY_STATE = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "block.CraftBlockEntityState");
-        Class<?> tileClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), "TileEntity");
+        Class<?> tileClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.level.block.entity"), Version.choose("TileEntity", 21.11, "BlockEntity"));
 
         TILE_ENTITY = IReflection.getField(CRAFT_BLOCK_ENTITY_STATE, "tileEntity");
         SAVE = IReflection.getMethod(tileClass, "save", PacketUtils.NBTTagCompoundClass, new Class[]{PacketUtils.NBTTagCompoundClass});

@@ -3,6 +3,7 @@ package de.codingair.codingapi.server.commands.builder.brigadier;
 import com.mojang.brigadier.context.CommandContext;
 import de.codingair.codingapi.server.commands.builder.CommandBuilder;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.command.CommandSender;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ public class CommandListenerWrapper {
         this.builder = builder;
 
         if (getBukkitSender == null) {
-            Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), "CommandListenerWrapper");
+            Class<?> commandListenerWrapperClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.commands"), Version.choose("CommandListenerWrapper", 21.11, "CommandSourceStack"));
             getBukkitSender = IReflection.getMethod(commandListenerWrapperClass, "getBukkitSender", CommandSender.class, new Class[]{});
         }
     }

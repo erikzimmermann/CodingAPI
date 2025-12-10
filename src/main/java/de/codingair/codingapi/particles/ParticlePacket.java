@@ -24,8 +24,8 @@ public class ParticlePacket {
 
     static {
         if (Version.atLeast(13)) {
-            packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
-            particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, "ParticleParam");
+            packetPlayOutWorldParticles = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutWorldParticles", 21.11, "ClientboundLevelParticlesPacket"));
+            particleParam = IReflection.getClass(IReflection.ServerPacket.PARTICLES, Version.choose("ParticleParam", 21.11, "ParticleOptions"));
             craftParticle = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, "CraftParticle");
             dustOptions = IReflection.getClass(IReflection.ServerPacket.BUKKIT_PACKET, "Particle$DustOptions");
             toNMS = IReflection.getMethod(craftParticle, particleParam, new Class[]{org.bukkit.Particle.class, Object.class});
@@ -143,7 +143,7 @@ public class ParticlePacket {
                 }
             }
         } else {
-            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutWorldParticles");
+            Class<?> packetClass = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutWorldParticles", 21.11, "ClientboundLevelParticlesPacket"));
             Constructor<?> packetConstructor = IReflection.getConstructor(packetClass).getConstructor();
 
             Class<?> enumParticle = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE, "EnumParticle");

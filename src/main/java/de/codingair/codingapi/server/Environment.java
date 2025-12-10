@@ -64,9 +64,9 @@ public class Environment {
         if (Version.atLeast(9)) {
             IReflection.FieldAccessor<?> getSoundEffectType = IReflection.getField(PacketUtils.BlockClass, "stepSound");
 
-            Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, "SoundEffectType");
-            Class<?> soundEffectClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.sounds"), "SoundEffect");
-            Class<?> minecraftKeyClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.resources"), "MinecraftKey");
+            Class<?> soundEffectTypeClass = IReflection.getClass(IReflection.ServerPacket.BLOCK, Version.choose("SoundEffectType", 21.11, "SoundType"));
+            Class<?> soundEffectClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.sounds"), Version.choose("SoundEffect", 21.11, "SoundEvent"));
+            Class<?> minecraftKeyClass = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.resources"), Version.choose("MinecraftKey", 21.11, "ResourceLocation"));
 
             Object soundEffectType = getSoundEffectType.get(block);
 

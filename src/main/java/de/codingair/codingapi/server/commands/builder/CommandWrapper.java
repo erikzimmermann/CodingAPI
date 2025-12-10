@@ -37,7 +37,7 @@ public class CommandWrapper implements Predicate<Object>, SuggestionProvider<Obj
     }
 
     public static CommandDispatcher<Object> dispatcher() {
-        Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, "CommandDispatcher");
+        Class<?> commandDispatcherClass = IReflection.getClass(IReflection.ServerPacket.COMMANDS, Version.choose("CommandDispatcher", 21.11, "Commands"));
 
         Object commandDispatcher;
         if (Version.atLeast(19.03)) {

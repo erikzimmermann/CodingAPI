@@ -50,8 +50,8 @@ public class AnvilGUI implements Removable {
     private static final Function<Object, Object> GET_INVENTORY;
 
     static {
-        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAnvil");
-        PLAYER_INVENTORY_CLASS = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), "PlayerInventory");
+        Class<?> containerAnvilClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("ContainerAnvil", 21.11, "AnvilMenu"));
+        PLAYER_INVENTORY_CLASS = IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.player"), Version.choose("PlayerInventory", 21.11, "Inventory"));
         WORLD_CLASS = PacketUtils.WorldClass;
         BLOCK_POSITION_CLASS = PacketUtils.BlockPositionClass;
         ENTITY_PLAYER_CLASS = PacketUtils.EntityPlayerClass;
@@ -59,11 +59,11 @@ public class AnvilGUI implements Removable {
 
         // paper made the switch already in late 1.21 but spigot not before 1.21.1
         Class<?> craftInventoryViewClass = IReflection.getClass(IReflection.ServerPacket.CRAFTBUKKIT_PACKAGE, Version.choose("inventory.CraftInventoryView", Version.choose(21D, 21.01), "inventory.view.CraftAnvilView"));
-        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
-        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "Container");
+        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutOpenWindow", 21.11, "ClientboundOpenScreenPacket"));
+        CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("Container", 21.11, "AbstractContainerMenu"));
 
         if (Version.atLeast(14)) {
-            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
+            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("ContainerAccess", 21.11, "ContainerLevelAccess"));
             ANVIL_CONTAINER_CON = IReflection.getConstructor(containerAnvilClass, int.class, PLAYER_INVENTORY_CLASS, containerAccessClass);
         } else {
             ANVIL_CONTAINER_CON = IReflection.getConstructor(containerAnvilClass, PLAYER_INVENTORY_CLASS, WORLD_CLASS, BLOCK_POSITION_CLASS, ENTITY_PLAYER_CLASS);

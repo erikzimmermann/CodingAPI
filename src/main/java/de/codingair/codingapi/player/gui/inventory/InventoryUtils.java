@@ -23,7 +23,7 @@ public class InventoryUtils {
     private static final IReflection.ConstructorAccessor PACKET_CONSTRUCTOR;
 
     static {
-        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenWindow");
+        PACKET_PLAY_OUT_OPEN_WINDOW_CLASS = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutOpenWindow", 21.11, "ClientboundOpenScreenPacket"));
 
         CONTAINER_CLASS = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("AbstractContainerMenu", "Container"));
 

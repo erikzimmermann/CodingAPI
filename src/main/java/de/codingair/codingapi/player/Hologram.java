@@ -734,7 +734,7 @@ public class Hologram implements Removable {
 
         @NotNull
         public static Class<?> getArmorStandClass() {
-            return IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.decoration"), "EntityArmorStand");
+            return IReflection.getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.world.entity.decoration"), Version.choose("EntityArmorStand", 21.11, "ArmorStand"));
         }
 
         public static Set<Object> getDataWatcherObjects(Class<?> c) {
