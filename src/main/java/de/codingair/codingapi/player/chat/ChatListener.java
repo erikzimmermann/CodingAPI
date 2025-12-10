@@ -4,6 +4,7 @@ import com.github.Anon8281.universalScheduler.UniversalScheduler;
 import de.codingair.codingapi.API;
 import de.codingair.codingapi.player.data.PacketReader;
 import de.codingair.codingapi.server.reflections.IReflection;
+import de.codingair.codingapi.server.specification.Version;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,7 +29,7 @@ public class ChatListener implements Listener {
             chatPacket = IReflection.getSaveClass(IReflection.ServerPacket.PACKETS, "ServerboundChatCommandPacket");
             messagePrefix = "/";
         } catch (ClassNotFoundException e) {
-            chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInChat");
+            chatPacket = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayInChat", 21.11, "ServerboundChatPacket"));
         }
 
         text = IReflection.getField(chatPacket, String.class, 0);

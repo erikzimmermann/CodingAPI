@@ -20,7 +20,7 @@ public class NBTTagCompound {
     protected static IReflection.MethodAccessor asBukkitCopy;
 
     static {
-        TAG = IReflection.getClass(IReflection.ServerPacket.NBT, "NBTBase");
+        TAG = IReflection.getClass(IReflection.ServerPacket.NBT, Version.choose("NBTBase", 21.11, "Tag"));
 
         if (Version.atLeast(20.05)) {
             SET = IReflection.getMethod(PacketUtils.NBTTagCompoundClass, TAG, new Class[]{String.class, TAG});

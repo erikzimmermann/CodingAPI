@@ -60,16 +60,16 @@ public class PacketUtils {
     public static final Class<?> DataWatcherObjectClass = IReflection.wrap(Version.atLeast(19.03), () -> getClass(IReflection.ServerPacket.MINECRAFT_PACKAGE("net.minecraft.network.syncher"), Version.choose("EntityDataAccessor", "DataWatcherObject")));
 
     public static final Class<?> PacketClass = getClass(IReflection.ServerPacket.PROTOCOL, "Packet");
-    public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutAttachEntity");
-    public static final Class<?> PacketPlayOutEntityDestroyClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityDestroy");
-    public static final Class<?> PacketPlayOutEntityTeleportClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityTeleport");
-    public static final Class<?> PacketPlayOutEntityVelocityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityVelocity");
-    public static final Class<?> PacketPlayOutEntityMetadataClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutEntityMetadata");
-    public static final Class<?> PacketPlayOutSpawnEntityLivingClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutSpawnEntityLiving", true);
-    public static final Class<?> PacketPlayOutSpawnEntityClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutSpawnEntity");
-    public static final Class<?> PacketPlayOutBlockActionClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockAction");
-    public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayInUpdateSign");
-    public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutOpenSignEditor");
+    public static final Class<?> PacketPlayOutAttachEntityClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutAttachEntity", 21.11, "ClientboundSetPassengersPacket"), true);
+    public static final Class<?> PacketPlayOutEntityDestroyClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutEntityDestroy", 21.11, "ClientboundRemoveEntitiesPacket"), true);
+    public static final Class<?> PacketPlayOutEntityTeleportClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutEntityTeleport", 21.11, "ClientboundTeleportEntityPacket"), true);
+    public static final Class<?> PacketPlayOutEntityVelocityClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutEntityVelocity", 21.11, "ClientboundSetEntityMotionPacket"), true);
+    public static final Class<?> PacketPlayOutEntityMetadataClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutEntityMetadata", 21.11, "ClientboundSetEntityDataPacket"), true);
+    public static final Class<?> PacketPlayOutSpawnEntityLivingClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutSpawnEntityLiving", 21.11, "ClientboundAddEntityPacket"), true);
+    public static final Class<?> PacketPlayOutSpawnEntityClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutSpawnEntity", 21.11, "ClientboundAddEntityPacket"), true);
+    public static final Class<?> PacketPlayOutBlockActionClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutBlockAction", 21.11, "ClientboundBlockEventPacket"), true);
+    public static final Class<?> PacketPlayInUpdateSignClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayInUpdateSign", 21.11, "ServerboundSignUpdatePacket"));
+    public static final Class<?> PacketPlayOutOpenSignEditorClass = getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutOpenSignEditor", 21.11, "ClientboundOpenSignEditorPacket"));
 
     public static final Class<?> ChatSerializerClass = IReflection.wrap(Version.atMost(21.04), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("Component$Serializer", "IChatBaseComponent$ChatSerializer")));
     public static final Class<?> IChatMutableComponentClass = IReflection.wrap(Version.atLeast(16), () -> getClass(IReflection.ServerPacket.CHAT, Version.choose("MutableComponent", "IChatMutableComponent")));
@@ -187,7 +187,7 @@ public class PacketUtils {
     }
 
     public static void sendBlockChange(@NotNull Player player, @NotNull Location location, @NotNull Object iBlockData) {
-        Class<?> packetPlayOutBlockChange = IReflection.getClass(IReflection.ServerPacket.PACKETS, "PacketPlayOutBlockChange");
+        Class<?> packetPlayOutBlockChange = IReflection.getClass(IReflection.ServerPacket.PACKETS, Version.choose("PacketPlayOutBlockChange", 21.11, "ClientboundBlockUpdatePacket"));
 
         Object packet;
         Object blockPos = PacketUtils.getBlockPosition(location);
