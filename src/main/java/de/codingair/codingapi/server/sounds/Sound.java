@@ -1525,7 +1525,7 @@ public enum Sound {
                 for(org.bukkit.Sound sound : sounds) {
                     BUKKIT_NAMES.put(sound.getKey().getKey().replaceAll("\\.", "_").toUpperCase(), sound);
                 }
-            } else if(Version.type() == Type.PAPER && Version.atLeast(21.4)) {
+            } else if(Version.type() == Type.PAPER && Version.atLeast(21.04)) {
                 // Workaround: Get sounds using reflection, as with Paper 1.21.4, sounds enum was replaced
                 // Solution: Use Kyori library for sounds when using paper.
                 for(Field field : org.bukkit.Sound.class.getFields()) {
