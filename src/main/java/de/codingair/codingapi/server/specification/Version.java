@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 public class Version {
     private static Double version = null;
+    private static String id = null;
     private static String name = null;
     private static String specification = null;
     private static Type type = Type.UNKNOWN;
@@ -26,32 +27,26 @@ public class Version {
                 type = Type.PAPER;
                 name = "Paper";
                 specification = ServerBuildInfo.minecraftVersionName();
-
-                String parts = ServerBuildInfo.minecraftVersionId();
-                String minorVersion = parts.split("\\.")[1];
-                String subVersion = parts.contains(".") ? parts.split("\\.")[2] : "0";
-
-                String newVersion = minorVersion + "." + (Integer.parseInt(subVersion) < 10 ? "0" + subVersion : subVersion);
-
-                version = Double.parseDouble(newVersion);
+                id = ServerBuildInfo.minecraftVersionId();
+                version = parseVersionId(id);
             } else {
-                // version
-                String bukkitVersion = Bukkit.getVersion();
+                String bukkitVersion;
+                try {
+                    bukkitVersion = Bukkit.getVersion();
+                } catch (Exception e) {
+                    // Server not yet bound (e.g. unit tests); leave version null so get() throws later.
+                    return;
+                }
 
-                Pattern p = Pattern.compile("\\(MC: \\d\\.\\d\\d?(\\.\\d\\d?)?");
-                Matcher match = p.matcher(bukkitVersion);
+                // Permissive enough to match both legacy "1.x.y" and year-scheme "YY.D.P".
+                Matcher match = Pattern.compile("\\(MC: (\\d+(?:\\.\\d+)+)").matcher(bukkitVersion);
                 if (match.find()) {
-                    String parts = match.group().substring(7);
-                    String majorVersion = parts.split("\\.")[0];
-                    String subVersion = parts.contains(".") ? parts.split("\\.")[1] : "0";
-
-                    String newVersion = majorVersion + "." + (Integer.parseInt(subVersion) < 10 ? "0" + subVersion : subVersion);
-
-                    version = Double.parseDouble(newVersion);
+                    id = match.group(1);
+                    version = parseVersionId(id);
                 }
 
                 // specification
-                specification = Bukkit.getVersion();
+                specification = bukkitVersion;
 
                 // server type
                 try {
@@ -72,19 +67,36 @@ public class Version {
         }
     }
 
+    /** Parses a Minecraft version id. Encoding is load-bearing: call sites bake cutoffs as numeric literals
+     *  (e.g. {@code atLeast(20.5)}, {@code choose(old, 21.11, new)}). Legacy "1.X.Y" → X.YY; year-scheme
+     *  "YY.D.P" → (year*100+drop).PP, which sorts strictly above any legacy value. Snapshot ids
+     *  ({@code "23w31a"}, etc.) throw {@link NumberFormatException}. */
+    static double parseVersionId(String id) {
+        String[] segs = id.split("\\.");
+        int first = Integer.parseInt(segs[0]);
+
+        if (first == 1) {
+            String minorVersion = segs[1];
+            String subVersion = segs.length > 2 ? segs[2] : "0";
+            String newVersion = minorVersion + "." + (Integer.parseInt(subVersion) < 10 ? "0" + subVersion : subVersion);
+            return Double.parseDouble(newVersion);
+        }
+
+        int year = first;
+        int drop = segs.length > 1 ? Integer.parseInt(segs[1]) : 0;
+        int patch = segs.length > 2 ? Integer.parseInt(segs[2]) : 0;
+        String encoded = (year * 100 + drop) + "." + (patch < 10 ? "0" + patch : Integer.toString(patch));
+        return Double.parseDouble(encoded);
+    }
+
     public static double get() {
         if (version == null) throw new IllegalStateException("Version could not be loaded.");
         return version;
     }
 
-    private static String getRightVersion() {
-        String ver = String.valueOf(version);
-        if(ver.split("\\.")[1].length() == 1) ver += "0";
-        return ver.replace(".0", ".");
-    }
-
     public static String versionTag() {
-        return "1." + getRightVersion();
+        if (id == null) throw new IllegalStateException("Version could not be loaded.");
+        return id;
     }
 
     public static String fullVersion() {
@@ -226,17 +238,27 @@ public class Version {
                 infoClass = null;
             }
 
-            if (infoClass == null) {
-                info = null;
-                minecraftVersionId = null;
-                minecraftVersionName = null;
-            } else {
-                IReflection.MethodAccessor buildInfo = IReflection.getMethod(infoClass, infoClass, new Class[0]);
-                info = buildInfo.invoke(null);
+            Object resolvedInfo = null;
+            IReflection.MethodAccessor resolvedVersionId = null;
+            IReflection.MethodAccessor resolvedVersionName = null;
 
-                minecraftVersionId = IReflection.getMethod(infoClass, "minecraftVersionId", String.class, new Class[0]);
-                minecraftVersionName = IReflection.getMethod(infoClass, "minecraftVersionName", String.class, new Class[0]);
+            if (infoClass != null) {
+                try {
+                    IReflection.MethodAccessor buildInfo = IReflection.getMethod(infoClass, infoClass, new Class[0]);
+                    resolvedInfo = buildInfo.invoke(null);
+                    resolvedVersionId = IReflection.getMethod(infoClass, "minecraftVersionId", String.class, new Class[0]);
+                    resolvedVersionName = IReflection.getMethod(infoClass, "minecraftVersionName", String.class, new Class[0]);
+                } catch (Throwable t) {
+                    // Class visible but no live instance (e.g. ServiceLoader unset in tests); fall through to Bukkit path.
+                    resolvedInfo = null;
+                    resolvedVersionId = null;
+                    resolvedVersionName = null;
+                }
             }
+
+            info = resolvedInfo;
+            minecraftVersionId = resolvedVersionId;
+            minecraftVersionName = resolvedVersionName;
         }
 
         private static boolean isAvailable() {
