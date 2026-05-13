@@ -2320,9 +2320,11 @@ public enum XMaterial /* implements com.cryptomorin.xseries.abstractions.Materia
 
         static { // This needs to be right below VERSION because of initialization order.
             String version = Bukkit.getVersion();
-            Matcher matcher = Pattern.compile("MC: \\d\\.(\\d+)").matcher(version);
+            Matcher legacy = Pattern.compile("MC: 1\\.(\\d+)").matcher(version);
+            Matcher yearScheme = Pattern.compile("MC: (\\d{2,})\\.").matcher(version);
 
-            if (matcher.find()) VERSION = Integer.parseInt(matcher.group(1));
+            if (legacy.find()) VERSION = Integer.parseInt(legacy.group(1));
+            else if (yearScheme.find()) VERSION = 99; // year-scheme (Mojang 2026+): treat as newest legacy minor
             else throw new IllegalArgumentException("Failed to parse server version from: " + version);
         }
     }
