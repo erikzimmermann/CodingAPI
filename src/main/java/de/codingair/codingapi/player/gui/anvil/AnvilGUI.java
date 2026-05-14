@@ -268,7 +268,7 @@ public class AnvilGUI implements Removable {
 
         Object container;
         if (Version.atLeast(14)) {
-            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, "ContainerAccess");
+            Class<?> containerAccessClass = IReflection.getClass(IReflection.ServerPacket.INVENTORY, Version.choose("ContainerAccess", 21.11, "ContainerLevelAccess"));
             IReflection.MethodAccessor at = IReflection.getMethod(containerAccessClass, containerAccessClass, new Class[]{WORLD_CLASS, BLOCK_POSITION_CLASS});
 
             Object containerAccess = at.invoke(null, world, blockPosition);
