@@ -45,6 +45,7 @@ public class BannerValue {
         if (!available || !(itemMeta instanceof BannerMeta)) return;
 
         BannerMeta meta = (BannerMeta) itemMeta;
+        meta.setPatterns(new ArrayList<>());
         for (Map<String, Object> map : data) {
             try {
                 DyeColor dyeColor = DyeColor.valueOf((String) map.get("color"));
