@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,7 +54,9 @@ public abstract class SignGUI {
         getY = IReflection.getNonStaticField(baseBlockPosition, int.class, 1);
         getZ = IReflection.getNonStaticField(baseBlockPosition, int.class, 2);
 
-        if (Version.atLeast(9))
+        if (Version.atLeast(2603))
+            packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, List.class, 0);
+        else if (Version.atLeast(9))
             packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, String[].class, 0);
         else packetLines = IReflection.getField(PacketUtils.PacketPlayInUpdateSignClass, "b");
 
@@ -147,7 +150,9 @@ public abstract class SignGUI {
                 if (packet.getClass().equals(playInUpdateSignClass)) {
                     String[] lines;
 
-                    if (Version.atLeast(9)) {
+                    if (Version.atLeast(2603)) {
+                        lines = ((List<?>) packetLines.get(packet)).toArray(new String[0]);
+                    } else if (Version.atLeast(9)) {
                         lines = (String[]) packetLines.get(packet);
                     } else {
                         lines = sign == null ? new String[4] : sign.getLines();
@@ -280,7 +285,22 @@ public abstract class SignGUI {
         }
 
         // write line contents
-        if (Version.atLeast(20)) {
+        if (Version.atLeast(2603)) {
+            // 26.3: SignText takes component lists and SignBlockEntity#setText takes a SignTextSlot instead of a boolean
+            Class<?> signTextClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, "SignText");
+            Class<?> enumColorClass = IReflection.getClass(IReflection.ServerPacket.WORLD_ITEM, "DyeColor");
+            con = IReflection.getConstructor(signTextClass, List.class, List.class, enumColorClass, boolean.class);
+            if (con == null)
+                throw new NullPointerException("Cannot prepare temporary sign: Could not find SignText constructor.");
+
+            Object blackColor = enumColorClass.getEnumConstants()[enumColorClass.getEnumConstants().length - 1];
+            List<Object> lineList = Arrays.asList(lines);
+            Object signText = con.newInstance(lineList, lineList, blackColor, false /*glow*/);
+
+            Object frontSlot = frontSignTextSlot();
+            IReflection.MethodAccessor applyText = IReflection.getMethod(tileEntitySignClass, "setText", null, new Class[]{signTextClass, frontSlot.getClass()});
+            applyText.invoke(tileEntity, signText, frontSlot);
+        } else if (Version.atLeast(20)) {
             Class<?> signTextClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, Version.choose("SignText", 21.11, "SignText"));
             Class<?> enumColorClass = IReflection.getClass(IReflection.ServerPacket.WORLD_ITEM, Version.choose("EnumColor", 21.11, "DyeColor"));
             con = IReflection.getConstructor(signTextClass, iChatBaseComponentArrayClass, iChatBaseComponentArrayClass, enumColorClass, boolean.class);
@@ -352,7 +372,8 @@ public abstract class SignGUI {
         Packet packet = new Packet(PacketUtils.PacketPlayOutOpenSignEditorClass, player);
 
         Object location = PacketUtils.getBlockPosition(signLocation);
-        packet.initialize(location, Version.choose(Packet.IGNORE, 20, true));
+        if (Version.atLeast(2603)) packet.initialize(location, frontSignTextSlot());
+        else packet.initialize(location, Version.choose(Packet.IGNORE, 20, true));
         packet.send();
     }
 
@@ -381,6 +402,17 @@ public abstract class SignGUI {
 
     public String[] getLines() {
         return lines;
+    }
+
+    /**
+     * @return SignTextSlot.FRONT, which replaced the "is front text" boolean in 26.3.
+     */
+    private static @NotNull Object frontSignTextSlot() {
+        Class<?> slotClass = IReflection.getClass(IReflection.ServerPacket.BLOCK_ENTITY, "SignTextSlot");
+        for (Object constant : slotClass.getEnumConstants()) {
+            if (((Enum<?>) constant).name().equals("FRONT")) return constant;
+        }
+        throw new IllegalStateException("Cannot find SignTextSlot.FRONT");
     }
 
     /**
